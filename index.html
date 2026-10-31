@@ -14,6 +14,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 
+    <!-- Firebase SDK (Compat v10) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <style>
         :root {
             --bg-main: #000000;
@@ -21,15 +26,9 @@
             --surface-hover: #171717;
             --border-color: rgba(255, 255, 255, 0.12);
             --border-light: rgba(255, 255, 255, 0.25);
-            
             --text-primary: #ffffff;
             --text-secondary: #8e8e93;
             --text-tertiary: #48484a;
-
-            --badge-plat: #ffffff;
-            --badge-gold: #d4d4d8;
-            --badge-silver: #a1a1aa;
-            --badge-bronze: #52525b;
         }
 
         * {
@@ -51,7 +50,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Minimal Header */
+        /* Header */
         header {
             position: sticky;
             top: 0;
@@ -79,6 +78,12 @@
             color: var(--text-primary);
         }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .progress-stat {
             font-size: 0.75rem;
             font-weight: 600;
@@ -91,7 +96,17 @@
             font-size: 1rem;
         }
 
-        /* Rank Counts Bar */
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -179,7 +194,6 @@
             box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
         }
 
-        /* Mono Trophy Icons */
         .icon-box {
             width: 44px;
             height: 44px;
@@ -192,7 +206,6 @@
             font-size: 1.1rem;
             color: var(--text-tertiary);
             flex-shrink: 0;
-            transition: all 0.3s ease;
         }
 
         .unlocked .icon-box {
@@ -201,9 +214,7 @@
             border-color: rgba(255, 255, 255, 0.3);
         }
 
-        .trophy-info {
-            flex-grow: 1;
-        }
+        .trophy-info { flex-grow: 1; }
 
         .trophy-name {
             font-size: 0.9rem;
@@ -258,17 +269,10 @@
             border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 700;
-            letter-spacing: 0.5px;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
 
-        .unlock-btn:active {
-            background: var(--text-primary);
-            color: var(--bg-main);
-        }
-
-        /* Sleek Modern Notification */
+        /* Notification */
         #notification {
             position: fixed;
             top: calc(16px + env(safe-area-inset-top));
@@ -288,9 +292,7 @@
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        #notification.show {
-            transform: translateX(-50%) translateY(0);
-        }
+        #notification.show { transform: translateX(-50%) translateY(0); }
 
         .notif-icon {
             width: 36px;
@@ -301,28 +303,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
         }
 
-        .notif-text .label {
-            font-size: 0.6rem;
-            font-weight: 900;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #666666;
-        }
-
-        .notif-text .title {
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-
-        /* Modal */
+        /* Modals (Auth & Unlock) */
         .modal {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(10px);
             z-index: 500;
             align-items: center;
@@ -345,7 +333,43 @@
             font-size: 1rem;
             font-weight: 700;
             margin-bottom: 16px;
+            text-align: center;
             letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            outline: none;
+        }
+
+        .form-input:focus { border-color: var(--text-primary); }
+
+        .modal-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: var(--text-primary);
+            color: var(--bg-main);
+            margin-top: 6px;
+        }
+
+        .switch-auth {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            cursor: pointer;
         }
 
         .photo-upload-zone {
@@ -367,31 +391,31 @@
             margin-bottom: 16px;
         }
 
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .modal-btn {
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .btn-confirm { background: var(--text-primary); color: var(--bg-main); }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 10px; }
         .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
     </style>
 </head>
 <body>
 
+    <!-- Auth Modal -->
+    <div class="modal" id="auth-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="auth-title">ログイン</div>
+            <input type="email" id="auth-email" class="form-input" placeholder="メールアドレス">
+            <input type="password" id="auth-password" class="form-input" placeholder="パスワード">
+            <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">ログイン</button>
+            <div class="switch-auth" id="auth-switch-text" onclick="toggleAuthMode()">アカウントをお持ちでない方は新規登録</div>
+        </div>
+    </div>
+
+    <!-- Header -->
     <header>
         <div class="header-top">
             <div class="brand-logo">Life Trophies</div>
-            <div class="progress-stat">PROGRESS <span id="progress-percent">0%</span></div>
+            <div class="header-right">
+                <div class="progress-stat">PROGRESS <span id="progress-percent">0%</span></div>
+                <button class="logout-btn" onclick="logout()">ログアウト</button>
+            </div>
         </div>
 
         <div class="stats-grid">
@@ -414,12 +438,10 @@
     <div class="container" id="trophy-list"></div>
 
     <div id="notification">
-        <div class="notif-icon">
-            <i class="fa-solid fa-trophy"></i>
-        </div>
+        <div class="notif-icon"><i class="fa-solid fa-trophy"></i></div>
         <div class="notif-text">
-            <div class="label">Trophy Unlocked</div>
-            <div class="title" id="notif-title">実績タイトル</div>
+            <div class="label" style="font-size: 0.6rem; font-weight: 900; color: #66;">Trophy Unlocked</div>
+            <div class="title" id="notif-title" style="font-size: 0.85rem; font-weight: 700;">実績タイトル</div>
         </div>
     </div>
 
@@ -434,18 +456,39 @@
             <input type="file" id="photo-input" accept="image/*" capture="environment" style="display: none;" onchange="previewImage(event)">
             
             <div class="modal-buttons">
-                <button class="modal-btn btn-cancel" onclick="closeModal()">キャンセル</button>
-                <button class="modal-btn btn-confirm" onclick="confirmUnlock()">解除する</button>
+                <button class="modal-btn btn-cancel" onclick="closeUnlockModal()">キャンセル</button>
+                <button class="modal-btn" onclick="confirmUnlock()">解除する</button>
             </div>
         </div>
     </div>
 
     <script>
-        const defaultTrophies = [
-            // PLATINUM (1項目)
-            { id: 1, name: '夢、叶えし者', condition: '夢を叶える', rank: 'platinum', isUltimate: true },
+        // ==========================================
+        // Firebase Configuration (組み込み済み)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYxWPvgUwPABCmvZyEZ_AXI-Q_yiDUlsg",
+            authDomain: "dreamscometrue-45b45.firebaseapp.com",
+            projectId: "dreamscometrue-45b45",
+            storageBucket: "dreamscometrue-45b45.firebasestorage.app",
+            messagingSenderId: "913187912196",
+            appId: "1:913187912196:web:e2739facf7420836ee9351",
+            measurementId: "G-YCH8JM2YCW"
+        };
 
-            // GOLD (16項目)
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let currentUser = null;
+        let userState = {};
+        let isSignUpMode = false;
+        let selectedTrophyId = null;
+
+        const defaultTrophies = [
+            // PLATINUM (1)
+            { id: 1, name: '夢、叶えし者', condition: '夢を叶える', rank: 'platinum', isUltimate: true },
+            // GOLD (16)
             { id: 2, name: 'バイリンガル', condition: 'TOEICで満点を取る', rank: 'gold' },
             { id: 3, name: '言語学者', condition: '漢検一級を取得', rank: 'gold' },
             { id: 4, name: 'Off the wall', condition: 'ベンチプレス100kgをクリア', rank: 'gold' },
@@ -462,8 +505,7 @@
             { id: 15, name: 'Bullet', condition: '日帰りまたは0泊で海外へ行く', rank: 'gold' },
             { id: 16, name: '本物の勝負師', condition: '合法的なカジノで遊ぶ', rank: 'gold' },
             { id: 17, name: 'ダイヤモンドは砕けない', condition: 'ダイヤモンド製品を購入する', rank: 'gold' },
-
-            // SILVER (24項目)
+            // SILVER (24)
             { id: 18, name: 'スティールボールラン', condition: '馬に乗る', rank: 'silver' },
             { id: 19, name: 'なにわの商人', condition: '家電量販店で値引きを交渉をして割引をしてもらう', rank: 'silver' },
             { id: 20, name: 'デジタルデトックス', condition: '見知らぬ人に教えを請う', rank: 'silver' },
@@ -488,8 +530,7 @@
             { id: 39, name: 'この日のために', condition: '大勢の前でダンスを披露する', rank: 'silver' },
             { id: 40, name: '拡散よろしく！', condition: 'イベントでコスプレをする', rank: 'silver' },
             { id: 41, name: 'のんびりスローライフ', condition: '無人島に上陸する', rank: 'silver' },
-
-            // BRONZE (37項目)
+            // BRONZE (37)
             { id: 42, name: 'あの夏の思い出', condition: 'カブト虫を捕まえる', rank: 'bronze' },
             { id: 43, name: '秘密のストライク', condition: 'ボウリングでストライクを取る', rank: 'bronze' },
             { id: 44, name: 'ブルズアイ', condition: 'ダーツでブルに入れる', rank: 'bronze' },
@@ -529,8 +570,67 @@
             { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze' }
         ];
 
-        let userState = JSON.parse(localStorage.getItem('life_trophies_v_mono')) || {};
-        let selectedTrophyId = null;
+        // 認証状態の監視
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-modal').classList.remove('active');
+                loadUserData();
+            } else {
+                currentUser = null;
+                userState = {};
+                document.getElementById('auth-modal').classList.add('active');
+                renderTrophies();
+            }
+        });
+
+        // ログイン・登録の切り替え
+        function toggleAuthMode() {
+            isSignUpMode = !isSignUpMode;
+            document.getElementById('auth-title').innerText = isSignUpMode ? '新規アカウント登録' : 'ログイン';
+            document.getElementById('auth-submit-btn').innerText = isSignUpMode ? '登録する' : 'ログイン';
+            document.getElementById('auth-switch-text').innerText = isSignUpMode ? 'すでにアカウントをお持ちの方はログイン' : 'アカウントをお持ちでない方は新規登録';
+        }
+
+        async function handleAuth() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            if (!email || !password) return alert('メールアドレスとパスワードを入力してください');
+
+            try {
+                if (isSignUpMode) {
+                    await auth.createUserWithEmailAndPassword(email, password);
+                } else {
+                    await auth.signInWithEmailAndPassword(email, password);
+                }
+            } catch (error) {
+                alert('エラー: ' + error.message);
+            }
+        }
+
+        async function logout() {
+            await auth.signOut();
+        }
+
+        // Firestoreからユーザーデータをロード
+        async function loadUserData() {
+            if (!currentUser) return;
+            const docRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('status');
+            const doc = await docRef.get();
+            if (doc.exists) {
+                userState = doc.data() || {};
+            } else {
+                userState = {};
+            }
+            renderTrophies();
+        }
+
+        // Firestoreへユーザーデータをセーブ
+        async function saveUserData() {
+            if (!currentUser) return;
+            const docRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('status');
+            await docRef.set(userState);
+        }
 
         function renderTrophies(filter = 'all') {
             const listEl = document.getElementById('trophy-list');
@@ -555,9 +655,7 @@
                 card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
                 
                 card.innerHTML = `
-                    <div class="icon-box">
-                        <i class="fa-solid fa-trophy"></i>
-                    </div>
+                    <div class="icon-box"><i class="fa-solid fa-trophy"></i></div>
                     <div class="trophy-info">
                         <div class="trophy-name">${t.isUltimate ? '★ ' : ''}${t.name}</div>
                         <div class="trophy-condition">${t.condition}</div>
@@ -566,7 +664,7 @@
                             ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date}</span>` : ''}
                         </div>
                     </div>
-                    ${!isUnlocked ? `<button class="unlock-btn" onclick="openModal(${t.id})">解除</button>` : ''}
+                    ${!isUnlocked ? `<button class="unlock-btn" onclick="openUnlockModal(${t.id})">解除</button>` : ''}
                 `;
                 listEl.appendChild(card);
             });
@@ -586,7 +684,7 @@
             renderTrophies(filter);
         }
 
-        function openModal(id) {
+        function openUnlockModal(id) {
             selectedTrophyId = id;
             const trophy = defaultTrophies.find(t => t.id === id);
             document.getElementById('modal-trophy-title').innerText = `「${trophy.name}」`;
@@ -595,7 +693,7 @@
             document.getElementById('unlock-modal').classList.add('active');
         }
 
-        function closeModal() {
+        function closeUnlockModal() {
             document.getElementById('unlock-modal').classList.remove('active');
             selectedTrophyId = null;
         }
@@ -613,7 +711,7 @@
             }
         }
 
-        function confirmUnlock() {
+        async function confirmUnlock() {
             if (!selectedTrophyId) return;
 
             const trophy = defaultTrophies.find(t => t.id === selectedTrophyId);
@@ -622,10 +720,9 @@
                 photo: document.getElementById('photo-preview').src || null
             };
 
-            localStorage.setItem('life_trophies_v_mono', JSON.stringify(userState));
-            closeModal();
+            await saveUserData();
+            closeUnlockModal();
             renderTrophies();
-
             showNotification(trophy.name);
         }
 
@@ -633,13 +730,8 @@
             const notif = document.getElementById('notification');
             document.getElementById('notif-title').innerText = title;
             notif.classList.add('show');
-
-            setTimeout(() => {
-                notif.classList.remove('show');
-            }, 3500);
+            setTimeout(() => notif.classList.remove('show'), 3500);
         }
-
-        renderTrophies();
     </script>
 </body>
 </html>

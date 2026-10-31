@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Life Trophies</title>
+    
+    <!-- PWA Settings -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Life Trophies">
+    
+    <!-- FontAwesome & Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #000000;
+            --surface-card: #0d0d0d;
+            --surface-hover: #171717;
+            --border-color: rgba(255, 255, 255, 0.12);
+            --border-light: rgba(255, 255, 255, 0.25);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #8e8e93;
+            --text-tertiary: #48484a;
+
+            --badge-plat: #ffffff;
+            --badge-gold: #d4d4d8;
+            --badge-silver: #a1a1aa;
+            --badge-bronze: #52525b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Inter', 'Noto Sans JP', -apple-system, sans-serif;
+            min-height: 100vh;
+            padding-bottom: 60px;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Minimal Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 20px;
+            padding-top: calc(16px + env(safe-area-inset-top));
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .brand-logo {
+            font-size: 1.1rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-primary);
+        }
+
+        .progress-stat {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+        }
+
+        .progress-stat span {
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        /* Rank Counts Bar */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .stat-badge {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px;
+            text-align: center;
+        }
+
+        .stat-badge .rank-label {
+            font-size: 0.55rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .stat-badge .rank-val {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        /* Filter Navigation */
+        .filter-nav {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .filter-nav::-webkit-scrollbar { display: none; }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn.active {
+            background: var(--text-primary);
+            color: var(--bg-main);
+            border-color: var(--text-primary);
+        }
+
+        /* Container & Cards */
+        .container {
+            padding: 16px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .trophy-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .trophy-card.unlocked {
+            background: #121212;
+            border-color: var(--border-light);
+        }
+
+        .trophy-card.ultimate {
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+
+        /* Mono Trophy Icons */
+        .icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .unlocked .icon-box {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .trophy-info {
+            flex-grow: 1;
+        }
+
+        .trophy-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            margin-bottom: 3px;
+            color: var(--text-primary);
+        }
+
+        .trophy-card:not(.unlocked) .trophy-name {
+            color: var(--text-secondary);
+        }
+
+        .trophy-condition {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.3;
+            margin-bottom: 6px;
+        }
+
+        .trophy-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rank-tag {
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .unlocked-tag {
+            font-size: 0.65rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .unlock-btn {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .unlock-btn:active {
+            background: var(--text-primary);
+            color: var(--bg-main);
+        }
+
+        /* Sleek Modern Notification */
+        #notification {
+            position: fixed;
+            top: calc(16px + env(safe-area-inset-top));
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            width: 90%;
+            max-width: 400px;
+            background: #ffffff;
+            color: #000000;
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.15);
+            z-index: 1000;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .notif-icon {
+            width: 36px;
+            height: 36px;
+            background: #000000;
+            color: #ffffff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .notif-text .label {
+            font-size: 0.6rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #666666;
+        }
+
+        .notif-text .title {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: #0d0d0d;
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+        }
+
+        .modal-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .photo-upload-zone {
+            border: 1px dashed var(--border-light);
+            border-radius: 10px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .photo-preview {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-confirm { background: var(--text-primary); color: var(--bg-main); }
+        .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-top">
+            <div class="brand-logo">Life Trophies</div>
+            <div class="progress-stat">PROGRESS <span id="progress-percent">0%</span></div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-badge"><span class="rank-label">PLATINUM</span><span class="rank-val" id="count-plat">0</span></div>
+            <div class="stat-badge"><span class="rank-label">GOLD</span><span class="rank-val" id="count-gold">0</span></div>
+            <div class="stat-badge"><span class="rank-label">SILVER</span><span class="rank-val" id="count-silver">0</span></div>
+            <div class="stat-badge"><span class="rank-label">BRONZE</span><span class="rank-val" id="count-bronze">0</span></div>
+        </div>
+
+        <div class="filter-nav">
+            <button class="filter-btn active" onclick="filterTrophies('all')">ALL</button>
+            <button class="filter-btn" onclick="filterTrophies('unlocked')">UNLOCKED</button>
+            <button class="filter-btn" onclick="filterTrophies('platinum')">PLATINUM</button>
+            <button class="filter-btn" onclick="filterTrophies('gold')">GOLD</button>
+            <button class="filter-btn" onclick="filterTrophies('silver')">SILVER</button>
+            <button class="filter-btn" onclick="filterTrophies('bronze')">BRONZE</button>
+        </div>
+    </header>
+
+    <div class="container" id="trophy-list"></div>
+
+    <div id="notification">
+        <div class="notif-icon">
+            <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div class="notif-text">
+            <div class="label">Trophy Unlocked</div>
+            <div class="title" id="notif-title">実績タイトル</div>
+        </div>
+    </div>
+
+    <div class="modal" id="unlock-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-trophy-title">実績を解除</div>
+            <div class="photo-upload-zone" onclick="document.getElementById('photo-input').click()">
+                <i class="fa-solid fa-camera" style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 8px;"></i>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">記録写真を添付 (任意)</div>
+            </div>
+            <img id="photo-preview" class="photo-preview" alt="Preview">
+            <input type="file" id="photo-input" accept="image/*" capture="environment" style="display: none;" onchange="previewImage(event)">
+            
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeModal()">キャンセル</button>
+                <button class="modal-btn btn-confirm" onclick="confirmUnlock()">解除する</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const defaultTrophies = [
+            // PLATINUM (1項目)
+            { id: 1, name: '夢、叶えし者', condition: '夢を叶える', rank: 'platinum', isUltimate: true },
+
+            // GOLD (16項目)
+            { id: 2, name: 'バイリンガル', condition: 'TOEICで満点を取る', rank: 'gold' },
+            { id: 3, name: '言語学者', condition: '漢検一級を取得', rank: 'gold' },
+            { id: 4, name: 'Off the wall', condition: 'ベンチプレス100kgをクリア', rank: 'gold' },
+            { id: 5, name: 'なにわの怪人', condition: '大阪環状線を徒歩で一周する', rank: 'gold' },
+            { id: 6, name: '江戸の傾奇者', condition: '山手線を徒歩で一周する', rank: 'gold' },
+            { id: 7, name: '孤独のファンタジー', condition: '1人で遊園地に行く', rank: 'gold' },
+            { id: 8, name: '国境なき絆', condition: '海外の友人を作る', rank: 'gold' },
+            { id: 9, name: '紳士の洗礼', condition: 'クリケットを行う', rank: 'gold' },
+            { id: 10, name: '空の王者', condition: 'パラグライダーまたはスカイダイビングを体験する。', rank: 'gold' },
+            { id: 11, name: '大海の覇者', condition: 'マリンスポーツで遊ぶ', rank: 'gold' },
+            { id: 12, name: '完全制覇', condition: 'お気に入り飲食店のメニューを全て食べた。', rank: 'gold' },
+            { id: 13, name: 'デビュー待ち', condition: 'カラオケで100点を叩き出す', rank: 'gold' },
+            { id: 14, name: '伝説の目撃者', condition: '現地でプロのモータースポーツやプロスポーツの決勝を観戦する', rank: 'gold' },
+            { id: 15, name: 'Bullet', condition: '日帰りまたは0泊で海外へ行く', rank: 'gold' },
+            { id: 16, name: '本物の勝負師', condition: '合法的なカジノで遊ぶ', rank: 'gold' },
+            { id: 17, name: 'ダイヤモンドは砕けない', condition: 'ダイヤモンド製品を購入する', rank: 'gold' },
+
+            // SILVER (24項目)
+            { id: 18, name: 'スティールボールラン', condition: '馬に乗る', rank: 'silver' },
+            { id: 19, name: 'なにわの商人', condition: '家電量販店で値引きを交渉をして割引をしてもらう', rank: 'silver' },
+            { id: 20, name: 'デジタルデトックス', condition: '見知らぬ人に教えを請う', rank: 'silver' },
+            { id: 21, name: 'ポーカーフェイスドロップ', condition: 'ジェットコースターで叫ばない', rank: 'silver' },
+            { id: 22, name: '明けの明星', condition: '始発で出かける', rank: 'silver' },
+            { id: 23, name: 'グローバル化社会', condition: 'TOEICを受ける', rank: 'silver' },
+            { id: 24, name: '寒風の半袖ファイター', condition: '気温が10℃を下回ってる日に半袖で出かける', rank: 'silver' },
+            { id: 25, name: 'ストライカー', condition: 'シュートを決める', rank: 'silver' },
+            { id: 26, name: '銀世界', condition: 'ウインタースポーツで遊ぶ', rank: 'silver' },
+            { id: 27, name: '栄養学', condition: '厚生労働省が定める日本人の食事摂取基準を満たした食事を1日摂る', rank: 'silver' },
+            { id: 28, name: 'ALL OUT', condition: '筋力トレーニングでプロテインシェイカーが振れないほど追い込む', rank: 'silver' },
+            { id: 29, name: '成功者', condition: '平日の昼間にジムに行く', rank: 'silver' },
+            { id: 30, name: 'ナイトクルーズ', condition: '夜行バスで500km以上移動する', rank: 'silver' },
+            { id: 31, name: '大悪党', condition: 'その場にいる全員を騙し、後でネタバラシをする', rank: 'silver' },
+            { id: 32, name: '創作料理人', condition: 'レシピを見ずに美味しい料理を作る', rank: 'silver' },
+            { id: 33, name: '気分は監督', condition: '映画館で自分以外の観客がいない状態で映画を見る', rank: 'silver' },
+            { id: 34, name: '東海道中膝栗毛', condition: '東京大阪間を自動車で移動する', rank: 'silver' },
+            { id: 35, name: '不屈の意志', condition: '継続していた悪癖を止める', rank: 'silver' },
+            { id: 36, name: '現金主義', condition: '新品の携帯電話を一括で購入', rank: 'silver' },
+            { id: 37, name: '伝説の始まり', condition: 'ホームランを打つ', rank: 'silver' },
+            { id: 38, name: '手中', condition: '高層階に宿泊', rank: 'silver' },
+            { id: 39, name: 'この日のために', condition: '大勢の前でダンスを披露する', rank: 'silver' },
+            { id: 40, name: '拡散よろしく！', condition: 'イベントでコスプレをする', rank: 'silver' },
+            { id: 41, name: 'のんびりスローライフ', condition: '無人島に上陸する', rank: 'silver' },
+
+            // BRONZE (37項目)
+            { id: 42, name: 'あの夏の思い出', condition: 'カブト虫を捕まえる', rank: 'bronze' },
+            { id: 43, name: '秘密のストライク', condition: 'ボウリングでストライクを取る', rank: 'bronze' },
+            { id: 44, name: 'ブルズアイ', condition: 'ダーツでブルに入れる', rank: 'bronze' },
+            { id: 45, name: '井の中の蛙', condition: '海に行く', rank: 'bronze' },
+            { id: 46, name: '熱狂の観客席', condition: 'スポーツ観戦をする', rank: 'bronze' },
+            { id: 47, name: '孤高の肉食獣', condition: '1人で焼肉に行く', rank: 'bronze' },
+            { id: 48, name: 'モフモフフレンドリー', condition: '散歩している犬を撫でる', rank: 'bronze' },
+            { id: 49, name: '選ばれし者', condition: '野良猫に懐かれる', rank: 'bronze' },
+            { id: 50, name: '漆黒の王者', condition: 'カラスに挨拶を返す', rank: 'bronze' },
+            { id: 51, name: '痛恨の一撃', condition: '電車に乗り遅れる', rank: 'bronze' },
+            { id: 52, name: '電池切れ？', condition: '道に迷う', rank: 'bronze' },
+            { id: 53, name: '直属のディナー', condition: '上司と2人で食事に行く', rank: 'bronze' },
+            { id: 54, name: '野人', condition: '2日間風呂に入らない', rank: 'bronze' },
+            { id: 55, name: '水面の旅人', condition: '雨の日に散歩をする', rank: 'bronze' },
+            { id: 56, name: '大金の重み', condition: '10万円以上の現金を引き出す', rank: 'bronze' },
+            { id: 57, name: '博打打ち', condition: '公営ギャンブルで勝利する', rank: 'bronze' },
+            { id: 58, name: '審判の日', condition: '自室の不要なものを段ボール1箱分処分する', rank: 'bronze' },
+            { id: 59, name: '息を殺して', condition: '隠れんぼをする', rank: 'bronze' },
+            { id: 60, name: 'お前ってさ', condition: '深夜、公園で友人と語る', rank: 'bronze' },
+            { id: 61, name: '振り替え輸送', condition: '電車の遅延で影響を受ける', rank: 'bronze' },
+            { id: 62, name: 'Runaway', condition: '鬼ごっこをする', rank: 'bronze' },
+            { id: 63, name: 'ターミナル', condition: '空港で24時間過ごす', rank: 'bronze' },
+            { id: 64, name: 'いい日旅立ち', condition: '駅弁を食べながら特急列車または新幹線に乗る', rank: 'bronze' },
+            { id: 65, name: '外の世界は', condition: '海外へ行く', rank: 'bronze' },
+            { id: 66, name: 'エンジェルナンバー', condition: '時計でゾロ目を目撃する', rank: 'bronze' },
+            { id: 67, name: 'お口に合いますか？', condition: '見知らぬ国の料理を食べる', rank: 'bronze' },
+            { id: 68, name: 'セルフメンテナンス', condition: 'プロのマッサージや整体を受ける', rank: 'bronze' },
+            { id: 69, name: 'サプライズサンタ', condition: 'なんでもない日、身近な人に贈り物をする', rank: 'bronze' },
+            { id: 70, name: '小さな親切', condition: 'お釣りを忘れている人に声をかける', rank: 'bronze' },
+            { id: 71, name: '狙い撃ち', condition: 'カプセルトイにて一回で1番欲しいものを当てる', rank: 'bronze' },
+            { id: 72, name: '形勢逆転', condition: '麻雀で役満を上がる', rank: 'bronze' },
+            { id: 73, name: 'なんのその', condition: '1人でファミリーレストランへ入店して食事する', rank: 'bronze' },
+            { id: 74, name: 'いざラスベガスへ', condition: 'ポーカーでロイヤルフラッシュを完成させる', rank: 'bronze' },
+            { id: 75, name: '魂を賭けよう', condition: 'カードゲームエジプトで手札を見ずにエジプトを完成させる', rank: 'bronze' },
+            { id: 76, name: '寿司屋へ行こう', condition: '釣りを6時間以上試み、一匹も釣り上げない', rank: 'bronze' },
+            { id: 77, name: 'ゲーマー', condition: '1本のゲームタイトルを1000時間以上遊ぶ', rank: 'bronze' },
+            { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze' }
+        ];
+
+        let userState = JSON.parse(localStorage.getItem('life_trophies_v_mono')) || {};
+        let selectedTrophyId = null;
+
+        function renderTrophies(filter = 'all') {
+            const listEl = document.getElementById('trophy-list');
+            listEl.innerHTML = '';
+
+            let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
+            let totalUnlocked = 0;
+
+            defaultTrophies.forEach(t => {
+                const isUnlocked = !!userState[t.id];
+                if (isUnlocked) {
+                    count[t.rank]++;
+                    totalUnlocked++;
+                }
+
+                if (filter !== 'all') {
+                    if (filter === 'unlocked' && !isUnlocked) return;
+                    if (filter !== 'unlocked' && t.rank !== filter) return;
+                }
+
+                const card = document.createElement('div');
+                card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
+                
+                card.innerHTML = `
+                    <div class="icon-box">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div class="trophy-info">
+                        <div class="trophy-name">${t.isUltimate ? '★ ' : ''}${t.name}</div>
+                        <div class="trophy-condition">${t.condition}</div>
+                        <div class="trophy-meta">
+                            <span class="rank-tag">${t.rank}</span>
+                            ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date}</span>` : ''}
+                        </div>
+                    </div>
+                    ${!isUnlocked ? `<button class="unlock-btn" onclick="openModal(${t.id})">解除</button>` : ''}
+                `;
+                listEl.appendChild(card);
+            });
+
+            document.getElementById('count-plat').innerText = count.platinum;
+            document.getElementById('count-gold').innerText = count.gold;
+            document.getElementById('count-silver').innerText = count.silver;
+            document.getElementById('count-bronze').innerText = count.bronze;
+
+            const percent = Math.round((totalUnlocked / defaultTrophies.length) * 100);
+            document.getElementById('progress-percent').innerText = `${percent}%`;
+        }
+
+        function filterTrophies(filter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderTrophies(filter);
+        }
+
+        function openModal(id) {
+            selectedTrophyId = id;
+            const trophy = defaultTrophies.find(t => t.id === id);
+            document.getElementById('modal-trophy-title').innerText = `「${trophy.name}」`;
+            document.getElementById('photo-preview').style.display = 'none';
+            document.getElementById('photo-input').value = '';
+            document.getElementById('unlock-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('unlock-modal').classList.remove('active');
+            selectedTrophyId = null;
+        }
+
+        function previewImage(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const img = document.getElementById('photo-preview');
+                    img.src = evt.target.result;
+                    img.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function confirmUnlock() {
+            if (!selectedTrophyId) return;
+
+            const trophy = defaultTrophies.find(t => t.id === selectedTrophyId);
+            userState[selectedTrophyId] = {
+                date: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' }),
+                photo: document.getElementById('photo-preview').src || null
+            };
+
+            localStorage.setItem('life_trophies_v_mono', JSON.stringify(userState));
+            closeModal();
+            renderTrophies();
+
+            showNotification(trophy.name);
+        }
+
+        function showNotification(title) {
+            const notif = document.getElementById('notification');
+            document.getElementById('notif-title').innerText = title;
+            notif.classList.add('show');
+
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 3500);
+        }
+
+        renderTrophies();
+    </script>
+</body>
+</html>

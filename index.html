@@ -362,7 +362,7 @@
         }
 
         .unlocked-tag {
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             color: var(--text-primary);
             font-weight: 600;
             display: flex;
@@ -525,7 +525,7 @@
             color: #fff;
         }
 
-        /* 解除済み実績管理カード (モーダル用) */
+        /* 解除済み実績管理カード */
         .unlocked-manage-card {
             background: var(--surface-hover);
             border: 1px solid var(--border-color);
@@ -737,16 +737,14 @@
         </div>
     </div>
 
-    <!-- Unlocked Achievements Management Modal (新設) -->
+    <!-- Unlocked Achievements Management Modal -->
     <div class="modal" id="unlocked-manage-modal">
         <div class="modal-content">
             <div class="modal-title">🔄 解除済み実績の管理</div>
             <div style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 12px; text-align: center;">
                 これまでに解除した実績の確認や、未解除の状態へのリセット（取消）ができます。
             </div>
-            <div id="unlocked-manage-list-container" style="margin-bottom: 16px; max-height: 50vh; overflow-y: auto;">
-                <!-- 動的にリストが挿入されます -->
-            </div>
+            <div id="unlocked-manage-list-container" style="margin-bottom: 16px; max-height: 50vh; overflow-y: auto;"></div>
             <div class="modal-buttons">
                 <button class="modal-btn" onclick="recoverFromPosts(true)" style="background: var(--surface-hover); color: var(--text-primary); border: 1px solid var(--border-color); margin-top:0;">履歴から復元</button>
                 <button class="modal-btn btn-cancel" onclick="closeModal('unlocked-manage-modal')" style="margin-top:0;">閉じる</button>
@@ -1561,12 +1559,22 @@
 
             const trophy = getAllTrophies().find(t => String(t.id) === String(selectedTrophyId));
             const trophyName = trophy ? trophy.name : '実績';
-            const dateStr = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+            
+            // 年月日・時分秒数まで精密に記録するタイムスタンプ生成
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const dateTimeStr = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+
             const unlockedId = String(selectedTrophyId);
             const photoToSave = tempUnlockPhotoBase64;
 
             const unlockEntry = {
-                date: dateStr,
+                date: dateTimeStr,
                 photo: photoToSave
             };
 
@@ -1587,7 +1595,7 @@
                     trophyId: unlockedId,
                     trophyName: trophyName,
                     photo: photoToSave,
-                    date: dateStr,
+                    date: dateTimeStr,
                     likes: [],
                     comments: [],
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1596,7 +1604,7 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View (自分用：プロフィールのボタン並びに「解除済み実績管理」を配置)
+           マイページ View
         ------------------------------------------------------------- */
         function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -1629,7 +1637,6 @@
             `;
             container.appendChild(headerBox);
 
-            // 実績フォトギャラリー
             const albumTitle = document.createElement('div');
             albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
             albumTitle.innerHTML = '📸 実績フォトギャラリー';
@@ -1662,9 +1669,6 @@
             }
         }
 
-        /* -------------------------------------------------------------
-           解除済み実績管理モーダルのオープン・リスト描画
-        ------------------------------------------------------------- */
         function openUnlockedManageModal() {
             const listContainer = document.getElementById('unlocked-manage-list-container');
             listContainer.innerHTML = '';
@@ -1685,7 +1689,7 @@
                         ${itemData.photo ? `<img src="${itemData.photo}" class="unlocked-manage-thumb">` : `<div class="unlocked-manage-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--text-secondary);"><i class="fa-solid fa-trophy"></i></div>`}
                         <div style="overflow:hidden;">
                             <div style="font-size:0.8rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.name}</div>
-                            <div style="font-size:0.65rem; color:var(--text-secondary);">解除日: ${itemData.date}</div>
+                            <div style="font-size:0.62rem; color:var(--text-secondary);">解除日時: ${itemData.date}</div>
                         </div>
                     `;
 
@@ -1707,9 +1711,6 @@
             openModal('unlocked-manage-modal');
         }
 
-        /* -------------------------------------------------------------
-           他人のプロフィール画面 View (閲覧専用・サムネイル対応)
-        ------------------------------------------------------------- */
         async function viewUserProfile(uid, profileData) {
             if (profileData.privacy === 'followers' && !profileData.followers?.includes(currentUser.uid)) {
                 alert('このユーザーはフォロワーのみに実績を公開しています。');
@@ -1809,7 +1810,7 @@
                 delete userState[id];
             }
 
-            openUnlockedManageModal(); // モーダル内のリストを更新
+            openUnlockedManageModal();
             switchMainTab('profile');
             showNotification(`「${trophyName}」を未解除に戻しました`, 'TROPHY RESET');
 

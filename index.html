@@ -661,7 +661,7 @@
         </div>
     </div>
 
-    <!-- Notifications Modal (お知らせ一覧) -->
+    <!-- Notifications Modal -->
     <div class="modal" id="notifications-modal">
         <div class="modal-content">
             <div class="modal-title">🔔 お知らせ</div>
@@ -1087,6 +1087,14 @@
                 const card = document.createElement('div');
                 card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
                 
+                // カスタム実績の場合は削除ボタンを右側に表示
+                let rightButtonHTML = '';
+                if (t.isCustom) {
+                    rightButtonHTML = `<button class="unlock-btn" style="background:rgba(255,59,48,0.15); color:var(--accent-red); border:none;" onclick="deleteCustomTrophy('${t.id}')">削除</button>`;
+                } else if (!isUnlocked) {
+                    rightButtonHTML = `<button class="unlock-btn" onclick="openUnlockModal('${t.id}')">解除</button>`;
+                }
+
                 card.innerHTML = `
                     <div class="icon-box"><i class="fa-solid fa-trophy"></i></div>
                     <div class="trophy-info">
@@ -1097,7 +1105,7 @@
                             ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date}</span>` : ''}
                         </div>
                     </div>
-                    ${!isUnlocked ? `<button class="unlock-btn" onclick="openUnlockModal('${t.id}')">解除</button>` : ''}
+                    ${rightButtonHTML}
                 `;
                 trophyListEl.appendChild(card);
             });
@@ -1111,6 +1119,25 @@
 
             const percent = Math.round((totalUnlocked / allTrophiesList.length) * 100);
             document.getElementById('progress-percent').innerText = `${percent}%`;
+        }
+
+        /* -------------------------------------------------------------
+           カスタム実績削除機能
+        ------------------------------------------------------------- */
+        async function deleteCustomTrophy(id) {
+            if (!confirm('このカスタム実績を削除しますか？')) return;
+
+            customTrophies = customTrophies.filter(t => String(t.id) !== String(id));
+            await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom').set({ items: customTrophies });
+
+            // 解除済みデータがあればそちらからも削除
+            if (userState[id]) {
+                delete userState[id];
+                await db.collection('users').doc(currentUser.uid).collection('trophies').doc('status').set(userState);
+            }
+
+            switchMainTab('trophies');
+            showNotification('カスタム実績を削除しました');
         }
 
         /* -------------------------------------------------------------
@@ -1214,7 +1241,7 @@
         async function sendNotification(targetUid, type, message) {
             if (targetUid === currentUser.uid) return;
             await db.collection('users').doc(targetUid).collection('notifications').add({
-                type: type, // 'like', 'comment', 'follow'
+                type: type,
                 senderUid: currentUser.uid,
                 senderName: myProfile.displayName,
                 message: message,
@@ -1247,7 +1274,6 @@
                 return;
             }
 
-            // 既読にする
             const batch = db.batch();
             snapshot.forEach(doc => {
                 batch.update(doc.ref, { read: true });
@@ -1598,11 +1624,13 @@
             customTrophies.push(newTrophy);
             await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom').set({ items: customTrophies });
 
-            closeModal('custom-trophy-modal');
+            // 入力欄をクリア
             document.getElementById('custom-title').value = '';
             document.getElementById('custom-condition').value = '';
+
+            closeModal('custom-trophy-modal');
             switchMainTab('trophies');
-            showNotification('カスタム実績を追加しました');
+            showNotification('カスタム実績を追加しました！');
         }
 
         function openEditProfileModal() {

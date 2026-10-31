@@ -904,7 +904,7 @@
                 };
                 setTheme(myProfile.theme);
                 document.getElementById('privacy-select').value = myProfile.privacy;
-                loadUserData();
+                await loadUserData();
             } else {
                 document.getElementById('username-modal').classList.add('active');
             }
@@ -950,7 +950,7 @@
             myProfile.privacy = "public";
             setTheme("dark");
             document.getElementById('username-modal').classList.remove('active');
-            loadUserData();
+            await loadUserData();
         }
 
         function toggleAuthMode() {
@@ -1072,7 +1072,7 @@
             ['all', 'unlocked', 'platinum', 'gold', 'silver', 'bronze'].forEach(f => {
                 const btn = document.createElement('button');
                 btn.className = `btn-action-small ${trophyFilter === f ? 'following' : ''}`;
-                btn.style.cssText += 'border-radius:20px; padding:6px 12px; font-size:0.7rem;';
+                btn.style.cssText += 'border-radius:20px; padding:6px 12px; font-size:0.75rem;';
                 btn.innerText = f.toUpperCase();
                 btn.onclick = () => { trophyFilter = f; renderTrophiesView(); };
                 filterRow.appendChild(btn);
@@ -1136,21 +1136,70 @@
         }
 
         /* -------------------------------------------------------------
-           カスタム実績削除機能
+           カスタム実績追加・削除機能（楽観的UI更新による即時反映）
         ------------------------------------------------------------- */
+        async function addCustomTrophy() {
+            const titleInput = document.getElementById('custom-title');
+            const conditionInput = document.getElementById('custom-condition');
+            const rankSelect = document.getElementById('custom-rank');
+            
+            const title = titleInput.value.trim();
+            const condition = conditionInput.value.trim();
+            const rank = rankSelect.value;
+            
+            if (!title || !condition) {
+                alert('タイトルと条件を入力してください');
+                return;
+            }
+
+            const newTrophy = {
+                id: 'custom_' + Date.now(),
+                name: title,
+                condition: condition,
+                rank: rank,
+                isCustom: true
+            };
+
+            // 1. ローカル配列に追加
+            customTrophies.push(newTrophy);
+
+            // 2. 入力欄をクリアして即座にモーダルを閉じる
+            titleInput.value = '';
+            conditionInput.value = '';
+            closeModal('custom-trophy-modal');
+
+            // 3. 即座に画面を再描画し、ポップアップ通知を表示
+            switchMainTab('trophies');
+            showNotification('カスタム実績を追加しました！');
+
+            // 4. 裏でFirestoreに保存
+            try {
+                await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom').set({ items: customTrophies });
+            } catch (e) {
+                console.error('カスタム実績の保存に失敗しました:', e);
+            }
+        }
+
         async function deleteCustomTrophy(id) {
             if (!confirm('このカスタム実績を削除しますか？')) return;
 
+            // 1. ローカル配列・状態から即座に削除
             customTrophies = customTrophies.filter(t => String(t.id) !== String(id));
-            await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom').set({ items: customTrophies });
-
             if (userState[id]) {
                 delete userState[id];
-                await db.collection('users').doc(currentUser.uid).collection('trophies').doc('status').set(userState);
             }
 
+            // 2. 即座に画面を再描画し、ポップアップ通知を表示
             switchMainTab('trophies');
             showNotification('カスタム実績を削除しました');
+
+            // 3. 裏でFirestoreを更新
+            try {
+                await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom').set({ items: customTrophies });
+                await db.collection('users').doc(currentUser.uid).collection('trophies').doc('status').set(userState);
+            } catch (e) {
+                console.error('カスタム実績の削除同期に失敗しました:', e);
+            }
         }
 
         /* -------------------------------------------------------------
@@ -1618,32 +1667,6 @@
 
             showNotification(isFollowing ? 'フォロー解除しました' : 'フォローしました');
             renderSearchView();
-        }
-
-        async function addCustomTrophy() {
-            const title = document.getElementById('custom-title').value.trim();
-            const condition = document.getElementById('custom-condition').value.trim();
-            const rank = document.getElementById('custom-rank').value;
-            if (!title || !condition) return alert('タイトルと条件を入力してください');
-
-            const newTrophy = {
-                id: 'custom_' + Date.now(),
-                name: title,
-                condition: condition,
-                rank: rank,
-                isCustom: true
-            };
-
-            customTrophies.push(newTrophy);
-            await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom').set({ items: customTrophies });
-
-            // 入力欄をクリア
-            document.getElementById('custom-title').value = '';
-            document.getElementById('custom-condition').value = '';
-
-            closeModal('custom-trophy-modal');
-            switchMainTab('trophies');
-            showNotification('カスタム実績を追加しました！');
         }
 
         function openEditProfileModal() {

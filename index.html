@@ -234,6 +234,7 @@
             color: var(--text-secondary);
             margin-bottom: 8px;
         }
+        .follow-stats-row div { cursor: pointer; }
         .follow-stats-row span { font-weight: 700; color: var(--text-primary); }
 
         .btn-action-small {
@@ -490,6 +491,8 @@
             max-width: 400px;
             padding: 24px;
             color: var(--text-primary);
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; text-align: center; letter-spacing: 0.5px; }
@@ -582,6 +585,7 @@
             <img id="avatar-preview" class="photo-preview" alt="Avatar Preview">
             <input type="file" id="avatar-input" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
             
+            <input type="text" id="edit-username-input" class="form-input" placeholder="ユーザー名">
             <input type="text" id="edit-bio-input" class="form-input" placeholder="ステータスメッセージ">
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" onclick="closeModal('edit-profile-modal')">キャンセル</button>
@@ -590,18 +594,47 @@
         </div>
     </div>
 
-    <!-- Settings Modal (設定画面) -->
+    <!-- Settings Modal (設定画面：ダーク/ライト, プライバシー, アカウント管理) -->
     <div class="modal" id="settings-modal">
         <div class="modal-content">
             <div class="modal-title">⚙️ 設定</div>
-            <div style="margin-bottom: 20px;">
-                <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 8px; color: var(--text-secondary);">テーマ切り替え</div>
+            
+            <!-- テーマ設定 -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">外観テーマ</div>
                 <div style="display: flex; gap: 10px;">
-                    <button class="modal-btn" id="theme-dark-btn" onclick="setTheme('dark')" style="background: #222; color: #fff; border: 1px solid #444;">ダークモード</button>
-                    <button class="modal-btn" id="theme-light-btn" onclick="setTheme('light')" style="background: #f2f2f7; color: #000; border: 1px solid #ccc;">ライトモード</button>
+                    <button class="modal-btn" id="theme-dark-btn" onclick="setTheme('dark')" style="background: #222; color: #fff; border: 1px solid #444; margin-top:0;">ダーク</button>
+                    <button class="modal-btn" id="theme-light-btn" onclick="setTheme('light')" style="background: #f2f2f7; color: #000; border: 1px solid #ccc; margin-top:0;">ライト</button>
                 </div>
             </div>
+
+            <!-- プライバシー設定 -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">プライバシー設定</div>
+                <select id="privacy-select" class="form-select" onchange="savePrivacySetting(this.value)">
+                    <option value="public">全体公開 (誰でも実績閲覧可能)</option>
+                    <option value="followers">フォロワーのみ公開</option>
+                </select>
+            </div>
+
+            <!-- アカウント管理 -->
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">アカウント管理</div>
+                <button class="modal-btn" onclick="closeModal('settings-modal'); openEditProfileModal();" style="background: var(--surface-hover); color: var(--text-primary); border: 1px solid var(--border-color); margin-bottom: 6px;">プロフィール情報を編集</button>
+                <button class="modal-btn" onclick="logout()" style="background: var(--surface-hover); color: var(--text-primary); border: 1px solid var(--border-color); margin-bottom: 6px;">ログアウト</button>
+                <button class="modal-btn" onclick="deleteAccount()" style="background: rgba(255,59,48,0.15); color: var(--accent-red); border: none;">アカウントを削除する</button>
+            </div>
+
             <button class="modal-btn btn-cancel" onclick="closeModal('settings-modal')">閉じる</button>
+        </div>
+    </div>
+
+    <!-- Follow / Follower List Modal (フォロワー・フォロー一覧ポップアップ) -->
+    <div class="modal" id="follow-list-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="follow-list-title">リスト</div>
+            <div id="follow-list-container" style="margin-bottom: 16px;"></div>
+            <button class="modal-btn btn-cancel" onclick="closeModal('follow-list-modal')">閉じる</button>
         </div>
     </div>
 
@@ -707,7 +740,7 @@
 
         let currentUser = null;
         let userState = {};
-        let myProfile = { username: "", bio: "", avatar: "", theme: "dark", following: [], followers: [] };
+        let myProfile = { username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
         let customTrophies = [];
         let isSignUpMode = false;
         let selectedTrophyId = null;
@@ -804,7 +837,7 @@
             } else {
                 currentUser = null;
                 userState = {};
-                myProfile = { username: "", bio: "", avatar: "", theme: "dark", following: [], followers: [] };
+                myProfile = { username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
                 setTheme("dark");
                 document.getElementById('auth-modal').classList.add('active');
                 switchMainTab('trophies');
@@ -821,24 +854,23 @@
                     bio: data.bio || "人生の実績解除中！",
                     avatar: data.avatar || "",
                     theme: data.theme || "dark",
+                    privacy: data.privacy || "public",
                     following: data.following || [],
                     followers: data.followers || []
                 };
                 setTheme(myProfile.theme);
+                document.getElementById('privacy-select').value = myProfile.privacy;
                 loadUserData();
             } else {
                 document.getElementById('username-modal').classList.add('active');
             }
         }
 
-        // ユーザー名の重複チェック関数
         async function isUsernameTaken(username) {
             const snapshot = await db.collection('users').where('username', '==', username).get();
             let taken = false;
             snapshot.forEach(doc => {
-                if (doc.id !== currentUser.uid) {
-                    taken = true;
-                }
+                if (doc.id !== currentUser.uid) taken = true;
             });
             return taken;
         }
@@ -848,7 +880,6 @@
             const bio = document.getElementById('bio-input').value.trim() || "人生の実績解除中！";
             if (!username) return alert('ユーザー名を入力してください');
 
-            // 重複チェック
             if (await isUsernameTaken(username)) {
                 return alert('このユーザー名はすでに使われています。別の名前にしてください。');
             }
@@ -858,6 +889,7 @@
                 bio: bio,
                 avatar: "",
                 theme: "dark",
+                privacy: "public",
                 following: [],
                 followers: [],
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -867,6 +899,7 @@
             myProfile.username = username;
             myProfile.bio = bio;
             myProfile.theme = "dark";
+            myProfile.privacy = "public";
             setTheme("dark");
             document.getElementById('username-modal').classList.remove('active');
             loadUserData();
@@ -896,6 +929,20 @@
         }
 
         async function logout() { await auth.signOut(); }
+
+        // アカウント削除機能
+        async function deleteAccount() {
+            if (!confirm('本当にアカウントを削除しますか？この操作は元に戻せません。')) return;
+            try {
+                // Firestoreからユーザーデータを削除
+                await db.collection('users').doc(currentUser.uid).delete();
+                // Authアカウント削除
+                await currentUser.delete();
+                alert('アカウントを削除しました');
+            } catch (error) {
+                alert('エラー: 再ログインしてから再度お試しください (' + error.message + ')');
+            }
+        }
 
         async function loadUserData() {
             if (!currentUser) return;
@@ -934,9 +981,6 @@
             return [...defaultTrophies, ...customTrophies];
         }
 
-        /* -------------------------------------------------------------
-           テーマ切り替え (ダーク/ライト)
-        ------------------------------------------------------------- */
         async function setTheme(themeName) {
             myProfile.theme = themeName;
             if (themeName === 'light') {
@@ -946,10 +990,16 @@
             }
 
             if (currentUser) {
-                await db.collection('users').doc(currentUser.uid).set({
-                    theme: themeName
-                }, { merge: true });
+                await db.collection('users').doc(currentUser.uid).set({ theme: themeName }, { merge: true });
             }
+        }
+
+        async function savePrivacySetting(privacyVal) {
+            myProfile.privacy = privacyVal;
+            if (currentUser) {
+                await db.collection('users').doc(currentUser.uid).set({ privacy: privacyVal }, { merge: true });
+            }
+            showNotification('プライバシー設定を更新しました');
         }
 
         /* -------------------------------------------------------------
@@ -1026,13 +1076,12 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View (設定ボタン＆ギャラリー)
+           マイページ View (フォロワー一覧対応)
         ------------------------------------------------------------- */
         function renderMyProfileView() {
             const container = document.getElementById('main-container');
             container.innerHTML = '';
 
-            // プロフィールヘッダー
             const headerBox = document.createElement('div');
             headerBox.className = 'profile-card-header';
             
@@ -1046,8 +1095,8 @@
                     <div class="profile-username">@${myProfile.username}</div>
                     <div class="profile-bio">${myProfile.bio || 'ステータス未設定'}</div>
                     <div class="follow-stats-row">
-                        <div>フォロー <span>${(myProfile.following || []).length}</span></div>
-                        <div>フォロワー <span>${(myProfile.followers || []).length}</span></div>
+                        <div onclick="openFollowListModal('following')">フォロー <span>${(myProfile.following || []).length}</span></div>
+                        <div onclick="openFollowListModal('followers')">フォロワー <span>${(myProfile.followers || []).length}</span></div>
                     </div>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                         <button class="btn-action-small" onclick="openEditProfileModal()">プロフィール編集</button>
@@ -1057,7 +1106,6 @@
             `;
             container.appendChild(headerBox);
 
-            // 実績アルバム (1行3枚サムネイル)
             const albumTitle = document.createElement('div');
             albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
             albumTitle.innerHTML = '📸 実績フォトギャラリー';
@@ -1086,6 +1134,57 @@
                 container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">まだ写真付きで解除した実績がありません。<br>実績解除時に写真を撮影・添付するとここに並びます！</div>';
             } else {
                 container.appendChild(grid);
+            }
+        }
+
+        /* -------------------------------------------------------------
+           フォロー・フォロワー一覧モーダル表示機能
+        ------------------------------------------------------------- */
+        async function openFollowListModal(type) {
+            const titleEl = document.getElementById('follow-list-title');
+            const listContainer = document.getElementById('follow-list-container');
+            titleEl.innerText = type === 'following' ? 'フォロー中リスト' : 'フォロワーリスト';
+            listContainer.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">読み込み中...</div>';
+            openModal('follow-list-modal');
+
+            const targetIds = type === 'following' ? myProfile.following : myProfile.followers;
+            if (!targetIds || targetIds.length === 0) {
+                listContainer.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">ユーザーはいません</div>';
+                return;
+            }
+
+            try {
+                listContainer.innerHTML = '';
+                for (let uid of targetIds) {
+                    const userDoc = await db.collection('users').doc(uid).get();
+                    if (userDoc.exists) {
+                        const data = userDoc.data();
+                        const avatarHTML = data.avatar 
+                            ? `<img src="${data.avatar}" class="feed-avatar">` 
+                            : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
+
+                        const card = document.createElement('div');
+                        card.className = 'feed-card';
+                        card.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:10px 14px; cursor:pointer;';
+                        card.innerHTML = `
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                ${avatarHTML}
+                                <div>
+                                    <div style="font-size:0.85rem; font-weight:700;">@${data.username}</div>
+                                    <div style="font-size:0.65rem; color:var(--text-secondary);">${data.bio || ''}</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                        `;
+                        card.onclick = () => {
+                            closeModal('follow-list-modal');
+                            viewUserProfile(uid, data);
+                        };
+                        listContainer.appendChild(card);
+                    }
+                }
+            } catch (e) {
+                listContainer.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">読み込みに失敗しました</div>';
             }
         }
 
@@ -1217,6 +1316,7 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.username && data.username.includes(q) && doc.id !== currentUser.uid) {
+                        // プライバシー設定チェック（フォロワーのみの場合は、自分がフォロワーに含まれていなければ非表示にするなどの拡張が可能ですが今回は基本検索）
                         found = true;
                         const avatarHTML = data.avatar 
                             ? `<img src="${data.avatar}" class="feed-avatar">` 
@@ -1249,6 +1349,12 @@
         }
 
         async function viewUserProfile(uid, profileData) {
+            // プライバシー設定のチェック
+            if (profileData.privacy === 'followers' && !profileData.followers?.includes(currentUser.uid)) {
+                alert('このユーザーはフォロワーのみに実績を公開しています。');
+                return;
+            }
+
             const doc = await db.collection('users').doc(uid).collection('trophies').doc('status').get();
             const targetState = doc.exists ? doc.data() || {} : {};
             profileData.uid = uid;
@@ -1364,6 +1470,7 @@
         }
 
         function openEditProfileModal() {
+            document.getElementById('edit-username-input').value = myProfile.username;
             document.getElementById('edit-bio-input').value = myProfile.bio;
             const img = document.getElementById('avatar-preview');
             if (myProfile.avatar) {
@@ -1391,11 +1498,21 @@
         }
 
         async function saveProfileChanges() {
+            const newUsername = document.getElementById('edit-username-input').value.trim();
             const newBio = document.getElementById('edit-bio-input').value.trim() || "人生の実績解除中！";
+            if (!newUsername) return alert('ユーザー名を入力してください');
+
+            // ユーザー名が変わる場合は重複チェック
+            if (newUsername !== myProfile.username && await isUsernameTaken(newUsername)) {
+                return alert('このユーザー名はすでに使われています。別の名前にしてください。');
+            }
+
+            myProfile.username = newUsername;
             myProfile.bio = newBio;
             myProfile.avatar = tempAvatarBase64;
 
             await db.collection('users').doc(currentUser.uid).set({
+                username: newUsername,
                 bio: newBio,
                 avatar: tempAvatarBase64,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1461,7 +1578,7 @@
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function closeModal(id) { document.getElementById(id).classList.add('active').classList.remove('active'); }
 
         function showNotification(title) {
             const notif = document.getElementById('notification');

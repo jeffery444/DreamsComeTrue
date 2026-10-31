@@ -46,7 +46,7 @@
             color: var(--text-primary);
             font-family: 'Inter', 'Noto Sans JP', -apple-system, sans-serif;
             min-height: 100vh;
-            padding-bottom: 80px; /* ボトムナビの分の余白 */
+            padding-bottom: 80px;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
@@ -108,7 +108,7 @@
             cursor: pointer;
         }
 
-        /* Stats Grid (実績ページでのみ表示) */
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -133,12 +133,9 @@
             margin-bottom: 2px;
         }
 
-        .stat-badge .rank-val {
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
+        .stat-badge .rank-val { font-size: 0.85rem; font-weight: 700; }
 
-        /* Bottom Navigation Bar (SNS風固定タブ) */
+        /* Bottom Navigation Bar (4タブ) */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -162,7 +159,7 @@
             align-items: center;
             justify-content: center;
             color: var(--text-secondary);
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 600;
             gap: 3px;
             cursor: pointer;
@@ -173,13 +170,8 @@
             transition: color 0.2s;
         }
 
-        .nav-item.active {
-            color: var(--text-primary);
-        }
-
-        .nav-item i {
-            font-size: 1.25rem;
-        }
+        .nav-item.active { color: var(--text-primary); }
+        .nav-item i { font-size: 1.2rem; }
 
         .container {
             padding: 16px 20px;
@@ -401,8 +393,8 @@
             margin-top: 8px;
         }
 
-        /* Gallery Grid */
-        .gallery-grid {
+        /* 1列3枚のギャラリー（Instagram風） */
+        .gallery-grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 4px;
@@ -426,12 +418,13 @@
             position: absolute;
             bottom: 0;
             inset-x: 0;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.75);
             font-size: 0.55rem;
             padding: 3px 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: #fff;
         }
 
         /* Notification */
@@ -583,8 +576,8 @@
     <div class="modal" id="custom-trophy-modal">
         <div class="modal-content">
             <div class="modal-title">カスタム実績を作成</div>
-            <input type="text" id="custom-title" class="form-input" placeholder="実績タイトル (例: バンジージャンプ)">
-            <input type="text" id="custom-condition" class="form-input" placeholder="達成条件 (例: 50m以上の高さから飛ぶ)">
+            <input type="text" id="custom-title" class="form-input" placeholder="実績タイトル (例: 無限の彼方へ)">
+            <input type="text" id="custom-condition" class="form-input" placeholder="達成条件 (例: 空を飛ぶ)">
             <select id="custom-rank" class="form-select">
                 <option value="bronze">BRONZE</option>
                 <option value="silver">SILVER</option>
@@ -618,7 +611,7 @@
 
     <div class="container" id="main-container"></div>
 
-    <!-- Bottom Navigation Bar (固定ボトムタブ) -->
+    <!-- Bottom Navigation Bar (合計4タブ) -->
     <nav class="bottom-nav">
         <button class="nav-item" id="nav-btn-feed" onclick="switchMainTab('feed')">
             <i class="fa-solid fa-house"></i>
@@ -628,9 +621,13 @@
             <i class="fa-solid fa-trophy"></i>
             <span>実績</span>
         </button>
+        <button class="nav-item" id="nav-btn-search" onclick="switchMainTab('search')">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>検索</span>
+        </button>
         <button class="nav-item" id="nav-btn-profile" onclick="switchMainTab('profile')">
             <i class="fa-solid fa-user"></i>
-            <span>アカウント</span>
+            <span>マイページ</span>
         </button>
     </nav>
 
@@ -865,15 +862,16 @@
             }
 
             const statsBox = document.getElementById('stats-grid-box');
-            if (tab === 'trophies' || tab === 'profile' || tab === 'other-profile') {
+            if (tab === 'trophies' || tab === 'other-profile') {
                 statsBox.style.display = 'grid';
             } else {
                 statsBox.style.display = 'none';
             }
 
-            if (tab === 'trophies') renderTrophiesView(myProfile, userState, true);
+            if (tab === 'trophies') renderTrophiesView();
             else if (tab === 'feed') renderFeedView();
-            else if (tab === 'profile') renderTrophiesView(myProfile, userState, true);
+            else if (tab === 'search') renderSearchView();
+            else if (tab === 'profile') renderMyProfileView();
         }
 
         function getAllTrophies() {
@@ -881,82 +879,45 @@
         }
 
         /* -------------------------------------------------------------
-           実績 & プロフィール統合 View (中央＝実績, 右＝マイページ)
+           実績一覧 View (真ん中のトロフィータブ)
         ------------------------------------------------------------- */
-        function renderTrophiesView(profile, state, isSelf) {
+        function renderTrophiesView() {
             const container = document.getElementById('main-container');
             container.innerHTML = '';
 
-            // プロフィールヘッダー（マイページまたは他人のプロフィールの時のみ表示）
-            if (!isSelf || activeTab === 'profile') {
-                const headerBox = document.createElement('div');
-                headerBox.className = 'profile-card-header';
-                
-                const avatarHTML = profile.avatar 
-                    ? `<img src="${profile.avatar}" class="profile-avatar-large">` 
-                    : `<div class="profile-avatar-large"><i class="fa-solid fa-user"></i></div>`;
+            const actionRow = document.createElement('div');
+            actionRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;';
+            actionRow.innerHTML = `
+                <div style="font-size:0.85rem; font-weight:800; color:var(--text-primary);">🏆 トロフィーボード</div>
+                <button class="btn-action-small" onclick="openModal('custom-trophy-modal')">+ カスタム実績</button>
+            `;
+            container.appendChild(actionRow);
 
-                const isFollowing = myProfile.following.includes(profile.uid);
+            const filterRow = document.createElement('div');
+            filterRow.style.cssText = 'display:flex; gap:6px; overflow-x:auto; margin-bottom:14px;';
+            ['all', 'unlocked', 'platinum', 'gold', 'silver', 'bronze'].forEach(f => {
+                const btn = document.createElement('button');
+                btn.className = `btn-action-small ${trophyFilter === f ? 'following' : ''}`;
+                btn.style.cssText += 'border-radius:20px; padding:6px 12px; font-size:0.7rem;';
+                btn.innerText = f.toUpperCase();
+                btn.onclick = () => { trophyFilter = f; renderTrophiesView(); };
+                filterRow.appendChild(btn);
+            });
+            container.appendChild(filterRow);
 
-                headerBox.innerHTML = `
-                    ${avatarHTML}
-                    <div class="profile-info">
-                        <div class="profile-username">@${profile.username}</div>
-                        <div class="profile-bio">${profile.bio || 'ステータス未設定'}</div>
-                        <div class="follow-stats-row">
-                            <div>フォロー <span>${(profile.following || []).length}</span></div>
-                            <div>フォロワー <span>${(profile.followers || []).length}</span></div>
-                        </div>
-                        ${isSelf 
-                            ? `<button class="btn-action-small" onclick="openEditProfileModal()">プロフィール編集</button>
-                               <button class="btn-action-small" style="margin-left:6px;" onclick="openModal('custom-trophy-modal')">+ カスタム実績</button>`
-                            : `<button class="btn-action-small ${isFollowing ? 'following' : ''}" onclick="toggleFollow('${profile.uid}')">${isFollowing ? 'フォロー中' : 'フォローする'}</button>`
-                        }
-                    </div>
-                `;
-                container.appendChild(headerBox);
-            }
-
-            // 自分のタブの時は上部にアルバム・検索ボタンやフィルターを置く
-            if (isSelf) {
-                const actionRow = document.createElement('div');
-                actionRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;';
-                actionRow.innerHTML = `
-                    <div style="font-size:0.85rem; font-weight:800; color:var(--text-primary);">🏆 トロフィーボード</div>
-                    <div style="display:flex; gap:6px;">
-                        <button class="btn-action-small" onclick="renderGalleryModal()"><i class="fa-solid fa-images"></i> アルバム</button>
-                        <button class="btn-action-small" onclick="renderSearchModal()"><i class="fa-solid fa-magnifying-glass"></i> 検索</button>
-                    </div>
-                `;
-                container.appendChild(actionRow);
-
-                const filterRow = document.createElement('div');
-                filterRow.style.cssText = 'display:flex; gap:6px; overflow-x:auto; margin-bottom:14px;';
-                ['all', 'unlocked', 'platinum', 'gold', 'silver', 'bronze'].forEach(f => {
-                    const btn = document.createElement('button');
-                    btn.className = `btn-action-small ${trophyFilter === f ? 'following' : ''}`;
-                    btn.style.cssText += 'border-radius:20px; padding:6px 12px; font-size:0.7rem;';
-                    btn.innerText = f.toUpperCase();
-                    btn.onclick = () => { trophyFilter = f; renderTrophiesView(profile, state, isSelf); };
-                    filterRow.appendChild(btn);
-                });
-                container.appendChild(filterRow);
-            }
-
-            // 実績リスト
             const trophyListEl = document.createElement('div');
             let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
             let totalUnlocked = 0;
-            const allTrophiesList = isSelf ? getAllTrophies() : defaultTrophies;
+            const allTrophiesList = getAllTrophies();
 
             allTrophiesList.forEach(t => {
-                const isUnlocked = !!state[t.id];
+                const isUnlocked = !!userState[t.id];
                 if (isUnlocked) {
                     count[t.rank]++;
                     totalUnlocked++;
                 }
 
-                if (isSelf && trophyFilter !== 'all') {
+                if (trophyFilter !== 'all') {
                     if (trophyFilter === 'unlocked' && !isUnlocked) return;
                     if (trophyFilter !== 'unlocked' && t.rank !== trophyFilter) return;
                 }
@@ -971,10 +932,10 @@
                         <div class="trophy-condition">${t.condition}</div>
                         <div class="trophy-meta">
                             <span class="rank-tag">${t.rank}</span>
-                            ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${state[t.id].date}</span>` : ''}
+                            ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date}</span>` : ''}
                         </div>
                     </div>
-                    ${isSelf && !isUnlocked ? `<button class="unlock-btn" onclick="openUnlockModal('${t.id}')">解除</button>` : ''}
+                    ${!isUnlocked ? `<button class="unlock-btn" onclick="openUnlockModal('${t.id}')">解除</button>` : ''}
                 `;
                 trophyListEl.appendChild(card);
             });
@@ -988,6 +949,67 @@
 
             const percent = Math.round((totalUnlocked / allTrophiesList.length) * 100);
             document.getElementById('progress-percent').innerText = `${percent}%`;
+        }
+
+        /* -------------------------------------------------------------
+           マイページ View (右端のタブ：プロフィール ＋ 1行3枚のアルバムサムネイル)
+        ------------------------------------------------------------- */
+        function renderMyProfileView() {
+            const container = document.getElementById('main-container');
+            container.innerHTML = '';
+
+            // プロフィールヘッダー
+            const headerBox = document.createElement('div');
+            headerBox.className = 'profile-card-header';
+            
+            const avatarHTML = myProfile.avatar 
+                ? `<img src="${myProfile.avatar}" class="profile-avatar-large">` 
+                : `<div class="profile-avatar-large"><i class="fa-solid fa-user"></i></div>`;
+
+            headerBox.innerHTML = `
+                ${avatarHTML}
+                <div class="profile-info">
+                    <div class="profile-username">@${myProfile.username}</div>
+                    <div class="profile-bio">${myProfile.bio || 'ステータス未設定'}</div>
+                    <div class="follow-stats-row">
+                        <div>フォロー <span>${(myProfile.following || []).length}</span></div>
+                        <div>フォロワー <span>${(myProfile.followers || []).length}</span></div>
+                    </div>
+                    <button class="btn-action-small" onclick="openEditProfileModal()">プロフィール編集</button>
+                </div>
+            `;
+            container.appendChild(headerBox);
+
+            // 実績アルバム (1行3枚サムネイル)
+            const albumTitle = document.createElement('div');
+            albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
+            albumTitle.innerHTML = '📸 実績フォトギャラリー';
+            container.appendChild(albumTitle);
+
+            const grid = document.createElement('div');
+            grid.className = 'gallery-grid-3';
+
+            let count = 0;
+            Object.keys(userState).forEach(id => {
+                const item = userState[id];
+                if (item && item.photo) {
+                    count++;
+                    const trophy = getAllTrophies().find(t => String(t.id) === String(id));
+                    const el = document.createElement('div');
+                    el.className = 'gallery-item';
+                    el.innerHTML = `
+                        <img src="${item.photo}">
+                        <div class="gallery-item-title">${trophy ? trophy.name : '実績'}</div>
+                    `;
+                    grid.appendChild(el);
+                }
+            });
+
+            if (count === 0) {
+                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">まだ写真付きで解除した実績がありません。<br>実績解除時に写真を撮影・添付するとここに並びます！</div>';
+            } else {
+                container.appendChild(grid);
+            }
         }
 
         /* -------------------------------------------------------------
@@ -1091,49 +1113,12 @@
         }
 
         /* -------------------------------------------------------------
-           アルバム・検索 モーダル表示
+           ユーザー検索 View (下部検索タブ)
         ------------------------------------------------------------- */
-        function renderGalleryModal() {
+        function renderSearchView() {
             const container = document.getElementById('main-container');
             container.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                    <div style="font-size:0.9rem; font-weight:800;">📸 実績アルバム</div>
-                    <button class="btn-action-small" onclick="switchMainTab('trophies')">戻る</button>
-                </div>
-            `;
-            const grid = document.createElement('div');
-            grid.className = 'gallery-grid';
-
-            let count = 0;
-            Object.keys(userState).forEach(id => {
-                const item = userState[id];
-                if (item && item.photo) {
-                    count++;
-                    const trophy = getAllTrophies().find(t => String(t.id) === String(id));
-                    const el = document.createElement('div');
-                    el.className = 'gallery-item';
-                    el.innerHTML = `
-                        <img src="${item.photo}">
-                        <div class="gallery-item-title">${trophy ? trophy.name : '実績'}</div>
-                    `;
-                    grid.appendChild(el);
-                }
-            });
-
-            if (count === 0) {
-                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">写真付きの実績がありません</div>';
-            } else {
-                container.appendChild(grid);
-            }
-        }
-
-        function renderSearchModal() {
-            const container = document.getElementById('main-container');
-            container.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                    <div style="font-size:0.9rem; font-weight:800;">🔍 ユーザー検索</div>
-                    <button class="btn-action-small" onclick="switchMainTab('trophies')">戻る</button>
-                </div>
+                <div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">🔍 ユーザー検索</div>
                 <div style="display:flex; gap:10px; margin-bottom:20px;">
                     <input type="text" id="search-query" class="form-input" placeholder="ユーザー名で検索..." style="margin-bottom:0;">
                     <button class="modal-btn" style="width: 100px; margin-top:0;" onclick="searchUsers()">検索</button>
@@ -1193,7 +1178,71 @@
             
             const statsBox = document.getElementById('stats-grid-box');
             statsBox.style.display = 'grid';
-            renderTrophiesView(profileData, targetState, false);
+            
+            // 他人のプロフィールを表示
+            const container = document.getElementById('main-container');
+            container.innerHTML = '';
+
+            const headerBox = document.createElement('div');
+            headerBox.className = 'profile-card-header';
+            
+            const avatarHTML = profileData.avatar 
+                ? `<img src="${profileData.avatar}" class="profile-avatar-large">` 
+                : `<div class="profile-avatar-large"><i class="fa-solid fa-user"></i></div>`;
+
+            const isFollowing = myProfile.following.includes(uid);
+
+            headerBox.innerHTML = `
+                ${avatarHTML}
+                <div class="profile-info">
+                    <div class="profile-username">@${profileData.username}</div>
+                    <div class="profile-bio">${profileData.bio || 'ステータス未設定'}</div>
+                    <div class="follow-stats-row">
+                        <div>フォロー <span>${(profileData.following || []).length}</span></div>
+                        <div>フォロワー <span>${(profileData.followers || []).length}</span></div>
+                    </div>
+                    <button class="btn-action-small ${isFollowing ? 'following' : ''}" onclick="toggleFollow('${uid}')">${isFollowing ? 'フォロー中' : 'フォローする'}</button>
+                </div>
+            `;
+            container.appendChild(headerBox);
+
+            // 他人の実績一覧
+            const trophyListEl = document.createElement('div');
+            let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
+            let totalUnlocked = 0;
+
+            defaultTrophies.forEach(t => {
+                const isUnlocked = !!targetState[t.id];
+                if (isUnlocked) {
+                    count[t.rank]++;
+                    totalUnlocked++;
+                }
+
+                const card = document.createElement('div');
+                card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
+                card.innerHTML = `
+                    <div class="icon-box"><i class="fa-solid fa-trophy"></i></div>
+                    <div class="trophy-info">
+                        <div class="trophy-name">${t.isUltimate ? '★ ' : ''}${t.name}</div>
+                        <div class="trophy-condition">${t.condition}</div>
+                        <div class="trophy-meta">
+                            <span class="rank-tag">${t.rank}</span>
+                            ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${targetState[t.id].date}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                trophyListEl.appendChild(card);
+            });
+
+            container.appendChild(trophyListEl);
+
+            document.getElementById('count-plat').innerText = count.platinum;
+            document.getElementById('count-gold').innerText = count.gold;
+            document.getElementById('count-silver').innerText = count.silver;
+            document.getElementById('count-bronze').innerText = count.bronze;
+
+            const percent = Math.round((totalUnlocked / defaultTrophies.length) * 100);
+            document.getElementById('progress-percent').innerText = `${percent}%`;
         }
 
         async function toggleFollow(targetUid) {
@@ -1212,7 +1261,7 @@
             }
 
             showNotification(isFollowing ? 'フォロー解除しました' : 'フォローしました');
-            renderSearchModal();
+            renderSearchView();
         }
 
         async function addCustomTrophy() {

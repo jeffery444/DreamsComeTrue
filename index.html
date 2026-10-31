@@ -29,6 +29,7 @@
             --text-primary: #ffffff;
             --text-secondary: #8e8e93;
             --text-tertiary: #48484a;
+            --accent-red: #ff2d55;
         }
 
         * {
@@ -45,7 +46,7 @@
             color: var(--text-primary);
             font-family: 'Inter', 'Noto Sans JP', -apple-system, sans-serif;
             min-height: 100vh;
-            padding-bottom: 60px;
+            padding-bottom: 70px;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
@@ -59,21 +60,21 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border-color);
-            padding: 16px 20px;
-            padding-top: calc(16px + env(safe-area-inset-top));
+            padding: 14px 20px;
+            padding-top: calc(14px + env(safe-area-inset-top));
         }
 
         .header-top {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 16px;
+            align-items: center;
+            margin-bottom: 12px;
         }
 
         .brand-logo {
             font-size: 1.1rem;
             font-weight: 900;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             text-transform: uppercase;
             color: var(--text-primary);
             cursor: pointer;
@@ -112,7 +113,7 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .stat-badge {
@@ -137,17 +138,16 @@
             font-weight: 700;
         }
 
-        /* Filter Navigation */
-        .filter-nav {
+        /* Nav Tabs Horizontal Scroll */
+        .nav-tabs {
             display: flex;
             gap: 6px;
             overflow-x: auto;
             scrollbar-width: none;
         }
+        .nav-tabs::-webkit-scrollbar { display: none; }
 
-        .filter-nav::-webkit-scrollbar { display: none; }
-
-        .filter-btn {
+        .tab-btn {
             background: transparent;
             border: 1px solid var(--border-color);
             color: var(--text-secondary);
@@ -160,25 +160,24 @@
             cursor: pointer;
         }
 
-        .filter-btn.active {
+        .tab-btn.active {
             background: var(--text-primary);
             color: var(--bg-main);
             border-color: var(--text-primary);
         }
 
-        /* Container & Cards */
         .container {
             padding: 16px 20px;
             max-width: 600px;
             margin: 0 auto;
         }
 
-        /* Profile Header Box */
-        .profile-header-box {
+        /* Profile Banner Box */
+        .profile-card-header {
             background: var(--surface-card);
             border: 1px solid var(--border-color);
             border-radius: 14px;
-            padding: 20px;
+            padding: 18px;
             margin-bottom: 16px;
             display: flex;
             align-items: center;
@@ -186,36 +185,50 @@
         }
 
         .profile-avatar-large {
-            width: 64px;
-            height: 64px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--border-light);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: var(--text-secondary);
             object-fit: cover;
             flex-shrink: 0;
         }
 
-        .profile-info-box { flex-grow: 1; }
-        .profile-name-txt { font-size: 1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
-        .profile-bio-txt { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; }
+        .profile-info { flex-grow: 1; }
+        .profile-username { font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin-bottom: 2px; }
+        .profile-bio { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.3; margin-bottom: 8px; }
 
-        .edit-profile-btn {
+        .follow-stats-row {
+            display: flex;
+            gap: 12px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .follow-stats-row span { font-weight: 700; color: var(--text-primary); }
+
+        .btn-action-small {
             background: transparent;
             border: 1px solid var(--border-light);
             color: var(--text-primary);
-            padding: 6px 12px;
+            padding: 5px 12px;
             border-radius: 6px;
             font-size: 0.7rem;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 8px;
         }
 
+        .btn-action-small.following {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: transparent;
+        }
+
+        /* Trophy Card */
         .trophy-card {
             background: var(--surface-card);
             border: 1px solid var(--border-color);
@@ -260,32 +273,11 @@
         }
 
         .trophy-info { flex-grow: 1; }
+        .trophy-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 3px; color: var(--text-primary); }
+        .trophy-card:not(.unlocked) .trophy-name { color: var(--text-secondary); }
+        .trophy-condition { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.3; margin-bottom: 6px; }
 
-        .trophy-name {
-            font-size: 0.9rem;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-            margin-bottom: 3px;
-            color: var(--text-primary);
-        }
-
-        .trophy-card:not(.unlocked) .trophy-name {
-            color: var(--text-secondary);
-        }
-
-        .trophy-condition {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            line-height: 1.3;
-            margin-bottom: 6px;
-        }
-
-        .trophy-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .trophy-meta { display: flex; align-items: center; gap: 8px; }
         .rank-tag {
             font-size: 0.6rem;
             font-weight: 800;
@@ -317,37 +309,115 @@
             cursor: pointer;
         }
 
-        /* Search View */
-        .search-container { padding: 20px 0; }
-        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
-
-        .user-result-card {
+        /* Feed Card */
+        .feed-card {
             background: var(--surface-card);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 14px 16px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: background 0.2s;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
         }
 
-        .user-result-card:hover { background: var(--surface-hover); }
+        .feed-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
 
-        .user-avatar-small {
-            width: 40px;
-            height: 40px;
+        .feed-avatar {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
+            object-fit: cover;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
             color: var(--text-secondary);
+        }
+
+        .feed-user-name { font-size: 0.85rem; font-weight: 700; }
+        .feed-time { font-size: 0.65rem; color: var(--text-secondary); }
+
+        .feed-trophy-banner {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .feed-photo {
+            width: 100%;
+            max-height: 250px;
             object-fit: cover;
-            flex-shrink: 0;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .feed-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .feed-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .feed-action-btn.liked { color: var(--accent-red); }
+
+        /* Comments Box */
+        .feed-comments-section {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+        .comment-item { font-size: 0.75rem; margin-bottom: 6px; color: var(--text-secondary); }
+        .comment-item b { color: var(--text-primary); }
+
+        .comment-input-box {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        /* Gallery Grid */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+        }
+
+        .gallery-item {
+            aspect-ratio: 1;
+            position: relative;
+            overflow: hidden;
+            border-radius: 6px;
+            background: var(--surface-card);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-item-title {
+            position: absolute;
+            bottom: 0;
+            inset-x: 0;
+            background: rgba(0,0,0,0.7);
+            font-size: 0.55rem;
+            padding: 3px 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Notification */
@@ -371,17 +441,7 @@
         }
 
         #notification.show { transform: translateX(-50%) translateY(0); }
-
-        .notif-icon {
-            width: 36px;
-            height: 36px;
-            background: #000000;
-            color: #ffffff;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .notif-icon { width: 36px; height: 36px; background: #000000; color: #ffffff; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
 
         /* Modals */
         .modal {
@@ -407,13 +467,7 @@
             padding: 24px;
         }
 
-        .modal-title {
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 16px;
-            text-align: center;
-            letter-spacing: 0.5px;
-        }
+        .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; text-align: center; letter-spacing: 0.5px; }
 
         .form-input {
             width: 100%;
@@ -429,6 +483,18 @@
 
         .form-input:focus { border-color: var(--text-primary); }
 
+        .form-select {
+            width: 100%;
+            background: #121212;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            outline: none;
+        }
+
         .modal-btn {
             width: 100%;
             padding: 12px;
@@ -442,14 +508,6 @@
             margin-top: 6px;
         }
 
-        .switch-auth {
-            text-align: center;
-            margin-top: 14px;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-        }
-
         .photo-upload-zone {
             border: 1px dashed var(--border-light);
             border-radius: 10px;
@@ -460,15 +518,7 @@
             background: rgba(255, 255, 255, 0.02);
         }
 
-        .photo-preview {
-            width: 100%;
-            max-height: 200px;
-            object-fit: cover;
-            border-radius: 8px;
-            display: none;
-            margin-bottom: 16px;
-        }
-
+        .photo-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 10px; }
         .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
     </style>
@@ -482,15 +532,14 @@
             <input type="email" id="auth-email" class="form-input" placeholder="メールアドレス">
             <input type="password" id="auth-password" class="form-input" placeholder="パスワード">
             <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">ログイン</button>
-            <div class="switch-auth" id="auth-switch-text" onclick="toggleAuthMode()">アカウントをお持ちでない方は新規登録</div>
+            <div style="text-align:center; margin-top:14px; font-size:0.75rem; color:var(--text-secondary); cursor:pointer;" id="auth-switch-text" onclick="toggleAuthMode()">アカウントをお持ちでない方は新規登録</div>
         </div>
     </div>
 
-    <!-- Username & Profile Setup Modal -->
+    <!-- Initial Profile Setup Modal -->
     <div class="modal" id="username-modal">
         <div class="modal-content">
-            <div class="modal-title">プロフィール初期設定</div>
-            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px; text-align: center;">ユーザー名とステータスメッセージを設定しましょう</div>
+            <div class="modal-title">プロフィール設定</div>
             <input type="text" id="username-input" class="form-input" placeholder="ユーザー名 (例: shota_trophy)">
             <input type="text" id="bio-input" class="form-input" placeholder="ステータスメッセージ (例: 人生の実績解除中！)">
             <button class="modal-btn" onclick="saveInitialProfile()">決定する</button>
@@ -510,8 +559,27 @@
             
             <input type="text" id="edit-bio-input" class="form-input" placeholder="ステータスメッセージ">
             <div class="modal-buttons">
-                <button class="modal-btn btn-cancel" onclick="closeEditProfileModal()">キャンセル</button>
+                <button class="modal-btn btn-cancel" onclick="closeModal('edit-profile-modal')">キャンセル</button>
                 <button class="modal-btn" onclick="saveProfileChanges()">保存する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Trophy Modal -->
+    <div class="modal" id="custom-trophy-modal">
+        <div class="modal-content">
+            <div class="modal-title">カスタム実績を作成</div>
+            <input type="text" id="custom-title" class="form-input" placeholder="実績タイトル (例: バンジージャンプ)">
+            <input type="text" id="custom-condition" class="form-input" placeholder="達成条件 (例: 50m以上の高さから飛ぶ)">
+            <select id="custom-rank" class="form-select">
+                <option value="bronze">BRONZE</option>
+                <option value="silver">SILVER</option>
+                <option value="gold">GOLD</option>
+                <option value="platinum">PLATINUM</option>
+            </select>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeModal('custom-trophy-modal')">キャンセル</button>
+                <button class="modal-btn" onclick="addCustomTrophy()">作成する</button>
             </div>
         </div>
     </div>
@@ -519,7 +587,7 @@
     <!-- Header -->
     <header>
         <div class="header-top">
-            <div class="brand-logo" onclick="switchView('trophies')">Life Trophies</div>
+            <div class="brand-logo" onclick="switchMainTab('trophies')">Life Trophies</div>
             <div class="header-right">
                 <div class="progress-stat">PROGRESS <span id="progress-percent">0%</span></div>
                 <button class="logout-btn" onclick="logout()">ログアウト</button>
@@ -533,29 +601,25 @@
             <div class="stat-badge"><span class="rank-label">BRONZE</span><span class="rank-val" id="count-bronze">0</span></div>
         </div>
 
-        <div class="filter-nav" id="filter-nav">
-            <button class="filter-btn active" onclick="filterTrophies('all')">ALL</button>
-            <button class="filter-btn" onclick="filterTrophies('unlocked')">UNLOCKED</button>
-            <button class="filter-btn" onclick="filterTrophies('platinum')">PLATINUM</button>
-            <button class="filter-btn" onclick="filterTrophies('gold')">GOLD</button>
-            <button class="filter-btn" onclick="filterTrophies('silver')">SILVER</button>
-            <button class="filter-btn" onclick="filterTrophies('bronze')">BRONZE</button>
-            <button class="filter-btn" onclick="switchView('search')" style="border-color: rgba(255,255,255,0.4);"><i class="fa-solid fa-magnifying-glass"></i> ユーザー検索</button>
+        <div class="nav-tabs" id="nav-tabs">
+            <button class="tab-btn active" id="tab-btn-trophies" onclick="switchMainTab('trophies')"><i class="fa-solid fa-trophy"></i> 実績</button>
+            <button class="tab-btn" id="tab-btn-feed" onclick="switchMainTab('feed')"><i class="fa-solid fa-rss"></i> タイムライン</button>
+            <button class="tab-btn" id="tab-btn-gallery" onclick="switchMainTab('gallery')"><i class="fa-solid fa-images"></i> アルバム</button>
+            <button class="tab-btn" id="tab-btn-search" onclick="switchMainTab('search')"><i class="fa-solid fa-magnifying-glass"></i> ユーザー検索</button>
         </div>
     </header>
 
-    <div class="container" id="main-container">
-        <div id="trophy-list"></div>
-    </div>
+    <div class="container" id="main-container"></div>
 
     <div id="notification">
         <div class="notif-icon"><i class="fa-solid fa-trophy"></i></div>
         <div class="notif-text">
-            <div class="label" style="font-size: 0.6rem; font-weight: 900; color: #66;">Trophy Unlocked</div>
+            <div style="font-size: 0.6rem; font-weight: 900; color: #666;">Trophy Unlocked</div>
             <div class="title" id="notif-title" style="font-size: 0.85rem; font-weight: 700;">実績タイトル</div>
         </div>
     </div>
 
+    <!-- Unlock Modal -->
     <div class="modal" id="unlock-modal">
         <div class="modal-content">
             <div class="modal-title" id="modal-trophy-title">実績を解除</div>
@@ -567,7 +631,7 @@
             <input type="file" id="photo-input" accept="image/*" capture="environment" style="display: none;" onchange="previewImage(event)">
             
             <div class="modal-buttons">
-                <button class="modal-btn btn-cancel" onclick="closeUnlockModal()">キャンセル</button>
+                <button class="modal-btn btn-cancel" onclick="closeModal('unlock-modal')">キャンセル</button>
                 <button class="modal-btn" onclick="confirmUnlock()">解除する</button>
             </div>
         </div>
@@ -590,10 +654,12 @@
 
         let currentUser = null;
         let userState = {};
-        let myProfile = { username: "", bio: "", avatar: "" };
+        let myProfile = { username: "", bio: "", avatar: "", following: [], followers: [] };
+        let customTrophies = [];
         let isSignUpMode = false;
         let selectedTrophyId = null;
-        let currentView = 'trophies';
+        let activeTab = 'trophies';
+        let trophyFilter = 'all';
         let tempAvatarBase64 = "";
 
         const defaultTrophies = [
@@ -685,9 +751,9 @@
             } else {
                 currentUser = null;
                 userState = {};
-                myProfile = { username: "", bio: "", avatar: "" };
+                myProfile = { username: "", bio: "", avatar: "", following: [], followers: [] };
                 document.getElementById('auth-modal').classList.add('active');
-                renderTrophies();
+                renderTrophiesView(myProfile, userState, true);
             }
         });
 
@@ -698,7 +764,9 @@
                 myProfile = {
                     username: data.username || "",
                     bio: data.bio || "人生の実績解除中！",
-                    avatar: data.avatar || ""
+                    avatar: data.avatar || "",
+                    following: data.following || [],
+                    followers: data.followers || []
                 };
                 loadUserData();
             } else {
@@ -715,6 +783,8 @@
                 username: username,
                 bio: bio,
                 avatar: "",
+                following: [],
+                followers: [],
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
 
@@ -747,83 +817,112 @@
             }
         }
 
-        async function logout() {
-            await auth.signOut();
-        }
+        async function logout() { await auth.signOut(); }
 
         async function loadUserData() {
             if (!currentUser) return;
+            // 自分の実績状態を読み込み
             const docRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('status');
             const doc = await docRef.get();
             userState = doc.exists ? doc.data() || {} : {};
-            switchView('trophies');
+
+            // カスタム実績の読み込み
+            const customDoc = await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom');
+            const cDoc = await customDoc.get();
+            customTrophies = cDoc.exists ? cDoc.data().items || [] : [];
+
+            switchMainTab('trophies');
         }
 
-        async function saveUserData() {
-            if (!currentUser) return;
-            const docRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('status');
-            await docRef.set(userState);
-        }
-
-        function switchView(view, targetProfile = null, targetState = null) {
-            currentView = view;
-            const statsBox = document.getElementById('stats-grid-box');
-            const filterNav = document.getElementById('filter-nav');
-
-            if (view === 'trophies') {
-                statsBox.style.display = 'grid';
-                filterNav.style.display = 'flex';
-                renderTrophiesView(myProfile, userState, true);
-            } else if (view === 'profile') {
-                statsBox.style.display = 'grid';
-                filterNav.style.display = 'none';
-                renderTrophiesView(targetProfile, targetState, false);
-            } else if (view === 'search') {
-                statsBox.style.display = 'none';
-                filterNav.style.display = 'flex';
-                renderSearchView();
+        function switchMainTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (document.getElementById(`tab-btn-${tab}`)) {
+                document.getElementById(`tab-btn-${tab}`).classList.add('active');
             }
+
+            const statsBox = document.getElementById('stats-grid-box');
+            if (tab === 'trophies' || tab === 'other-profile') {
+                statsBox.style.display = 'grid';
+            } else {
+                statsBox.style.display = 'none';
+            }
+
+            if (tab === 'trophies') renderTrophiesView(myProfile, userState, true);
+            else if (tab === 'feed') renderFeedView();
+            else if (tab === 'gallery') renderGalleryView();
+            else if (tab === 'search') renderSearchView();
         }
 
-        function renderTrophiesView(profile, state, isSelf, filter = 'all') {
+        function getAllTrophies() {
+            return [...defaultTrophies, ...customTrophies];
+        }
+
+        /* -------------------------------------------------------------
+           実績表示 View
+        ------------------------------------------------------------- */
+        function renderTrophiesView(profile, state, isSelf) {
             const container = document.getElementById('main-container');
             container.innerHTML = '';
 
             // プロフィールヘッダー
             const headerBox = document.createElement('div');
-            headerBox.className = 'profile-header-box';
+            headerBox.className = 'profile-card-header';
             
             const avatarHTML = profile.avatar 
                 ? `<img src="${profile.avatar}" class="profile-avatar-large">` 
                 : `<div class="profile-avatar-large"><i class="fa-solid fa-user"></i></div>`;
 
+            const isFollowing = myProfile.following.includes(profile.uid);
+
             headerBox.innerHTML = `
                 ${avatarHTML}
-                <div class="profile-info-box">
-                    <div class="profile-name-txt">@${profile.username}</div>
-                    <div class="profile-bio-txt">${profile.bio || 'ステータス未設定'}</div>
-                    ${isSelf ? `<button class="edit-profile-btn" onclick="openEditProfileModal()">プロフィール編集</button>` : ''}
+                <div class="profile-info">
+                    <div class="profile-username">@${profile.username}</div>
+                    <div class="profile-bio">${profile.bio || 'ステータス未設定'}</div>
+                    <div class="follow-stats-row">
+                        <div>フォロー <span>${(profile.following || []).length}</span></div>
+                        <div>フォロワー <span>${(profile.followers || []).length}</span></div>
+                    </div>
+                    ${isSelf 
+                        ? `<button class="btn-action-small" onclick="openEditProfileModal()">プロフィール編集</button>
+                           <button class="btn-action-small" style="margin-left:6px;" onclick="openModal('custom-trophy-modal')">+ カスタム実績</button>`
+                        : `<button class="btn-action-small ${isFollowing ? 'following' : ''}" onclick="toggleFollow('${profile.uid}')">${isFollowing ? 'フォロー中' : 'フォローする'}</button>`
+                    }
                 </div>
             `;
             container.appendChild(headerBox);
 
+            // フィルター
+            if (isSelf) {
+                const filterRow = document.createElement('div');
+                filterRow.style.cssText = 'display:flex; gap:6px; overflow-x:auto; margin-bottom:14px;';
+                ['all', 'unlocked', 'platinum', 'gold', 'silver', 'bronze'].forEach(f => {
+                    const btn = document.createElement('button');
+                    btn.className = `tab-btn ${trophyFilter === f ? 'active' : ''}`;
+                    btn.innerText = f.toUpperCase();
+                    btn.onclick = () => { trophyFilter = f; renderTrophiesView(profile, state, isSelf); };
+                    filterRow.appendChild(btn);
+                });
+                container.appendChild(filterRow);
+            }
+
             // 実績リスト
             const trophyListEl = document.createElement('div');
-            trophyListEl.id = 'trophy-list';
-
             let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
             let totalUnlocked = 0;
+            const allTrophiesList = isSelf ? getAllTrophies() : defaultTrophies;
 
-            defaultTrophies.forEach(t => {
+            allTrophiesList.forEach(t => {
                 const isUnlocked = !!state[t.id];
                 if (isUnlocked) {
                     count[t.rank]++;
                     totalUnlocked++;
                 }
 
-                if (isSelf && filter !== 'all') {
-                    if (filter === 'unlocked' && !isUnlocked) return;
-                    if (filter !== 'unlocked' && t.rank !== filter) return;
+                if (isSelf && trophyFilter !== 'all') {
+                    if (trophyFilter === 'unlocked' && !isUnlocked) return;
+                    if (trophyFilter !== 'unlocked' && t.rank !== trophyFilter) return;
                 }
 
                 const card = document.createElement('div');
@@ -832,14 +931,14 @@
                 card.innerHTML = `
                     <div class="icon-box"><i class="fa-solid fa-trophy"></i></div>
                     <div class="trophy-info">
-                        <div class="trophy-name">${t.isUltimate ? '★ ' : ''}${t.name}</div>
+                        <div class="trophy-name">${t.isUltimate ? '★ ' : ''}${t.name} ${t.isCustom ? '<span style="font-size:0.6rem; color:var(--text-secondary);">(カスタム)</span>' : ''}</div>
                         <div class="trophy-condition">${t.condition}</div>
                         <div class="trophy-meta">
                             <span class="rank-tag">${t.rank}</span>
                             ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${state[t.id].date}</span>` : ''}
                         </div>
                     </div>
-                    ${isSelf && !isUnlocked ? `<button class="unlock-btn" onclick="openUnlockModal(${t.id})">解除</button>` : ''}
+                    ${isSelf && !isUnlocked ? `<button class="unlock-btn" onclick="openUnlockModal('${t.id}')">解除</button>` : ''}
                 `;
                 trophyListEl.appendChild(card);
             });
@@ -851,15 +950,151 @@
             document.getElementById('count-silver').innerText = count.silver;
             document.getElementById('count-bronze').innerText = count.bronze;
 
-            const percent = Math.round((totalUnlocked / defaultTrophies.length) * 100);
+            const percent = Math.round((totalUnlocked / allTrophiesList.length) * 100);
             document.getElementById('progress-percent').innerText = `${percent}%`;
         }
 
+        /* -------------------------------------------------------------
+           タイムライン View
+        ------------------------------------------------------------- */
+        async function renderFeedView() {
+            const container = document.getElementById('main-container');
+            container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">タイムライン読み込み中...</div>';
+
+            try {
+                const snapshot = await db.collection('posts').orderBy('createdAt', 'desc').limit(20).get();
+                container.innerHTML = '';
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">まだ投稿がありません。実績を解除して一番乗りになろう！</div>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const post = doc.data();
+                    const postId = doc.id;
+                    const isLiked = (post.likes || []).includes(currentUser.uid);
+
+                    const avatarHTML = post.userAvatar 
+                        ? `<img src="${post.userAvatar}" class="feed-avatar">` 
+                        : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
+
+                    const card = document.createElement('div');
+                    card.className = 'feed-card';
+                    card.innerHTML = `
+                        <div class="feed-header">
+                            ${avatarHTML}
+                            <div>
+                                <div class="feed-user-name">@${post.username}</div>
+                                <div class="feed-time">${post.date || ''}</div>
+                            </div>
+                        </div>
+
+                        <div class="feed-trophy-banner">
+                            <div style="font-size:0.65rem; color:var(--text-secondary); font-weight:800; letter-spacing:1px; margin-bottom:2px;">TROPHY UNLOCKED</div>
+                            <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">🏆 ${post.trophyName}</div>
+                        </div>
+
+                        ${post.photo ? `<img src="${post.photo}" class="feed-photo">` : ''}
+
+                        <div class="feed-actions">
+                            <div class="feed-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${postId}', ${isLiked})">
+                                <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                <span>${(post.likes || []).length}</span>
+                            </div>
+                            <div class="feed-action-btn">
+                                <i class="fa-regular fa-comment"></i>
+                                <span>${(post.comments || []).length}</span>
+                            </div>
+                        </div>
+
+                        <div class="feed-comments-section">
+                            <div id="comments-list-${postId}">
+                                ${(post.comments || []).map(c => `<div class="comment-item"><b>@${c.username}:</b> ${c.text}</div>`).join('')}
+                            </div>
+                            <div class="comment-input-box">
+                                <input type="text" id="comment-input-${postId}" class="form-input" placeholder="お祝いコメントを入力..." style="margin-bottom:0; font-size:0.75rem; padding:8px 12px;">
+                                <button class="btn-action-small" onclick="addComment('${postId}')">送信</button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (e) {
+                container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">フィードの読み込みに失敗しました</div>';
+            }
+        }
+
+        async function toggleLike(postId, currentLiked) {
+            const postRef = db.collection('posts').doc(postId);
+            if (currentLiked) {
+                await postRef.update({ likes: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) });
+            } else {
+                await postRef.update({ likes: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
+            }
+            renderFeedView();
+        }
+
+        async function addComment(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            const postRef = db.collection('posts').doc(postId);
+            await postRef.update({
+                comments: firebase.firestore.FieldValue.arrayUnion({
+                    uid: currentUser.uid,
+                    username: myProfile.username,
+                    text: text,
+                    createdAt: new Date().toISOString()
+                })
+            });
+
+            input.value = '';
+            renderFeedView();
+        }
+
+        /* -------------------------------------------------------------
+           アルバム View
+        ------------------------------------------------------------- */
+        function renderGalleryView() {
+            const container = document.getElementById('main-container');
+            container.innerHTML = '<div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">📸 実績アルバム</div>';
+
+            const grid = document.createElement('div');
+            grid.className = 'gallery-grid';
+
+            let count = 0;
+            Object.keys(userState).forEach(id => {
+                const item = userState[id];
+                if (item && item.photo) {
+                    count++;
+                    const trophy = getAllTrophies().find(t => String(t.id) === String(id));
+                    const el = document.createElement('div');
+                    el.className = 'gallery-item';
+                    el.innerHTML = `
+                        <img src="${item.photo}">
+                        <div class="gallery-item-title">${trophy ? trophy.name : '実績'}</div>
+                    `;
+                    grid.appendChild(el);
+                }
+            });
+
+            if (count === 0) {
+                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">まだ写真付きの実績画像がありません。実績解除時に写真を添付してみましょう！</div>';
+            } else {
+                container.appendChild(grid);
+            }
+        }
+
+        /* -------------------------------------------------------------
+           ユーザー検索 View
+        ------------------------------------------------------------- */
         function renderSearchView() {
             const container = document.getElementById('main-container');
             container.innerHTML = `
-                <div class="search-container">
-                    <div class="search-box">
+                <div style="padding:10px 0;">
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
                         <input type="text" id="search-query" class="form-input" placeholder="ユーザー名で検索..." style="margin-bottom:0;">
                         <button class="modal-btn" style="width: 100px; margin-top:0;" onclick="searchUsers()">検索</button>
                     </div>
@@ -880,19 +1115,22 @@
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data.username && data.username.includes(q)) {
+                    if (data.username && data.username.includes(q) && doc.id !== currentUser.uid) {
                         found = true;
                         const avatarHTML = data.avatar 
-                            ? `<img src="${data.avatar}" class="user-avatar-small">` 
-                            : `<div class="user-avatar-small"><i class="fa-solid fa-user"></i></div>`;
+                            ? `<img src="${data.avatar}" class="feed-avatar">` 
+                            : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
 
                         const card = document.createElement('div');
-                        card.className = 'user-result-card';
+                        card.className = 'feed-card';
+                        card.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding:12px 16px; cursor:pointer;';
                         card.innerHTML = `
-                            ${avatarHTML}
-                            <div style="flex-grow:1;">
-                                <div style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">@${data.username}</div>
-                                <div style="font-size:0.7rem; color:var(--text-secondary); margin-top:2px;">${data.bio || 'ステータスなし'}</div>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                ${avatarHTML}
+                                <div>
+                                    <div style="font-size:0.9rem; font-weight:700;">@${data.username}</div>
+                                    <div style="font-size:0.7rem; color:var(--text-secondary);">${data.bio || 'ステータスなし'}</div>
+                                </div>
                             </div>
                             <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary);"></i>
                         `;
@@ -912,7 +1150,58 @@
         async function viewUserProfile(uid, profileData) {
             const doc = await db.collection('users').doc(uid).collection('trophies').doc('status').get();
             const targetState = doc.exists ? doc.data() || {} : {};
-            switchView('profile', profileData, targetState);
+            profileData.uid = uid;
+            switchMainTab('other-profile');
+            renderTrophiesView(profileData, targetState, false);
+        }
+
+        /* -------------------------------------------------------------
+           フォロー＆フォロワー処理
+        ------------------------------------------------------------- */
+        async function toggleFollow(targetUid) {
+            const isFollowing = myProfile.following.includes(targetUid);
+            const myRef = db.collection('users').doc(currentUser.uid);
+            const targetRef = db.collection('users').doc(targetUid);
+
+            if (isFollowing) {
+                await myRef.update({ following: firebase.firestore.FieldValue.arrayRemove(targetUid) });
+                await targetRef.update({ followers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) });
+                myProfile.following = myProfile.following.filter(id => id !== targetUid);
+            } else {
+                await myRef.update({ following: firebase.firestore.FieldValue.arrayUnion(targetUid) });
+                await targetRef.update({ followers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
+                myProfile.following.push(targetUid);
+            }
+
+            showNotification(isFollowing ? 'フォロー解除しました' : 'フォローしました');
+            switchMainTab('search');
+        }
+
+        /* -------------------------------------------------------------
+           カスタム実績・プロフィール編集
+        ------------------------------------------------------------- */
+        async function addCustomTrophy() {
+            const title = document.getElementById('custom-title').value.trim();
+            const condition = document.getElementById('custom-condition').value.trim();
+            const rank = document.getElementById('custom-rank').value;
+            if (!title || !condition) return alert('タイトルと条件を入力してください');
+
+            const newTrophy = {
+                id: 'custom_' + Date.now(),
+                name: title,
+                condition: condition,
+                rank: rank,
+                isCustom: true
+            };
+
+            customTrophies.push(newTrophy);
+            await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom').set({ items: customTrophies });
+
+            closeModal('custom-trophy-modal');
+            document.getElementById('custom-title').value = '';
+            document.getElementById('custom-condition').value = '';
+            switchMainTab('trophies');
+            showNotification('カスタム実績を追加しました');
         }
 
         function openEditProfileModal() {
@@ -925,11 +1214,7 @@
                 img.style.display = 'none';
             }
             tempAvatarBase64 = myProfile.avatar;
-            document.getElementById('edit-profile-modal').classList.add('active');
-        }
-
-        function closeEditProfileModal() {
-            document.getElementById('edit-profile-modal').classList.remove('active');
+            openModal('edit-profile-modal');
         }
 
         function previewAvatar(e) {
@@ -957,29 +1242,21 @@
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
 
-            closeEditProfileModal();
-            switchView('trophies');
+            closeModal('edit-profile-modal');
+            switchMainTab('trophies');
             showNotification('プロフィールを更新しました');
         }
 
-        function filterTrophies(filter) {
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            renderTrophiesView(myProfile, userState, true, filter);
-        }
-
+        /* -------------------------------------------------------------
+           実績解除 Modal & タイムライン自動投稿
+        ------------------------------------------------------------- */
         function openUnlockModal(id) {
             selectedTrophyId = id;
-            const trophy = defaultTrophies.find(t => t.id === id);
+            const trophy = getAllTrophies().find(t => String(t.id) === String(id));
             document.getElementById('modal-trophy-title').innerText = `「${trophy.name}」`;
             document.getElementById('photo-preview').style.display = 'none';
             document.getElementById('photo-input').value = '';
-            document.getElementById('unlock-modal').classList.add('active');
-        }
-
-        function closeUnlockModal() {
-            document.getElementById('unlock-modal').classList.remove('active');
-            selectedTrophyId = null;
+            openModal('unlock-modal');
         }
 
         function previewImage(e) {
@@ -998,17 +1275,40 @@
         async function confirmUnlock() {
             if (!selectedTrophyId) return;
 
-            const trophy = defaultTrophies.find(t => t.id === selectedTrophyId);
+            const trophy = getAllTrophies().find(t => String(t.id) === String(selectedTrophyId));
+            const dateStr = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+            const photoData = document.getElementById('photo-preview').src || null;
+
             userState[selectedTrophyId] = {
-                date: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' }),
-                photo: document.getElementById('photo-preview').src || null
+                date: dateStr,
+                photo: photoData
             };
 
-            await saveUserData();
-            closeUnlockModal();
-            switchView('trophies');
+            // Firestoreに保存
+            await db.collection('users').doc(currentUser.uid).collection('trophies').doc('status').set(userState);
+
+            // タイムライン（posts）に自動投稿
+            await db.collection('posts').add({
+                uid: currentUser.uid,
+                username: myProfile.username,
+                userAvatar: myProfile.avatar,
+                trophyId: selectedTrophyId,
+                trophyName: trophy.name,
+                photo: photoData,
+                date: dateStr,
+                likes: [],
+                comments: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            closeModal('unlock-modal');
+            switchMainTab('trophies');
             showNotification(trophy.name);
         }
+
+        /* Helpers */
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
         function showNotification(title) {
             const notif = document.getElementById('notification');

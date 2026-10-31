@@ -525,12 +525,12 @@
             color: #fff;
         }
 
-        /* 解除済み実績リスト (マイページ用) */
+        /* 解除済み実績管理カード (モーダル用) */
         .unlocked-manage-card {
-            background: var(--surface-card);
+            background: var(--surface-hover);
             border: 1px solid var(--border-color);
             border-radius: 10px;
-            padding: 12px;
+            padding: 10px 12px;
             margin-bottom: 8px;
             display: flex;
             align-items: center;
@@ -539,11 +539,11 @@
         }
 
         .unlocked-manage-thumb {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 6px;
             object-fit: cover;
-            background: var(--surface-hover);
+            background: var(--surface-card);
             flex-shrink: 0;
         }
 
@@ -734,6 +734,23 @@
             </div>
 
             <button class="modal-btn btn-cancel" onclick="closeModal('settings-modal')">閉じる</button>
+        </div>
+    </div>
+
+    <!-- Unlocked Achievements Management Modal (新設) -->
+    <div class="modal" id="unlocked-manage-modal">
+        <div class="modal-content">
+            <div class="modal-title">🔄 解除済み実績の管理</div>
+            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 12px; text-align: center;">
+                これまでに解除した実績の確認や、未解除の状態へのリセット（取消）ができます。
+            </div>
+            <div id="unlocked-manage-list-container" style="margin-bottom: 16px; max-height: 50vh; overflow-y: auto;">
+                <!-- 動的にリストが挿入されます -->
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn" onclick="recoverFromPosts(true)" style="background: var(--surface-hover); color: var(--text-primary); border: 1px solid var(--border-color); margin-top:0;">履歴から復元</button>
+                <button class="modal-btn btn-cancel" onclick="closeModal('unlocked-manage-modal')" style="margin-top:0;">閉じる</button>
+            </div>
         </div>
     </div>
 
@@ -1579,7 +1596,7 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View (自分用：編集・設定・解除取消可能)
+           マイページ View (自分用：プロフィールのボタン並びに「解除済み実績管理」を配置)
         ------------------------------------------------------------- */
         function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -1604,6 +1621,7 @@
                     </div>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                         <button class="btn-action-small" onclick="openEditProfileModal()">プロフィール編集</button>
+                        <button class="btn-action-small" onclick="openUnlockedManageModal()">解除済み実績管理</button>
                         <button class="btn-action-small" onclick="shareProfile()"><i class="fa-solid fa-share-nodes"></i> シェア</button>
                         <button class="btn-action-small" onclick="openModal('settings-modal')"><i class="fa-solid fa-gear"></i> 設定</button>
                     </div>
@@ -1611,17 +1629,46 @@
             `;
             container.appendChild(headerBox);
 
-            const manageTitle = document.createElement('div');
-            manageTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary); display:flex; justify-content:space-between; align-items:center;';
-            manageTitle.innerHTML = `
-                <span>🔄 解除済み実績の管理（解除前に戻す）</span>
-                <button class="btn-action-small" style="font-size:0.65rem; padding:4px 8px;" onclick="recoverFromPosts(true)">履歴から復元</button>
-            `;
-            container.appendChild(manageTitle);
+            // 実績フォトギャラリー
+            const albumTitle = document.createElement('div');
+            albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
+            albumTitle.innerHTML = '📸 実績フォトギャラリー';
+            container.appendChild(albumTitle);
 
-            const manageListEl = document.createElement('div');
-            manageListEl.style.cssText = 'margin-bottom:24px;';
-            
+            const grid = document.createElement('div');
+            grid.className = 'gallery-grid-3';
+
+            let photoCount = 0;
+            const allList = getAllTrophies();
+            Object.keys(userState).forEach(id => {
+                const item = userState[id];
+                if (item && item.photo) {
+                    photoCount++;
+                    const trophy = allList.find(t => String(t.id) === String(id));
+                    const el = document.createElement('div');
+                    el.className = 'gallery-item';
+                    el.innerHTML = `
+                        <img src="${item.photo}">
+                        <div class="gallery-item-title">${trophy ? trophy.name : '実績'}</div>
+                    `;
+                    grid.appendChild(el);
+                }
+            });
+
+            if (photoCount === 0) {
+                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">まだ写真付きで解除した実績がありません。</div>';
+            } else {
+                container.appendChild(grid);
+            }
+        }
+
+        /* -------------------------------------------------------------
+           解除済み実績管理モーダルのオープン・リスト描画
+        ------------------------------------------------------------- */
+        function openUnlockedManageModal() {
+            const listContainer = document.getElementById('unlocked-manage-list-container');
+            listContainer.innerHTML = '';
+
             let unlockedCount = 0;
             const allList = getAllTrophies();
 
@@ -1649,48 +1696,19 @@
 
                     manageCard.appendChild(leftInfo);
                     manageCard.appendChild(revertBtn);
-                    manageListEl.appendChild(manageCard);
+                    listContainer.appendChild(manageCard);
                 }
             });
 
             if (unlockedCount === 0) {
-                manageListEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:18px; background:var(--surface-card); border-radius:10px; border:1px solid var(--border-color);">現在解除している実績はありません</div>';
+                listContainer.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:18px;">現在解除している実績はありません</div>';
             }
-            container.appendChild(manageListEl);
 
-            const albumTitle = document.createElement('div');
-            albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
-            albumTitle.innerHTML = '📸 実績フォトギャラリー';
-            container.appendChild(albumTitle);
-
-            const grid = document.createElement('div');
-            grid.className = 'gallery-grid-3';
-
-            let photoCount = 0;
-            Object.keys(userState).forEach(id => {
-                const item = userState[id];
-                if (item && item.photo) {
-                    photoCount++;
-                    const trophy = allList.find(t => String(t.id) === String(id));
-                    const el = document.createElement('div');
-                    el.className = 'gallery-item';
-                    el.innerHTML = `
-                        <img src="${item.photo}">
-                        <div class="gallery-item-title">${trophy ? trophy.name : '実績'}</div>
-                    `;
-                    grid.appendChild(el);
-                }
-            });
-
-            if (photoCount === 0) {
-                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">まだ写真付きで解除した実績がありません。</div>';
-            } else {
-                container.appendChild(grid);
-            }
+            openModal('unlocked-manage-modal');
         }
 
         /* -------------------------------------------------------------
-           他人のプロフィール画面 View (閲覧専用・編集ボタン等なし)
+           他人のプロフィール画面 View (閲覧専用・サムネイル対応)
         ------------------------------------------------------------- */
         async function viewUserProfile(uid, profileData) {
             if (profileData.privacy === 'followers' && !profileData.followers?.includes(currentUser.uid)) {
@@ -1738,7 +1756,6 @@
             `;
             container.appendChild(headerBox);
 
-            // 他人の実績一覧（サムネイル対応）
             const trophyListEl = document.createElement('div');
             let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
             let totalUnlocked = 0;
@@ -1792,7 +1809,8 @@
                 delete userState[id];
             }
 
-            renderMyProfileView();
+            openUnlockedManageModal(); // モーダル内のリストを更新
+            switchMainTab('profile');
             showNotification(`「${trophyName}」を未解除に戻しました`, 'TROPHY RESET');
 
             await removeSingleUnlockFromStorage(id);

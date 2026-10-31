@@ -594,7 +594,7 @@
         </div>
     </div>
 
-    <!-- Settings Modal (設定画面：ダーク/ライト, プライバシー, アカウント管理) -->
+    <!-- Settings Modal -->
     <div class="modal" id="settings-modal">
         <div class="modal-content">
             <div class="modal-title">⚙️ 設定</div>
@@ -629,7 +629,7 @@
         </div>
     </div>
 
-    <!-- Follow / Follower List Modal (フォロワー・フォロー一覧ポップアップ) -->
+    <!-- Follow / Follower List Modal -->
     <div class="modal" id="follow-list-modal">
         <div class="modal-content">
             <div class="modal-title" id="follow-list-title">リスト</div>
@@ -677,7 +677,7 @@
 
     <div class="container" id="main-container"></div>
 
-    <!-- Bottom Navigation Bar (4タブ) -->
+    <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
         <button class="nav-item" id="nav-btn-feed" onclick="switchMainTab('feed')">
             <i class="fa-solid fa-house"></i>
@@ -930,13 +930,10 @@
 
         async function logout() { await auth.signOut(); }
 
-        // アカウント削除機能
         async function deleteAccount() {
             if (!confirm('本当にアカウントを削除しますか？この操作は元に戻せません。')) return;
             try {
-                // Firestoreからユーザーデータを削除
                 await db.collection('users').doc(currentUser.uid).delete();
-                // Authアカウント削除
                 await currentUser.delete();
                 alert('アカウントを削除しました');
             } catch (error) {
@@ -1076,7 +1073,7 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View (フォロワー一覧対応)
+           マイページ View
         ------------------------------------------------------------- */
         function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -1316,7 +1313,6 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.username && data.username.includes(q) && doc.id !== currentUser.uid) {
-                        // プライバシー設定チェック（フォロワーのみの場合は、自分がフォロワーに含まれていなければ非表示にするなどの拡張が可能ですが今回は基本検索）
                         found = true;
                         const avatarHTML = data.avatar 
                             ? `<img src="${data.avatar}" class="feed-avatar">` 
@@ -1349,7 +1345,6 @@
         }
 
         async function viewUserProfile(uid, profileData) {
-            // プライバシー設定のチェック
             if (profileData.privacy === 'followers' && !profileData.followers?.includes(currentUser.uid)) {
                 alert('このユーザーはフォロワーのみに実績を公開しています。');
                 return;
@@ -1502,7 +1497,6 @@
             const newBio = document.getElementById('edit-bio-input').value.trim() || "人生の実績解除中！";
             if (!newUsername) return alert('ユーザー名を入力してください');
 
-            // ユーザー名が変わる場合は重複チェック
             if (newUsername !== myProfile.username && await isUsernameTaken(newUsername)) {
                 return alert('このユーザー名はすでに使われています。別の名前にしてください。');
             }
@@ -1578,7 +1572,9 @@
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.add('active').classList.remove('active'); }
+        
+        /* 修正箇所：モーダルを正しく閉じる関数 */
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
         function showNotification(title) {
             const notif = document.getElementById('notification');

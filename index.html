@@ -364,6 +364,16 @@
             margin-top: 6px;
         }
 
+        .google-btn {
+            background: #ffffff;
+            color: #000000;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
         .switch-auth {
             text-align: center;
             margin-top: 14px;
@@ -401,6 +411,14 @@
     <div class="modal" id="auth-modal">
         <div class="modal-content">
             <div class="modal-title" id="auth-title">ログイン</div>
+            
+            <!-- Google Login Button -->
+            <button class="modal-btn google-btn" onclick="handleGoogleLogin()">
+                <i class="fa-brands fa-google"></i> Googleでログイン
+            </button>
+
+            <div style="text-align: center; font-size: 0.7rem; color: var(--text-secondary); margin: 8px 0;">またはメールアドレスで</div>
+
             <input type="email" id="auth-email" class="form-input" placeholder="メールアドレス">
             <input type="password" id="auth-password" class="form-input" placeholder="パスワード">
             <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">ログイン</button>
@@ -463,9 +481,6 @@
     </div>
 
     <script>
-        // ==========================================
-        // Firebase Configuration (組み込み済み)
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyCYxWPvgUwPABCmvZyEZ_AXI-Q_yiDUlsg",
             authDomain: "dreamscometrue-45b45.firebaseapp.com",
@@ -486,9 +501,7 @@
         let selectedTrophyId = null;
 
         const defaultTrophies = [
-            // PLATINUM (1)
             { id: 1, name: '夢、叶えし者', condition: '夢を叶える', rank: 'platinum', isUltimate: true },
-            // GOLD (16)
             { id: 2, name: 'バイリンガル', condition: 'TOEICで満点を取る', rank: 'gold' },
             { id: 3, name: '言語学者', condition: '漢検一級を取得', rank: 'gold' },
             { id: 4, name: 'Off the wall', condition: 'ベンチプレス100kgをクリア', rank: 'gold' },
@@ -505,7 +518,6 @@
             { id: 15, name: 'Bullet', condition: '日帰りまたは0泊で海外へ行く', rank: 'gold' },
             { id: 16, name: '本物の勝負師', condition: '合法的なカジノで遊ぶ', rank: 'gold' },
             { id: 17, name: 'ダイヤモンドは砕けない', condition: 'ダイヤモンド製品を購入する', rank: 'gold' },
-            // SILVER (24)
             { id: 18, name: 'スティールボールラン', condition: '馬に乗る', rank: 'silver' },
             { id: 19, name: 'なにわの商人', condition: '家電量販店で値引きを交渉をして割引をしてもらう', rank: 'silver' },
             { id: 20, name: 'デジタルデトックス', condition: '見知らぬ人に教えを請う', rank: 'silver' },
@@ -530,7 +542,6 @@
             { id: 39, name: 'この日のために', condition: '大勢の前でダンスを披露する', rank: 'silver' },
             { id: 40, name: '拡散よろしく！', condition: 'イベントでコスプレをする', rank: 'silver' },
             { id: 41, name: 'のんびりスローライフ', condition: '無人島に上陸する', rank: 'silver' },
-            // BRONZE (37)
             { id: 42, name: 'あの夏の思い出', condition: 'カブト虫を捕まえる', rank: 'bronze' },
             { id: 43, name: '秘密のストライク', condition: 'ボウリングでストライクを取る', rank: 'bronze' },
             { id: 44, name: 'ブルズアイ', condition: 'ダーツでブルに入れる', rank: 'bronze' },
@@ -570,7 +581,6 @@
             { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze' }
         ];
 
-        // 認証状態の監視
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
@@ -584,7 +594,6 @@
             }
         });
 
-        // ログイン・登録の切り替え
         function toggleAuthMode() {
             isSignUpMode = !isSignUpMode;
             document.getElementById('auth-title').innerText = isSignUpMode ? '新規アカウント登録' : 'ログイン';
@@ -608,11 +617,19 @@
             }
         }
 
+        async function handleGoogleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                alert('エラー: ' + error.message);
+            }
+        }
+
         async function logout() {
             await auth.signOut();
         }
 
-        // Firestoreからユーザーデータをロード
         async function loadUserData() {
             if (!currentUser) return;
             const docRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('status');
@@ -625,7 +642,6 @@
             renderTrophies();
         }
 
-        // Firestoreへユーザーデータをセーブ
         async function saveUserData() {
             if (!currentUser) return;
             const docRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('status');

@@ -617,10 +617,11 @@
             }
         }
 
+        // スマホ対応：リダイレクト方式に変更
         async function handleGoogleLogin() {
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
-                await auth.signInWithPopup(provider);
+                await auth.signInWithRedirect(provider);
             } catch (error) {
                 alert('エラー: ' + error.message);
             }

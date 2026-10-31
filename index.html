@@ -103,6 +103,26 @@
             gap: 12px;
         }
 
+        .header-icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notif-badge-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            display: none;
+        }
+
         .progress-stat {
             font-size: 0.75rem;
             font-weight: 600;
@@ -113,16 +133,6 @@
         .progress-stat span {
             color: var(--text-primary);
             font-size: 1rem;
-        }
-
-        .logout-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            font-size: 0.65rem;
-            padding: 4px 8px;
-            border-radius: 6px;
-            cursor: pointer;
         }
 
         /* Stats Grid */
@@ -152,7 +162,7 @@
 
         .stat-badge .rank-val { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
 
-        /* Bottom Navigation Bar (4タブ) */
+        /* Bottom Navigation Bar */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -224,7 +234,8 @@
         }
 
         .profile-info { flex-grow: 1; }
-        .profile-username { font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin-bottom: 2px; }
+        .profile-displayname { font-size: 1rem; font-weight: 900; color: var(--text-primary); margin-bottom: 1px; }
+        .profile-username { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
         .profile-bio { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.3; margin-bottom: 8px; }
 
         .follow-stats-row {
@@ -346,8 +357,14 @@
         .feed-header {
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
             margin-bottom: 12px;
+        }
+
+        .feed-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .feed-avatar {
@@ -362,7 +379,8 @@
             color: var(--text-secondary);
         }
 
-        .feed-user-name { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
+        .feed-display-name { font-size: 0.85rem; font-weight: 800; color: var(--text-primary); }
+        .feed-user-name { font-size: 0.65rem; color: var(--text-secondary); }
         .feed-time { font-size: 0.65rem; color: var(--text-secondary); }
 
         .feed-trophy-banner {
@@ -384,9 +402,15 @@
         .feed-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            justify-content: space-between;
             font-size: 0.8rem;
             color: var(--text-secondary);
+        }
+
+        .feed-actions-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
 
         .feed-action-btn {
@@ -445,7 +469,7 @@
             color: #fff;
         }
 
-        /* Notification */
+        /* Notification Toast */
         #notification {
             position: fixed;
             top: calc(16px + env(safe-area-inset-top));
@@ -461,7 +485,7 @@
             align-items: center;
             gap: 14px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
+            z-index: 3000;
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -475,7 +499,7 @@
             inset: 0;
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(10px);
-            z-index: 500;
+            z-index: 2000;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -568,7 +592,8 @@
     <div class="modal" id="username-modal">
         <div class="modal-content">
             <div class="modal-title">プロフィール設定</div>
-            <input type="text" id="username-input" class="form-input" placeholder="ユーザー名 (例: shota_trophy)">
+            <input type="text" id="displayname-input" class="form-input" placeholder="表示名 (例: 翔太)">
+            <input type="text" id="username-input" class="form-input" placeholder="ユーザーID (例: shota_trophy)">
             <input type="text" id="bio-input" class="form-input" placeholder="ステータスメッセージ (例: 人生の実績解除中！)">
             <button class="modal-btn" onclick="saveInitialProfile()">決定する</button>
         </div>
@@ -585,7 +610,8 @@
             <img id="avatar-preview" class="photo-preview" alt="Avatar Preview">
             <input type="file" id="avatar-input" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
             
-            <input type="text" id="edit-username-input" class="form-input" placeholder="ユーザー名">
+            <input type="text" id="edit-displayname-input" class="form-input" placeholder="表示名">
+            <input type="text" id="edit-username-input" class="form-input" placeholder="ユーザーID">
             <input type="text" id="edit-bio-input" class="form-input" placeholder="ステータスメッセージ">
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" onclick="closeModal('edit-profile-modal')">キャンセル</button>
@@ -599,7 +625,6 @@
         <div class="modal-content">
             <div class="modal-title">⚙️ 設定</div>
             
-            <!-- テーマ設定 -->
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">外観テーマ</div>
                 <div style="display: flex; gap: 10px;">
@@ -608,7 +633,6 @@
                 </div>
             </div>
 
-            <!-- プライバシー設定 -->
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">プライバシー設定</div>
                 <select id="privacy-select" class="form-select" onchange="savePrivacySetting(this.value)">
@@ -617,7 +641,6 @@
                 </select>
             </div>
 
-            <!-- アカウント管理 -->
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">アカウント管理</div>
                 <button class="modal-btn" onclick="closeModal('settings-modal'); openEditProfileModal();" style="background: var(--surface-hover); color: var(--text-primary); border: 1px solid var(--border-color); margin-bottom: 6px;">プロフィール情報を編集</button>
@@ -635,6 +658,15 @@
             <div class="modal-title" id="follow-list-title">リスト</div>
             <div id="follow-list-container" style="margin-bottom: 16px;"></div>
             <button class="modal-btn btn-cancel" onclick="closeModal('follow-list-modal')">閉じる</button>
+        </div>
+    </div>
+
+    <!-- Notifications Modal (お知らせ一覧) -->
+    <div class="modal" id="notifications-modal">
+        <div class="modal-content">
+            <div class="modal-title">🔔 お知らせ</div>
+            <div id="notifications-container" style="margin-bottom: 16px;"></div>
+            <button class="modal-btn btn-cancel" onclick="closeModal('notifications-modal')">閉じる</button>
         </div>
     </div>
 
@@ -662,8 +694,11 @@
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">Life Trophies</div>
             <div class="header-right">
+                <button class="header-icon-btn" onclick="openNotificationsModal()">
+                    <i class="fa-solid fa-bell"></i>
+                    <div class="notif-badge-dot" id="notif-badge-dot"></div>
+                </button>
                 <div class="progress-stat">PROGRESS <span id="progress-percent">0%</span></div>
-                <button class="logout-btn" onclick="logout()">ログアウト</button>
             </div>
         </div>
 
@@ -740,7 +775,7 @@
 
         let currentUser = null;
         let userState = {};
-        let myProfile = { username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
+        let myProfile = { displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
         let customTrophies = [];
         let isSignUpMode = false;
         let selectedTrophyId = null;
@@ -834,10 +869,11 @@
                 currentUser = user;
                 document.getElementById('auth-modal').classList.remove('active');
                 await checkProfileAndLoad();
+                checkUnreadNotifications();
             } else {
                 currentUser = null;
                 userState = {};
-                myProfile = { username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
+                myProfile = { displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
                 setTheme("dark");
                 document.getElementById('auth-modal').classList.add('active');
                 switchMainTab('trophies');
@@ -850,6 +886,7 @@
                 const data = userDoc.data();
                 myProfile = {
                     uid: currentUser.uid,
+                    displayName: data.displayName || data.username,
                     username: data.username || "",
                     bio: data.bio || "人生の実績解除中！",
                     avatar: data.avatar || "",
@@ -876,15 +913,18 @@
         }
 
         async function saveInitialProfile() {
+            const displayName = document.getElementById('displayname-input').value.trim();
             const username = document.getElementById('username-input').value.trim();
             const bio = document.getElementById('bio-input').value.trim() || "人生の実績解除中！";
-            if (!username) return alert('ユーザー名を入力してください');
+            if (!username) return alert('ユーザーIDを入力してください');
+            if (!displayName) return alert('表示名を入力してください');
 
             if (await isUsernameTaken(username)) {
-                return alert('このユーザー名はすでに使われています。別の名前にしてください。');
+                return alert('このユーザーIDはすでに使われています。別のIDにしてください。');
             }
 
             await db.collection('users').doc(currentUser.uid).set({
+                displayName: displayName,
                 username: username,
                 bio: bio,
                 avatar: "",
@@ -896,6 +936,7 @@
             }, { merge: true });
 
             myProfile.uid = currentUser.uid;
+            myProfile.displayName = displayName;
             myProfile.username = username;
             myProfile.bio = bio;
             myProfile.theme = "dark";
@@ -1089,6 +1130,7 @@
             headerBox.innerHTML = `
                 ${avatarHTML}
                 <div class="profile-info">
+                    <div class="profile-displayname">${myProfile.displayName}</div>
                     <div class="profile-username">@${myProfile.username}</div>
                     <div class="profile-bio">${myProfile.bio || 'ステータス未設定'}</div>
                     <div class="follow-stats-row">
@@ -1097,6 +1139,7 @@
                     </div>
                     <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                         <button class="btn-action-small" onclick="openEditProfileModal()">プロフィール編集</button>
+                        <button class="btn-action-small" onclick="shareProfile()"><i class="fa-solid fa-share-nodes"></i> シェア</button>
                         <button class="btn-action-small" onclick="openModal('settings-modal')"><i class="fa-solid fa-gear"></i> 設定</button>
                     </div>
                 </div>
@@ -1135,6 +1178,91 @@
         }
 
         /* -------------------------------------------------------------
+           SNSシェア機能 (Web Share API)
+        ------------------------------------------------------------- */
+        function shareProfile() {
+            const shareData = {
+                title: 'Life Trophies',
+                text: `${myProfile.displayName} (@${myProfile.username}) の人生の実績ボードをチェック！`,
+                url: window.location.href
+            };
+            if (navigator.share) {
+                navigator.share(shareData).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                showNotification('リンクをコピーしました！');
+            }
+        }
+
+        function sharePost(trophyName, userName) {
+            const shareData = {
+                title: 'Life Trophies',
+                text: `${userName} さんが実績「${trophyName}」を解除しました！`,
+                url: window.location.href
+            };
+            if (navigator.share) {
+                navigator.share(shareData).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                showNotification('投稿リンクをコピーしました！');
+            }
+        }
+
+        /* -------------------------------------------------------------
+           通知機能 (Notifications)
+        ------------------------------------------------------------- */
+        async function sendNotification(targetUid, type, message) {
+            if (targetUid === currentUser.uid) return;
+            await db.collection('users').doc(targetUid).collection('notifications').add({
+                type: type, // 'like', 'comment', 'follow'
+                senderUid: currentUser.uid,
+                senderName: myProfile.displayName,
+                message: message,
+                read: false,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        async function checkUnreadNotifications() {
+            if (!currentUser) return;
+            const snapshot = await db.collection('users').doc(currentUser.uid).collection('notifications').where('read', '==', false).get();
+            const dot = document.getElementById('notif-badge-dot');
+            if (!snapshot.empty) {
+                dot.style.display = 'block';
+            } else {
+                dot.style.display = 'none';
+            }
+        }
+
+        async function openNotificationsModal() {
+            const container = document.getElementById('notifications-container');
+            container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">読み込み中...</div>';
+            openModal('notifications-modal');
+
+            const snapshot = await db.collection('users').doc(currentUser.uid).collection('notifications').orderBy('createdAt', 'desc').limit(20).get();
+            container.innerHTML = '';
+
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">通知はありません</div>';
+                return;
+            }
+
+            // 既読にする
+            const batch = db.batch();
+            snapshot.forEach(doc => {
+                batch.update(doc.ref, { read: true });
+                const data = doc.data();
+                const card = document.createElement('div');
+                card.className = 'feed-card';
+                card.style.cssText = 'padding:10px 14px; margin-bottom:8px; font-size:0.75rem;';
+                card.innerHTML = `<b>${data.senderName}</b> ${data.message}`;
+                container.appendChild(card);
+            });
+            await batch.commit();
+            document.getElementById('notif-badge-dot').style.display = 'none';
+        }
+
+        /* -------------------------------------------------------------
            フォロー・フォロワー一覧モーダル表示機能
         ------------------------------------------------------------- */
         async function openFollowListModal(type) {
@@ -1167,8 +1295,8 @@
                             <div style="display:flex; align-items:center; gap:10px;">
                                 ${avatarHTML}
                                 <div>
-                                    <div style="font-size:0.85rem; font-weight:700;">@${data.username}</div>
-                                    <div style="font-size:0.65rem; color:var(--text-secondary);">${data.bio || ''}</div>
+                                    <div style="font-size:0.85rem; font-weight:700;">${data.displayName || data.username}</div>
+                                    <div style="font-size:0.65rem; color:var(--text-secondary);">@${data.username}</div>
                                 </div>
                             </div>
                             <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary); font-size:0.8rem;"></i>
@@ -1214,11 +1342,14 @@
                     card.className = 'feed-card';
                     card.innerHTML = `
                         <div class="feed-header">
-                            ${avatarHTML}
-                            <div>
-                                <div class="feed-user-name">@${post.username}</div>
-                                <div class="feed-time">${post.date || ''}</div>
+                            <div class="feed-user-info">
+                                ${avatarHTML}
+                                <div>
+                                    <div class="feed-display-name">${post.displayName || post.username}</div>
+                                    <div class="feed-user-name">@${post.username}</div>
+                                </div>
                             </div>
+                            <div class="feed-time">${post.date || ''}</div>
                         </div>
 
                         <div class="feed-trophy-banner">
@@ -1229,23 +1360,28 @@
                         ${post.photo ? `<img src="${post.photo}" class="feed-photo">` : ''}
 
                         <div class="feed-actions">
-                            <div class="feed-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${postId}', ${isLiked})">
-                                <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                                <span>${(post.likes || []).length}</span>
+                            <div class="feed-actions-left">
+                                <div class="feed-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${postId}', ${isLiked}, '${post.uid}')">
+                                    <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                    <span>${(post.likes || []).length}</span>
+                                </div>
+                                <div class="feed-action-btn">
+                                    <i class="fa-regular fa-comment"></i>
+                                    <span>${(post.comments || []).length}</span>
+                                </div>
                             </div>
-                            <div class="feed-action-btn">
-                                <i class="fa-regular fa-comment"></i>
-                                <span>${(post.comments || []).length}</span>
+                            <div class="feed-action-btn" onclick="sharePost('${post.trophyName}', '${post.displayName || post.username}')">
+                                <i class="fa-solid fa-share-nodes"></i>
                             </div>
                         </div>
 
                         <div class="feed-comments-section">
                             <div id="comments-list-${postId}">
-                                ${(post.comments || []).map(c => `<div class="comment-item"><b>@${c.username}:</b> ${c.text}</div>`).join('')}
+                                ${(post.comments || []).map(c => `<div class="comment-item"><b>${c.displayName || c.username}:</b> ${c.text}</div>`).join('')}
                             </div>
                             <div class="comment-input-box">
                                 <input type="text" id="comment-input-${postId}" class="form-input" placeholder="お祝いコメントを入力..." style="margin-bottom:0; font-size:0.75rem; padding:8px 12px;">
-                                <button class="btn-action-small" onclick="addComment('${postId}')">送信</button>
+                                <button class="btn-action-small" onclick="addComment('${postId}', '${post.uid}')">送信</button>
                             </div>
                         </div>
                     `;
@@ -1256,17 +1392,18 @@
             }
         }
 
-        async function toggleLike(postId, currentLiked) {
+        async function toggleLike(postId, currentLiked, postOwnerUid) {
             const postRef = db.collection('posts').doc(postId);
             if (currentLiked) {
                 await postRef.update({ likes: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) });
             } else {
                 await postRef.update({ likes: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
+                sendNotification(postOwnerUid, 'like', 'があなたの投稿に「いいね！」しました。');
             }
             renderFeedView();
         }
 
-        async function addComment(postId) {
+        async function addComment(postId, postOwnerUid) {
             const input = document.getElementById(`comment-input-${postId}`);
             const text = input.value.trim();
             if (!text) return;
@@ -1275,12 +1412,14 @@
             await postRef.update({
                 comments: firebase.firestore.FieldValue.arrayUnion({
                     uid: currentUser.uid,
+                    displayName: myProfile.displayName,
                     username: myProfile.username,
                     text: text,
                     createdAt: new Date().toISOString()
                 })
             });
 
+            sendNotification(postOwnerUid, 'comment', `があなたの投稿にコメントしました: "${text}"`);
             input.value = '';
             renderFeedView();
         }
@@ -1312,7 +1451,7 @@
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data.username && data.username.includes(q) && doc.id !== currentUser.uid) {
+                    if (data.username && (data.username.includes(q) || (data.displayName && data.displayName.includes(q))) && doc.id !== currentUser.uid) {
                         found = true;
                         const avatarHTML = data.avatar 
                             ? `<img src="${data.avatar}" class="feed-avatar">` 
@@ -1325,8 +1464,8 @@
                             <div style="display:flex; align-items:center; gap:12px;">
                                 ${avatarHTML}
                                 <div>
-                                    <div style="font-size:0.9rem; font-weight:700;">@${data.username}</div>
-                                    <div style="font-size:0.7rem; color:var(--text-secondary);">${data.bio || 'ステータスなし'}</div>
+                                    <div style="font-size:0.9rem; font-weight:700;">${data.displayName || data.username}</div>
+                                    <div style="font-size:0.7rem; color:var(--text-secondary);">@${data.username} ・ ${data.bio || 'ステータスなし'}</div>
                                 </div>
                             </div>
                             <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary);"></i>
@@ -1372,6 +1511,7 @@
             headerBox.innerHTML = `
                 ${avatarHTML}
                 <div class="profile-info">
+                    <div class="profile-displayname">${profileData.displayName || profileData.username}</div>
                     <div class="profile-username">@${profileData.username}</div>
                     <div class="profile-bio">${profileData.bio || 'ステータス未設定'}</div>
                     <div class="follow-stats-row">
@@ -1434,6 +1574,7 @@
                 await myRef.update({ following: firebase.firestore.FieldValue.arrayUnion(targetUid) });
                 await targetRef.update({ followers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
                 myProfile.following.push(targetUid);
+                sendNotification(targetUid, 'follow', 'があなたをフォローしました。');
             }
 
             showNotification(isFollowing ? 'フォロー解除しました' : 'フォローしました');
@@ -1465,6 +1606,7 @@
         }
 
         function openEditProfileModal() {
+            document.getElementById('edit-displayname-input').value = myProfile.displayName;
             document.getElementById('edit-username-input').value = myProfile.username;
             document.getElementById('edit-bio-input').value = myProfile.bio;
             const img = document.getElementById('avatar-preview');
@@ -1493,19 +1635,23 @@
         }
 
         async function saveProfileChanges() {
+            const newDisplayName = document.getElementById('edit-displayname-input').value.trim();
             const newUsername = document.getElementById('edit-username-input').value.trim();
             const newBio = document.getElementById('edit-bio-input').value.trim() || "人生の実績解除中！";
-            if (!newUsername) return alert('ユーザー名を入力してください');
+            if (!newDisplayName) return alert('表示名を入力してください');
+            if (!newUsername) return alert('ユーザーIDを入力してください');
 
             if (newUsername !== myProfile.username && await isUsernameTaken(newUsername)) {
-                return alert('このユーザー名はすでに使われています。別の名前にしてください。');
+                return alert('このユーザーIDはすでに使われています。別のIDにしてください。');
             }
 
+            myProfile.displayName = newDisplayName;
             myProfile.username = newUsername;
             myProfile.bio = newBio;
             myProfile.avatar = tempAvatarBase64;
 
             await db.collection('users').doc(currentUser.uid).set({
+                displayName: newDisplayName,
                 username: newUsername,
                 bio: newBio,
                 avatar: tempAvatarBase64,
@@ -1555,6 +1701,7 @@
 
             await db.collection('posts').add({
                 uid: currentUser.uid,
+                displayName: myProfile.displayName,
                 username: myProfile.username,
                 userAvatar: myProfile.avatar,
                 trophyId: selectedTrophyId,
@@ -1572,8 +1719,6 @@
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }
-        
-        /* 修正箇所：モーダルを正しく閉じる関数 */
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
         function showNotification(title) {

@@ -455,6 +455,17 @@
             margin-bottom: 12px;
         }
 
+        .feed-comment-box {
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            background: var(--surface-hover);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
         .feed-actions {
             display: flex;
             align-items: center;
@@ -504,6 +515,7 @@
             overflow: hidden;
             border-radius: 6px;
             background: var(--surface-card);
+            cursor: pointer;
         }
 
         .gallery-item img {
@@ -614,6 +626,23 @@
 
         .form-input:focus { border-color: var(--text-primary); }
 
+        .form-textarea {
+            width: 100%;
+            background: var(--surface-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            outline: none;
+            resize: none;
+            height: 80px;
+            font-family: inherit;
+        }
+
+        .form-textarea:focus { border-color: var(--text-primary); }
+
         .form-select {
             width: 100%;
             background: var(--surface-hover);
@@ -654,7 +683,7 @@
             border-color: var(--accent-red);
         }
 
-        .photo-preview { width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; }
+        .photo-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 10px; }
         .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
     </style>
@@ -752,6 +781,17 @@
         </div>
     </div>
 
+    <!-- Photo Lightbox / Detail Zoom Modal (サムネイル拡大表示用) -->
+    <div class="modal" id="photo-lightbox-modal" onclick="closeModal('photo-lightbox-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()" style="text-align: center; max-width: 440px;">
+            <div class="modal-title" id="lightbox-title" style="margin-bottom: 10px; font-size: 0.95rem;">実績詳細</div>
+            <img id="lightbox-image" style="width: 100%; max-height: 320px; object-fit: cover; border-radius: 10px; margin-bottom: 12px;" alt="Zoomed Photo">
+            <div id="lightbox-date" style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 8px;"></div>
+            <div id="lightbox-comment" style="font-size: 0.85rem; background: var(--surface-hover); padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: left; line-height: 1.4; word-break: break-word;"></div>
+            <button class="modal-btn btn-cancel" onclick="closeModal('photo-lightbox-modal')">閉じる</button>
+        </div>
+    </div>
+
     <!-- Follow / Follower List Modal -->
     <div class="modal" id="follow-list-modal">
         <div class="modal-content">
@@ -789,7 +829,7 @@
         </div>
     </div>
 
-    <!-- Unlock Modal -->
+    <!-- Unlock Modal (コメント欄付き) -->
     <div class="modal" id="unlock-modal">
         <div class="modal-content">
             <div class="modal-title" id="modal-trophy-title">実績を解除</div>
@@ -801,6 +841,8 @@
             <img id="photo-preview" class="photo-preview" alt="Preview">
             <input type="file" id="photo-input" accept="image/*" style="display: none;" onchange="previewImage(event)">
             
+            <textarea id="unlock-comment-input" class="form-textarea" placeholder="思い出や感想のコメントを残す（任意）"></textarea>
+
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" onclick="closeModal('unlock-modal')">キャンセル</button>
                 <button class="modal-btn" id="confirm-unlock-btn" onclick="confirmUnlock()">解除する</button>
@@ -1244,7 +1286,8 @@
                         if (!userState[key] && !revertedIds.includes(key)) {
                             userState[key] = {
                                 date: post.date || '復元済',
-                                photo: post.photo || null
+                                photo: post.photo || null,
+                                comment: post.comment || ''
                             };
                             recoveredCount++;
                         }
@@ -1525,6 +1568,7 @@
             previewEl.removeAttribute('src');
             
             document.getElementById('photo-input').value = '';
+            document.getElementById('unlock-comment-input').value = '';
             document.getElementById('unlock-photo-zone').classList.remove('required-highlight');
             document.getElementById('photo-upload-label').innerText = '📸 証拠写真を撮影・選択 (必須)';
             openModal('unlock-modal');
@@ -1559,6 +1603,7 @@
 
             const trophy = getAllTrophies().find(t => String(t.id) === String(selectedTrophyId));
             const trophyName = trophy ? trophy.name : '実績';
+            const commentText = document.getElementById('unlock-comment-input').value.trim();
             
             // 年月日・時分秒数まで精密に記録するタイムスタンプ生成
             const now = new Date();
@@ -1575,7 +1620,8 @@
 
             const unlockEntry = {
                 date: dateTimeStr,
-                photo: photoToSave
+                photo: photoToSave,
+                comment: commentText
             };
 
             userState[unlockedId] = unlockEntry;
@@ -1595,6 +1641,7 @@
                     trophyId: unlockedId,
                     trophyName: trophyName,
                     photo: photoToSave,
+                    comment: commentText,
                     date: dateTimeStr,
                     likes: [],
                     comments: [],
@@ -1604,7 +1651,7 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View
+           マイページ View (サムネイル拡大表示対応)
         ------------------------------------------------------------- */
         function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -1639,7 +1686,7 @@
 
             const albumTitle = document.createElement('div');
             albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
-            albumTitle.innerHTML = '📸 実績フォトギャラリー';
+            albumTitle.innerHTML = '📸 実績フォトギャラリー (タップで拡大)';
             container.appendChild(albumTitle);
 
             const grid = document.createElement('div');
@@ -1652,12 +1699,18 @@
                 if (item && item.photo) {
                     photoCount++;
                     const trophy = allList.find(t => String(t.id) === String(id));
+                    const trophyName = trophy ? trophy.name : '実績';
+                    const comment = item.comment || '';
+                    const date = item.date || '';
+
                     const el = document.createElement('div');
                     el.className = 'gallery-item';
                     el.innerHTML = `
-                        <img src="${item.photo}">
-                        <div class="gallery-item-title">${trophy ? trophy.name : '実績'}</div>
+                        <img src="${item.photo}" alt="${trophyName}">
+                        <div class="gallery-item-title">${trophyName}</div>
                     `;
+                    // タップした際に詳細付きで拡大表示するモーダルを開く
+                    el.onclick = () => openPhotoLightbox(item.photo, trophyName, date, comment);
                     grid.appendChild(el);
                 }
             });
@@ -1667,6 +1720,27 @@
             } else {
                 container.appendChild(grid);
             }
+        }
+
+        /* -------------------------------------------------------------
+           写真拡大表示 (ライトボックス) モーダル機能
+        ------------------------------------------------------------- */
+        function openPhotoLightbox(photoSrc, trophyName, dateStr, commentText) {
+            document.getElementById('lightbox-title').innerText = `🏆 ${trophyName}`;
+            document.getElementById('lightbox-image').src = photoSrc;
+            document.getElementById('lightbox-date').innerText = `解除日時: ${dateStr}`;
+            
+            const commentEl = document.getElementById('lightbox-comment');
+            if (commentText && commentText.trim() !== '') {
+                commentEl.innerText = `「${commentText}」`;
+                commentEl.style.display = 'block';
+            } else {
+                commentEl.innerText = '（コメントなし）';
+                commentEl.style.display = 'block';
+                commentEl.style.color = 'var(--text-secondary)';
+            }
+
+            openModal('photo-lightbox-modal');
         }
 
         function openUnlockedManageModal() {
@@ -1967,6 +2041,10 @@
                         ? `<img src="${post.userAvatar}" class="feed-avatar">` 
                         : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
 
+                    const commentHTML = post.comment && post.comment.trim() !== '' 
+                        ? `<div class="feed-comment-box">${post.comment}</div>` 
+                        : '';
+
                     const card = document.createElement('div');
                     card.className = 'feed-card';
                     card.innerHTML = `
@@ -1987,6 +2065,7 @@
                         </div>
 
                         ${post.photo ? `<img src="${post.photo}" class="feed-photo">` : ''}
+                        ${commentHTML}
 
                         <div class="feed-actions">
                             <div class="feed-actions-left">

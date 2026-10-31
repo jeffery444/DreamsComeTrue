@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+　<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -31,6 +31,7 @@
             --text-secondary: #8e8e93;
             --text-tertiary: #48484a;
             --accent-red: #ff2d55;
+            --accent-gold: #ffd60a;
             --nav-bg: rgba(0, 0, 0, 0.92);
         }
 
@@ -45,6 +46,7 @@
             --text-secondary: #3a3a3c;
             --text-tertiary: #8e8e93;
             --accent-red: #ff3b30;
+            --accent-gold: #d4a000;
             --nav-bg: rgba(255, 255, 255, 0.92);
         }
 
@@ -140,7 +142,7 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
-            margin-bottom: 10px;
+            margin-bottom: 4px;
         }
 
         .stat-badge {
@@ -206,6 +208,35 @@
             margin: 0 auto;
         }
 
+        /* Board Category Switcher (通常実績 / カスタム実績の別項目タブ) */
+        .category-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+            background: var(--surface-card);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .category-tab-btn {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-tab-btn.active {
+            background: var(--text-primary);
+            color: var(--bg-main);
+        }
+
         /* Profile Banner Box */
         .profile-card-header {
             background: var(--surface-card);
@@ -252,7 +283,7 @@
             background: transparent;
             border: 1px solid var(--border-light);
             color: var(--text-primary);
-            padding: 5px 12px;
+            padding: 6px 12px;
             border-radius: 6px;
             font-size: 0.7rem;
             font-weight: 700;
@@ -273,7 +304,7 @@
             margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
             transition: all 0.2s ease;
             position: relative;
         }
@@ -300,6 +331,13 @@
             font-size: 1.1rem;
             color: var(--text-tertiary);
             flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .icon-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .unlocked .icon-box {
@@ -308,12 +346,12 @@
             border-color: var(--border-light);
         }
 
-        .trophy-info { flex-grow: 1; }
-        .trophy-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 3px; color: var(--text-primary); }
+        .trophy-info { flex-grow: 1; min-width: 0; }
+        .trophy-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 3px; color: var(--text-primary); word-break: break-word; }
         .trophy-card:not(.unlocked) .trophy-name { color: var(--text-secondary); }
-        .trophy-condition { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.3; margin-bottom: 6px; }
+        .trophy-condition { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.3; margin-bottom: 6px; word-break: break-word; }
 
-        .trophy-meta { display: flex; align-items: center; gap: 8px; }
+        .trophy-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .rank-tag {
             font-size: 0.6rem;
             font-weight: 800;
@@ -338,17 +376,31 @@
             background: transparent;
             border: 1px solid var(--border-light);
             color: var(--text-primary);
-            padding: 8px 14px;
+            padding: 8px 12px;
             border-radius: 6px;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 700;
             cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .delete-btn {
+            background: rgba(255, 59, 48, 0.15);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: var(--accent-red);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
         }
 
         .card-actions-group {
             display: flex;
             gap: 6px;
             align-items: center;
+            flex-shrink: 0;
         }
 
         /* Feed Card */
@@ -475,13 +527,35 @@
             color: #fff;
         }
 
-        /* Notification Toast */
+        /* 解除済み実績リスト (マイページ用) */
+        .unlocked-manage-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .unlocked-manage-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: var(--surface-hover);
+            flex-shrink: 0;
+        }
+
+        /* Notification Toast (ポップアップ通知) */
         #notification {
             position: fixed;
             top: calc(16px + env(safe-area-inset-top));
             left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            width: 90%;
+            transform: translateX(-50%) translateY(-120px);
+            width: 92%;
             max-width: 400px;
             background: var(--text-primary);
             color: var(--bg-main);
@@ -490,13 +564,14 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
             z-index: 3000;
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
         }
 
         #notification.show { transform: translateX(-50%) translateY(0); }
-        .notif-icon { width: 36px; height: 36px; background: var(--bg-main); color: var(--text-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .notif-icon { width: 36px; height: 36px; background: var(--bg-main); color: var(--text-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
         /* Modals */
         .modal {
@@ -521,7 +596,7 @@
             max-width: 400px;
             padding: 24px;
             color: var(--text-primary);
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
         }
 
@@ -567,16 +642,21 @@
         }
 
         .photo-upload-zone {
-            border: 1px dashed var(--border-light);
+            border: 2px dashed var(--border-light);
             border-radius: 10px;
             padding: 24px;
             text-align: center;
             cursor: pointer;
             margin-bottom: 16px;
             background: var(--surface-hover);
+            transition: border-color 0.2s;
         }
 
-        .photo-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; }
+        .photo-upload-zone.required-highlight {
+            border-color: var(--accent-red);
+        }
+
+        .photo-preview { width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 10px; }
         .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
     </style>
@@ -679,7 +759,7 @@
     <!-- Custom Trophy Modal -->
     <div class="modal" id="custom-trophy-modal">
         <div class="modal-content">
-            <div class="modal-title">カスタム実績を作成</div>
+            <div class="modal-title">✨ カスタム実績を作成</div>
             <input type="text" id="custom-title" class="form-input" placeholder="実績タイトル (例: 無限の彼方へ)">
             <input type="text" id="custom-condition" class="form-input" placeholder="達成条件 (例: 空を飛ぶ)">
             <select id="custom-rank" class="form-select">
@@ -691,6 +771,25 @@
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" onclick="closeModal('custom-trophy-modal')">キャンセル</button>
                 <button class="modal-btn" onclick="addCustomTrophy()">作成する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unlock Modal (写真強制添付仕様) -->
+    <div class="modal" id="unlock-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-trophy-title">実績を解除</div>
+            <div class="photo-upload-zone" id="unlock-photo-zone" onclick="document.getElementById('photo-input').click()">
+                <i class="fa-solid fa-camera" style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 8px;"></i>
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary);" id="photo-upload-label">📸 証拠写真を撮影・選択 (必須)</div>
+                <div style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 4px;">※写真を添付しないと解除できません</div>
+            </div>
+            <img id="photo-preview" class="photo-preview" alt="Preview">
+            <input type="file" id="photo-input" accept="image/*" style="display: none;" onchange="previewImage(event)">
+            
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeModal('unlock-modal')">キャンセル</button>
+                <button class="modal-btn" id="confirm-unlock-btn" onclick="confirmUnlock()">解除する</button>
             </div>
         </div>
     </div>
@@ -738,29 +837,12 @@
         </button>
     </nav>
 
+    <!-- Popup Notification -->
     <div id="notification">
         <div class="notif-icon"><i class="fa-solid fa-trophy"></i></div>
         <div class="notif-text">
-            <div style="font-size: 0.6rem; font-weight: 900; color: var(--text-secondary);">Trophy Unlocked</div>
-            <div class="title" id="notif-title" style="font-size: 0.85rem; font-weight: 700;">実績タイトル</div>
-        </div>
-    </div>
-
-    <!-- Unlock Modal -->
-    <div class="modal" id="unlock-modal">
-        <div class="modal-content">
-            <div class="modal-title" id="modal-trophy-title">実績を解除</div>
-            <div class="photo-upload-zone" onclick="document.getElementById('photo-input').click()">
-                <i class="fa-solid fa-camera" style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 8px;"></i>
-                <div style="font-size: 0.75rem; color: var(--text-secondary);">記録写真を添付 (任意)</div>
-            </div>
-            <img id="photo-preview" class="photo-preview" alt="Preview">
-            <input type="file" id="photo-input" accept="image/*" capture="environment" style="display: none;" onchange="previewImage(event)">
-            
-            <div class="modal-buttons">
-                <button class="modal-btn btn-cancel" onclick="closeModal('unlock-modal')">キャンセル</button>
-                <button class="modal-btn" onclick="confirmUnlock()">解除する</button>
-            </div>
+            <div id="notif-subtitle" style="font-size: 0.6rem; font-weight: 900; color: var(--text-secondary); text-transform: uppercase;">SYSTEM NOTIFICATION</div>
+            <div class="title" id="notif-title" style="font-size: 0.85rem; font-weight: 700;">通知メッセージ</div>
         </div>
     </div>
 
@@ -786,8 +868,11 @@
         let isSignUpMode = false;
         let selectedTrophyId = null;
         let activeTab = 'trophies';
+        let boardCategory = 'default'; // 'default' (通常実績) または 'custom' (カスタム実績の別項目)
         let trophyFilter = 'all';
         let tempAvatarBase64 = "";
+        let tempUnlockPhotoBase64 = "";
+        let notifTimer = null;
 
         const defaultTrophies = [
             { id: 1, name: '夢、叶えし者', condition: '夢を叶える', rank: 'platinum', isUltimate: true },
@@ -870,6 +955,78 @@
             { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze' }
         ];
 
+        /* -------------------------------------------------------------
+           画像軽量化・自動圧縮ユーティリティ (Firestore 1MB制限対策)
+        ------------------------------------------------------------- */
+        function compressImageFile(file, maxSize, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const img = new Image();
+                    img.onload = function() {
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > height) {
+                            if (width > maxSize) {
+                                height = Math.round(height * (maxSize / width));
+                                width = maxSize;
+                            }
+                        } else {
+                            if (height > maxSize) {
+                                width = Math.round(width * (maxSize / height));
+                                height = maxSize;
+                            }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = reject;
+                    img.src = evt.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        /* -------------------------------------------------------------
+           データ永続化ヘルパー (Firestore + LocalStorage トリプル保存)
+        ------------------------------------------------------------- */
+        async function syncUserDataToStorage() {
+            if (!currentUser) return;
+            const uid = currentUser.uid;
+
+            // 1. LocalStorageへ即時バックアップ
+            try {
+                localStorage.setItem(`lt_custom_${uid}`, JSON.stringify(customTrophies));
+                localStorage.setItem(`lt_status_${uid}`, JSON.stringify(userState));
+            } catch (e) {
+                console.warn('LocalStorage保存警告:', e);
+            }
+
+            // 2. Firestoreのメインユーザードキュメントへ保存 (権限エラー回避・確実な永続化)
+            try {
+                await db.collection('users').doc(uid).set({
+                    customTrophies: customTrophies,
+                    trophyStatus: userState,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            } catch (e) {
+                console.error('メインドキュメント保存エラー:', e);
+            }
+
+            // 3. サブコレクションへも同期保存 (従来互換)
+            try {
+                await db.collection('users').doc(uid).collection('trophies').doc('custom').set({ items: customTrophies });
+                await db.collection('users').doc(uid).collection('trophies').doc('status').set(userState);
+            } catch (e) {
+                console.warn('サブコレクション保存警告:', e);
+            }
+        }
+
         auth.onAuthStateChanged(async user => {
             if (user) {
                 currentUser = user;
@@ -888,25 +1045,30 @@
         });
 
         async function checkProfileAndLoad() {
-            const userDoc = await db.collection('users').doc(currentUser.uid).get();
-            if (userDoc.exists && userDoc.data().username) {
-                const data = userDoc.data();
-                myProfile = {
-                    uid: currentUser.uid,
-                    displayName: data.displayName || data.username,
-                    username: data.username || "",
-                    bio: data.bio || "人生の実績解除中！",
-                    avatar: data.avatar || "",
-                    theme: data.theme || "dark",
-                    privacy: data.privacy || "public",
-                    following: data.following || [],
-                    followers: data.followers || []
-                };
-                setTheme(myProfile.theme);
-                document.getElementById('privacy-select').value = myProfile.privacy;
-                await loadUserData();
-            } else {
-                document.getElementById('username-modal').classList.add('active');
+            try {
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists && userDoc.data().username) {
+                    const data = userDoc.data();
+                    myProfile = {
+                        uid: currentUser.uid,
+                        displayName: data.displayName || data.username,
+                        username: data.username || "",
+                        bio: data.bio || "人生の実績解除中！",
+                        avatar: data.avatar || "",
+                        theme: data.theme || "dark",
+                        privacy: data.privacy || "public",
+                        following: data.following || [],
+                        followers: data.followers || []
+                    };
+                    setTheme(myProfile.theme);
+                    document.getElementById('privacy-select').value = myProfile.privacy;
+                    await loadUserData(data);
+                } else {
+                    document.getElementById('username-modal').classList.add('active');
+                }
+            } catch (e) {
+                console.error('プロフィール読み込みエラー:', e);
+                await loadUserData(null);
             }
         }
 
@@ -939,6 +1101,8 @@
                 privacy: "public",
                 following: [],
                 followers: [],
+                customTrophies: [],
+                trophyStatus: {},
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
 
@@ -950,7 +1114,7 @@
             myProfile.privacy = "public";
             setTheme("dark");
             document.getElementById('username-modal').classList.remove('active');
-            await loadUserData();
+            await loadUserData(null);
         }
 
         function toggleAuthMode() {
@@ -976,12 +1140,18 @@
             }
         }
 
-        async function logout() { await auth.signOut(); }
+        async function logout() {
+            closeModal('settings-modal');
+            await auth.signOut();
+        }
 
         async function deleteAccount() {
             if (!confirm('本当にアカウントを削除しますか？この操作は元に戻せません。')) return;
             try {
-                await db.collection('users').doc(currentUser.uid).delete();
+                const uid = currentUser.uid;
+                localStorage.removeItem(`lt_custom_${uid}`);
+                localStorage.removeItem(`lt_status_${uid}`);
+                await db.collection('users').doc(uid).delete();
                 await currentUser.delete();
                 alert('アカウントを削除しました');
             } catch (error) {
@@ -989,22 +1159,68 @@
             }
         }
 
-        async function loadUserData() {
+        /* -------------------------------------------------------------
+           ユーザーデータの確実な復元 (ログアウト対策済み)
+        ------------------------------------------------------------- */
+        async function loadUserData(userDocData) {
             if (!currentUser) return;
-            try {
-                const docRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('status');
-                const doc = await docRef.get();
-                userState = doc.exists ? doc.data() || {} : {};
+            const uid = currentUser.uid;
 
-                const customDocRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom');
-                const customDoc = await customDocRef.get();
-                customTrophies = customDoc.exists ? customDoc.data().items || [] : [];
-            } catch (e) {
-                userState = {};
-                customTrophies = [];
+            let loadedStatus = null;
+            let loadedCustom = null;
+
+            // 1. まずメインのuserDocDataから取得を試みる
+            if (userDocData) {
+                if (userDocData.trophyStatus && Object.keys(userDocData.trophyStatus).length > 0) {
+                    loadedStatus = userDocData.trophyStatus;
+                }
+                if (Array.isArray(userDocData.customTrophies) && userDocData.customTrophies.length > 0) {
+                    loadedCustom = userDocData.customTrophies;
+                }
             }
 
-            switchMainTab('trophies');
+            // 2. サブコレクションからも取得を試みる
+            try {
+                const statusDoc = await db.collection('users').doc(uid).collection('trophies').doc('status').get();
+                if (statusDoc.exists && statusDoc.data() && Object.keys(statusDoc.data()).length > 0) {
+                    loadedStatus = Object.assign({}, loadedStatus || {}, statusDoc.data());
+                }
+            } catch (e) {}
+
+            try {
+                const customDoc = await db.collection('users').doc(uid).collection('trophies').doc('custom').get();
+                if (customDoc.exists && customDoc.data() && Array.isArray(customDoc.data().items)) {
+                    if (!loadedCustom || customDoc.data().items.length > loadedCustom.length) {
+                        loadedCustom = customDoc.data().items;
+                    }
+                }
+            } catch (e) {}
+
+            // 3. LocalStorageのバックアップからも復元・統合
+            try {
+                const localCustomStr = localStorage.getItem(`lt_custom_${uid}`);
+                if (localCustomStr) {
+                    const localCustom = JSON.parse(localCustomStr);
+                    if (Array.isArray(localCustom) && (!loadedCustom || localCustom.length > loadedCustom.length)) {
+                        loadedCustom = localCustom;
+                    }
+                }
+                const localStatusStr = localStorage.getItem(`lt_status_${uid}`);
+                if (localStatusStr) {
+                    const localStatus = JSON.parse(localStatusStr);
+                    if (localStatus && Object.keys(localStatus).length > 0) {
+                        loadedStatus = Object.assign({}, localStatus, loadedStatus || {});
+                    }
+                }
+            } catch (e) {}
+
+            userState = loadedStatus || {};
+            customTrophies = loadedCustom || [];
+
+            // 整合性を保つために最新状態を同期保存
+            syncUserDataToStorage();
+
+            switchMainTab(activeTab);
         }
 
         function switchMainTab(tab) {
@@ -1049,94 +1265,155 @@
             if (currentUser) {
                 await db.collection('users').doc(currentUser.uid).set({ privacy: privacyVal }, { merge: true });
             }
-            showNotification('プライバシー設定を更新しました');
+            showNotification('プライバシー設定を更新しました', 'SETTINGS');
         }
 
         /* -------------------------------------------------------------
-           実績一覧 View
+           実績一覧 View (通常実績 / カスタム実績の別項目切り替え対応)
         ------------------------------------------------------------- */
         function renderTrophiesView() {
             const container = document.getElementById('main-container');
             container.innerHTML = '';
 
+            // 1. 通常実績 / カスタム実績 切り替えタブ (別項目化)
+            const categorySwitcher = document.createElement('div');
+            categorySwitcher.className = 'category-tabs';
+            categorySwitcher.innerHTML = `
+                <button class="category-tab-btn ${boardCategory === 'default' ? 'active' : ''}" onclick="boardCategory='default'; renderTrophiesView();">
+                    🏆 通常実績 (${defaultTrophies.length})
+                </button>
+                <button class="category-tab-btn ${boardCategory === 'custom' ? 'active' : ''}" onclick="boardCategory='custom'; renderTrophiesView();">
+                    ✨ カスタム実績 (${customTrophies.length})
+                </button>
+            `;
+            container.appendChild(categorySwitcher);
+
+            // 2. 見出し＆カスタム実績作成ボタン
             const actionRow = document.createElement('div');
             actionRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;';
             actionRow.innerHTML = `
-                <div style="font-size:0.85rem; font-weight:800; color:var(--text-primary);">🏆 トロフィーボード</div>
-                <button class="btn-action-small" onclick="openModal('custom-trophy-modal')">+ カスタム実績</button>
+                <div style="font-size:0.85rem; font-weight:800; color:var(--text-primary);">
+                    ${boardCategory === 'default' ? '🏆 トロフィーボード' : '✨ マイ・カスタム実績'}
+                </div>
+                <button class="btn-action-small" onclick="openModal('custom-trophy-modal')">+ カスタム実績を作成</button>
             `;
             container.appendChild(actionRow);
 
+            // 3. ランク・解除状態フィルター
             const filterRow = document.createElement('div');
-            filterRow.style.cssText = 'display:flex; gap:6px; overflow-x:auto; margin-bottom:14px;';
+            filterRow.style.cssText = 'display:flex; gap:6px; overflow-x:auto; margin-bottom:14px; padding-bottom:2px;';
             ['all', 'unlocked', 'platinum', 'gold', 'silver', 'bronze'].forEach(f => {
                 const btn = document.createElement('button');
                 btn.className = `btn-action-small ${trophyFilter === f ? 'following' : ''}`;
-                btn.style.cssText += 'border-radius:20px; padding:6px 12px; font-size:0.75rem;';
+                btn.style.cssText += 'border-radius:20px; padding:6px 12px; font-size:0.7rem; flex-shrink:0;';
                 btn.innerText = f.toUpperCase();
                 btn.onclick = () => { trophyFilter = f; renderTrophiesView(); };
                 filterRow.appendChild(btn);
             });
             container.appendChild(filterRow);
 
-            const trophyListEl = document.createElement('div');
+            // 全体の統計計算（ヘッダー表示用）
             let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
             let totalUnlocked = 0;
             const allTrophiesList = getAllTrophies();
 
             allTrophiesList.forEach(t => {
-                const isUnlocked = !!userState[t.id];
-                if (isUnlocked) {
-                    count[t.rank]++;
+                if (userState[t.id]) {
+                    if (count[t.rank] !== undefined) count[t.rank]++;
                     totalUnlocked++;
                 }
-
-                if (trophyFilter !== 'all') {
-                    if (trophyFilter === 'unlocked' && !isUnlocked) return;
-                    if (trophyFilter !== 'unlocked' && t.rank !== trophyFilter) return;
-                }
-
-                const card = document.createElement('div');
-                card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
-                
-                let actionButtonsHTML = '';
-                if (!isUnlocked) {
-                    actionButtonsHTML += `<button class="unlock-btn" onclick="openUnlockModal('${t.id}')">解除</button>`;
-                }
-                if (t.isCustom) {
-                    actionButtonsHTML += `<button class="unlock-btn" style="background:rgba(255,59,48,0.15); color:var(--accent-red); border:none;" onclick="deleteCustomTrophy('${t.id}')">削除</button>`;
-                }
-
-                card.innerHTML = `
-                    <div class="icon-box"><i class="fa-solid fa-trophy"></i></div>
-                    <div class="trophy-info">
-                        <div class="trophy-name">${t.isUltimate ? '★ ' : ''}${t.name} ${t.isCustom ? '<span style="font-size:0.6rem; color:var(--text-secondary);">(カスタム)</span>' : ''}</div>
-                        <div class="trophy-condition">${t.condition}</div>
-                        <div class="trophy-meta">
-                            <span class="rank-tag">${t.rank}</span>
-                            ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date}</span>` : ''}
-                        </div>
-                    </div>
-                    <div class="card-actions-group">
-                        ${actionButtonsHTML}
-                    </div>
-                `;
-                trophyListEl.appendChild(card);
             });
-
-            container.appendChild(trophyListEl);
 
             document.getElementById('count-plat').innerText = count.platinum;
             document.getElementById('count-gold').innerText = count.gold;
             document.getElementById('count-silver').innerText = count.silver;
             document.getElementById('count-bronze').innerText = count.bronze;
 
-            const percent = Math.round((totalUnlocked / allTrophiesList.length) * 100);
+            const percent = allTrophiesList.length > 0 ? Math.round((totalUnlocked / allTrophiesList.length) * 100) : 0;
             document.getElementById('progress-percent').innerText = `${percent}%`;
+
+            // 4. 表示対象リストの描画
+            const targetList = boardCategory === 'default' ? defaultTrophies : customTrophies;
+            const trophyListEl = document.createElement('div');
+
+            if (boardCategory === 'custom' && customTrophies.length === 0) {
+                trophyListEl.innerHTML = `
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
+                        まだカスタム実績がありません。<br>右上の「+ カスタム実績を作成」から自分だけの目標を追加しましょう！
+                    </div>
+                `;
+                container.appendChild(trophyListEl);
+                return;
+            }
+
+            let visibleCount = 0;
+            targetList.forEach(t => {
+                const isUnlocked = !!userState[t.id];
+
+                if (trophyFilter !== 'all') {
+                    if (trophyFilter === 'unlocked' && !isUnlocked) return;
+                    if (trophyFilter !== 'unlocked' && t.rank !== trophyFilter) return;
+                }
+
+                visibleCount++;
+                const card = document.createElement('div');
+                card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
+                
+                const iconContent = (isUnlocked && userState[t.id].photo)
+                    ? `<img src="${userState[t.id].photo}" alt="Trophy Photo">`
+                    : `<i class="fa-solid fa-trophy"></i>`;
+
+                const infoBox = document.createElement('div');
+                infoBox.className = 'trophy-info';
+                infoBox.innerHTML = `
+                    <div class="trophy-name">${t.isUltimate ? '★ ' : ''}${t.name}</div>
+                    <div class="trophy-condition">${t.condition}</div>
+                    <div class="trophy-meta">
+                        <span class="rank-tag">${t.rank}</span>
+                        ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date} 解除済</span>` : ''}
+                    </div>
+                `;
+
+                const iconBox = document.createElement('div');
+                iconBox.className = 'icon-box';
+                iconBox.innerHTML = iconContent;
+
+                const actionsGroup = document.createElement('div');
+                actionsGroup.className = 'card-actions-group';
+
+                // 未解除なら「解除」ボタンを表示
+                if (!isUnlocked) {
+                    const unlockBtn = document.createElement('button');
+                    unlockBtn.className = 'unlock-btn';
+                    unlockBtn.innerText = '解除';
+                    unlockBtn.onclick = () => openUnlockModal(t.id);
+                    actionsGroup.appendChild(unlockBtn);
+                }
+
+                // カスタム実績なら「削除」ボタンを確実に機能するイベントとして付与
+                if (t.isCustom || boardCategory === 'custom') {
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'delete-btn';
+                    delBtn.innerText = '削除';
+                    delBtn.onclick = () => deleteCustomTrophy(t.id);
+                    actionsGroup.appendChild(delBtn);
+                }
+
+                card.appendChild(iconBox);
+                card.appendChild(infoBox);
+                card.appendChild(actionsGroup);
+                trophyListEl.appendChild(card);
+            });
+
+            if (visibleCount === 0) {
+                trophyListEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">条件に一致する実績がありません</div>';
+            }
+
+            container.appendChild(trophyListEl);
         }
 
         /* -------------------------------------------------------------
-           カスタム実績追加・削除機能（楽観的UI更新による即時反映）
+           カスタム実績の追加・削除機能
         ------------------------------------------------------------- */
         async function addCustomTrophy() {
             const titleInput = document.getElementById('custom-title');
@@ -1148,7 +1425,7 @@
             const rank = rankSelect.value;
             
             if (!title || !condition) {
-                alert('タイトルと条件を入力してください');
+                alert('実績タイトルと達成条件の両方を入力してください');
                 return;
             }
 
@@ -1160,50 +1437,135 @@
                 isCustom: true
             };
 
-            // 1. ローカル配列に追加
             customTrophies.push(newTrophy);
 
-            // 2. 入力欄をクリアして即座にモーダルを閉じる
+            // 入力欄をクリアして即座に追加画面を閉じる
             titleInput.value = '';
             conditionInput.value = '';
             closeModal('custom-trophy-modal');
 
-            // 3. 即座に画面を再描画し、ポップアップ通知を表示
+            // カスタム実績項目（タブ）に切り替えて実績画面を即座に再描画
+            boardCategory = 'custom';
+            trophyFilter = 'all';
             switchMainTab('trophies');
-            showNotification('カスタム実績を追加しました！');
 
-            // 4. 裏でFirestoreに保存
-            try {
-                await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom').set({ items: customTrophies });
-            } catch (e) {
-                console.error('カスタム実績の保存に失敗しました:', e);
-            }
+            // ポップアップを表示
+            showNotification(`「${title}」を追加しました！`, 'CUSTOM TROPHY ADDED');
+
+            // データを3重永続化
+            await syncUserDataToStorage();
         }
 
         async function deleteCustomTrophy(id) {
-            if (!confirm('このカスタム実績を削除しますか？')) return;
+            const target = customTrophies.find(t => String(t.id) === String(id));
+            const targetName = target ? target.name : 'カスタム実績';
 
-            // 1. ローカル配列・状態から即座に削除
+            if (!confirm(`カスタム実績「${targetName}」を削除しますか？`)) return;
+
             customTrophies = customTrophies.filter(t => String(t.id) !== String(id));
             if (userState[id]) {
                 delete userState[id];
             }
 
-            // 2. 即座に画面を再描画し、ポップアップ通知を表示
-            switchMainTab('trophies');
-            showNotification('カスタム実績を削除しました');
+            // 即座に画面を再描画してポップアップを表示
+            renderTrophiesView();
+            showNotification(`「${targetName}」を削除しました`, 'CUSTOM TROPHY DELETED');
 
-            // 3. 裏でFirestoreを更新
+            // データを3重永続化
+            await syncUserDataToStorage();
+        }
+
+        /* -------------------------------------------------------------
+           実績解除機能（写真必須・自動圧縮・ポップアップ・確実な再描画）
+        ------------------------------------------------------------- */
+        function openUnlockModal(id) {
+            selectedTrophyId = id;
+            tempUnlockPhotoBase64 = "";
+            const trophy = getAllTrophies().find(t => String(t.id) === String(id));
+            document.getElementById('modal-trophy-title').innerText = `🏆 「${trophy ? trophy.name : '実績'}」を解除`;
+            
+            const previewEl = document.getElementById('photo-preview');
+            previewEl.style.display = 'none';
+            previewEl.removeAttribute('src');
+            
+            document.getElementById('photo-input').value = '';
+            document.getElementById('unlock-photo-zone').classList.remove('required-highlight');
+            document.getElementById('photo-upload-label').innerText = '📸 証拠写真を撮影・選択 (必須)';
+            openModal('unlock-modal');
+        }
+
+        async function previewImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('photo-upload-label').innerText = '写真を処理中...';
             try {
-                await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom').set({ items: customTrophies });
-                await db.collection('users').doc(currentUser.uid).collection('trophies').doc('status').set(userState);
+                // Firestoreの1MB制限を超えないよう長辺800px・JPEG品質0.7に自動圧縮
+                tempUnlockPhotoBase64 = await compressImageFile(file, 800, 0.7);
+                const img = document.getElementById('photo-preview');
+                img.src = tempUnlockPhotoBase64;
+                img.style.display = 'block';
+                document.getElementById('unlock-photo-zone').classList.remove('required-highlight');
+                document.getElementById('photo-upload-label').innerText = '✅ 写真を選択済み (タップで変更)';
+            } catch (err) {
+                alert('写真の読み込みに失敗しました。別の画像をお試しください。');
+                tempUnlockPhotoBase64 = "";
+            }
+        }
+
+        async function confirmUnlock() {
+            if (!selectedTrophyId) return;
+
+            // 写真添付の強制チェック
+            if (!tempUnlockPhotoBase64) {
+                document.getElementById('unlock-photo-zone').classList.add('required-highlight');
+                alert('実績を解除するには証拠写真の添付が必須です！上のカメラ枠をタップして写真を選択してください。');
+                return;
+            }
+
+            const trophy = getAllTrophies().find(t => String(t.id) === String(selectedTrophyId));
+            const trophyName = trophy ? trophy.name : '実績';
+            const dateStr = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+            const unlockedId = selectedTrophyId;
+            const photoToSave = tempUnlockPhotoBase64;
+
+            // 1. ローカルの解除状態を即座に更新
+            userState[unlockedId] = {
+                date: dateStr,
+                photo: photoToSave
+            };
+
+            // 2. 解除モーダルを即座に閉じる
+            closeModal('unlock-modal');
+
+            // 3. ボードを確実に再描画し、「実績を解除しました！」ポップアップを表示
+            switchMainTab('trophies');
+            showNotification(`実績を解除しました！「${trophyName}」`, 'TROPHY UNLOCKED!');
+
+            // 4. バックグラウンドで永続化＆タイムライン投稿
+            await syncUserDataToStorage();
+
+            try {
+                await db.collection('posts').add({
+                    uid: currentUser.uid,
+                    displayName: myProfile.displayName || myProfile.username,
+                    username: myProfile.username,
+                    userAvatar: myProfile.avatar,
+                    trophyId: String(unlockedId),
+                    trophyName: trophyName,
+                    photo: photoToSave,
+                    date: dateStr,
+                    likes: [],
+                    comments: [],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
             } catch (e) {
-                console.error('カスタム実績の削除同期に失敗しました:', e);
+                console.error('タイムライン投稿エラー:', e);
             }
         }
 
         /* -------------------------------------------------------------
-           マイページ View
+           マイページ View (解除済みの実績を未解除に戻す機能付き)
         ------------------------------------------------------------- */
         function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -1219,7 +1581,7 @@
             headerBox.innerHTML = `
                 ${avatarHTML}
                 <div class="profile-info">
-                    <div class="profile-displayname">${myProfile.displayName}</div>
+                    <div class="profile-displayname">${myProfile.displayName || myProfile.username}</div>
                     <div class="profile-username">@${myProfile.username}</div>
                     <div class="profile-bio">${myProfile.bio || 'ステータス未設定'}</div>
                     <div class="follow-stats-row">
@@ -1235,6 +1597,52 @@
             `;
             container.appendChild(headerBox);
 
+            // 1. 解除済み実績の管理（未解除に戻す機能）
+            const manageTitle = document.createElement('div');
+            manageTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary); display:flex; justify-content:space-between; align-items:center;';
+            manageTitle.innerHTML = '🔄 解除済み実績の管理（解除前に戻す）';
+            container.appendChild(manageTitle);
+
+            const manageListEl = document.createElement('div');
+            manageListEl.style.cssText = 'margin-bottom:24px;';
+            
+            let unlockedCount = 0;
+            const allList = getAllTrophies();
+
+            allList.forEach(t => {
+                if (userState[t.id]) {
+                    unlockedCount++;
+                    const itemData = userState[t.id];
+                    const manageCard = document.createElement('div');
+                    manageCard.className = 'unlocked-manage-card';
+
+                    const leftInfo = document.createElement('div');
+                    leftInfo.style.cssText = 'display:flex; align-items:center; gap:10px; overflow:hidden;';
+                    leftInfo.innerHTML = `
+                        ${itemData.photo ? `<img src="${itemData.photo}" class="unlocked-manage-thumb">` : `<div class="unlocked-manage-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--text-secondary);"><i class="fa-solid fa-trophy"></i></div>`}
+                        <div style="overflow:hidden;">
+                            <div style="font-size:0.8rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.name}</div>
+                            <div style="font-size:0.65rem; color:var(--text-secondary);">解除日: ${itemData.date}</div>
+                        </div>
+                    `;
+
+                    const revertBtn = document.createElement('button');
+                    revertBtn.className = 'delete-btn';
+                    revertBtn.innerText = '未解除に戻す';
+                    revertBtn.onclick = () => revertUnlock(t.id);
+
+                    manageCard.appendChild(leftInfo);
+                    manageCard.appendChild(revertBtn);
+                    manageListEl.appendChild(manageCard);
+                }
+            });
+
+            if (unlockedCount === 0) {
+                manageListEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:18px; background:var(--surface-card); border-radius:10px; border:1px solid var(--border-color);">現在解除している実績はありません</div>';
+            }
+            container.appendChild(manageListEl);
+
+            // 2. 実績フォトギャラリー
             const albumTitle = document.createElement('div');
             albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
             albumTitle.innerHTML = '📸 実績フォトギャラリー';
@@ -1243,12 +1651,12 @@
             const grid = document.createElement('div');
             grid.className = 'gallery-grid-3';
 
-            let count = 0;
+            let photoCount = 0;
             Object.keys(userState).forEach(id => {
                 const item = userState[id];
                 if (item && item.photo) {
-                    count++;
-                    const trophy = getAllTrophies().find(t => String(t.id) === String(id));
+                    photoCount++;
+                    const trophy = allList.find(t => String(t.id) === String(id));
                     const el = document.createElement('div');
                     el.className = 'gallery-item';
                     el.innerHTML = `
@@ -1259,10 +1667,40 @@
                 }
             });
 
-            if (count === 0) {
-                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">まだ写真付きで解除した実績がありません。<br>実績解除時に写真を撮影・添付するとここに並びます！</div>';
+            if (photoCount === 0) {
+                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">まだ写真付きで解除した実績がありません。</div>';
             } else {
                 container.appendChild(grid);
+            }
+        }
+
+        /* -------------------------------------------------------------
+           実績を解除前の状態（未解除）に戻す処理
+        ------------------------------------------------------------- */
+        async function revertUnlock(id) {
+            const trophy = getAllTrophies().find(t => String(t.id) === String(id));
+            const trophyName = trophy ? trophy.name : 'この実績';
+
+            if (!confirm(`「${trophyName}」を解除前の状態（未解除）に戻しますか？`)) return;
+
+            if (userState[id]) {
+                delete userState[id];
+            }
+
+            // マイページを即座に再描画してポップアップを表示
+            renderMyProfileView();
+            showNotification(`「${trophyName}」を未解除に戻しました`, 'TROPHY RESET');
+
+            // Firestoreの上書き保存（削除されたキーを確実に消去するため一旦空にしてセット）
+            if (currentUser) {
+                const uid = currentUser.uid;
+                localStorage.setItem(`lt_status_${uid}`, JSON.stringify(userState));
+                try {
+                    await db.collection('users').doc(uid).update({ trophyStatus: userState });
+                    await db.collection('users').doc(uid).collection('trophies').doc('status').set(userState);
+                } catch (e) {
+                    console.error('未解除への変更保存エラー:', e);
+                }
             }
         }
 
@@ -1279,7 +1717,7 @@
                 navigator.share(shareData).catch(() => {});
             } else {
                 navigator.clipboard.writeText(window.location.href);
-                showNotification('リンクをコピーしました！');
+                showNotification('リンクをコピーしました！', 'SHARE');
             }
         }
 
@@ -1293,7 +1731,7 @@
                 navigator.share(shareData).catch(() => {});
             } else {
                 navigator.clipboard.writeText(window.location.href);
-                showNotification('投稿リンクをコピーしました！');
+                showNotification('投稿リンクをコピーしました！', 'SHARE');
             }
         }
 
@@ -1305,7 +1743,7 @@
             await db.collection('users').doc(targetUid).collection('notifications').add({
                 type: type,
                 senderUid: currentUser.uid,
-                senderName: myProfile.displayName,
+                senderName: myProfile.displayName || myProfile.username,
                 message: message,
                 read: false,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1314,13 +1752,11 @@
 
         async function checkUnreadNotifications() {
             if (!currentUser) return;
-            const snapshot = await db.collection('users').doc(currentUser.uid).collection('notifications').where('read', '==', false).get();
-            const dot = document.getElementById('notif-badge-dot');
-            if (!snapshot.empty) {
-                dot.style.display = 'block';
-            } else {
-                dot.style.display = 'none';
-            }
+            try {
+                const snapshot = await db.collection('users').doc(currentUser.uid).collection('notifications').where('read', '==', false).get();
+                const dot = document.getElementById('notif-badge-dot');
+                dot.style.display = !snapshot.empty ? 'block' : 'none';
+            } catch (e) {}
         }
 
         async function openNotificationsModal() {
@@ -1328,26 +1764,30 @@
             container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">読み込み中...</div>';
             openModal('notifications-modal');
 
-            const snapshot = await db.collection('users').doc(currentUser.uid).collection('notifications').orderBy('createdAt', 'desc').limit(20).get();
-            container.innerHTML = '';
+            try {
+                const snapshot = await db.collection('users').doc(currentUser.uid).collection('notifications').orderBy('createdAt', 'desc').limit(20).get();
+                container.innerHTML = '';
 
-            if (snapshot.empty) {
+                if (snapshot.empty) {
+                    container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">通知はありません</div>';
+                    return;
+                }
+
+                const batch = db.batch();
+                snapshot.forEach(doc => {
+                    batch.update(doc.ref, { read: true });
+                    const data = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'feed-card';
+                    card.style.cssText = 'padding:10px 14px; margin-bottom:8px; font-size:0.75rem;';
+                    card.innerHTML = `<b>${data.senderName}</b> ${data.message}`;
+                    container.appendChild(card);
+                });
+                await batch.commit();
+                document.getElementById('notif-badge-dot').style.display = 'none';
+            } catch (e) {
                 container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">通知はありません</div>';
-                return;
             }
-
-            const batch = db.batch();
-            snapshot.forEach(doc => {
-                batch.update(doc.ref, { read: true });
-                const data = doc.data();
-                const card = document.createElement('div');
-                card.className = 'feed-card';
-                card.style.cssText = 'padding:10px 14px; margin-bottom:8px; font-size:0.75rem;';
-                card.innerHTML = `<b>${data.senderName}</b> ${data.message}`;
-                container.appendChild(card);
-            });
-            await batch.commit();
-            document.getElementById('notif-badge-dot').style.display = 'none';
         }
 
         /* -------------------------------------------------------------
@@ -1500,7 +1940,7 @@
             await postRef.update({
                 comments: firebase.firestore.FieldValue.arrayUnion({
                     uid: currentUser.uid,
-                    displayName: myProfile.displayName,
+                    displayName: myProfile.displayName || myProfile.username,
                     username: myProfile.username,
                     text: text,
                     createdAt: new Date().toISOString()
@@ -1520,7 +1960,7 @@
             container.innerHTML = `
                 <div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">🔍 ユーザー検索</div>
                 <div style="display:flex; gap:10px; margin-bottom:20px;">
-                    <input type="text" id="search-query" class="form-input" placeholder="ユーザー名で検索..." style="margin-bottom:0;">
+                    <input type="text" id="search-query" class="form-input" placeholder="ユーザーIDまたは名前で検索..." style="margin-bottom:0;">
                     <button class="modal-btn" style="width: 100px; margin-top:0;" onclick="searchUsers()">検索</button>
                 </div>
                 <div id="search-results"></div>
@@ -1528,7 +1968,7 @@
         }
 
         async function searchUsers() {
-            const q = document.getElementById('search-query').value.trim();
+            const q = document.getElementById('search-query').value.trim().toLowerCase();
             const resultsEl = document.getElementById('search-results');
             resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">検索中...</div>';
 
@@ -1539,7 +1979,9 @@
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if (data.username && (data.username.includes(q) || (data.displayName && data.displayName.includes(q))) && doc.id !== currentUser.uid) {
+                    const uName = (data.username || '').toLowerCase();
+                    const dName = (data.displayName || '').toLowerCase();
+                    if (uName && (uName.includes(q) || dName.includes(q)) && doc.id !== currentUser.uid) {
                         found = true;
                         const avatarHTML = data.avatar 
                             ? `<img src="${data.avatar}" class="feed-avatar">` 
@@ -1577,8 +2019,12 @@
                 return;
             }
 
-            const doc = await db.collection('users').doc(uid).collection('trophies').doc('status').get();
-            const targetState = doc.exists ? doc.data() || {} : {};
+            let targetState = profileData.trophyStatus || {};
+            try {
+                const doc = await db.collection('users').doc(uid).collection('trophies').doc('status').get();
+                if (doc.exists) targetState = Object.assign({}, targetState, doc.data());
+            } catch (e) {}
+
             profileData.uid = uid;
             
             const statsBox = document.getElementById('stats-grid-box');
@@ -1665,12 +2111,12 @@
                 sendNotification(targetUid, 'follow', 'があなたをフォローしました。');
             }
 
-            showNotification(isFollowing ? 'フォロー解除しました' : 'フォローしました');
+            showNotification(isFollowing ? 'フォロー解除しました' : 'フォローしました', 'FOLLOW');
             renderSearchView();
         }
 
         function openEditProfileModal() {
-            document.getElementById('edit-displayname-input').value = myProfile.displayName;
+            document.getElementById('edit-displayname-input').value = myProfile.displayName || myProfile.username;
             document.getElementById('edit-username-input').value = myProfile.username;
             document.getElementById('edit-bio-input').value = myProfile.bio;
             const img = document.getElementById('avatar-preview');
@@ -1684,17 +2130,17 @@
             openModal('edit-profile-modal');
         }
 
-        function previewAvatar(e) {
+        async function previewAvatar(e) {
             const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    tempAvatarBase64 = evt.target.result;
+                try {
+                    tempAvatarBase64 = await compressImageFile(file, 300, 0.7);
                     const img = document.getElementById('avatar-preview');
                     img.src = tempAvatarBase64;
                     img.style.display = 'block';
+                } catch (err) {
+                    alert('アイコン画像の処理に失敗しました');
                 }
-                reader.readAsDataURL(file);
             }
         }
 
@@ -1714,6 +2160,10 @@
             myProfile.bio = newBio;
             myProfile.avatar = tempAvatarBase64;
 
+            closeModal('edit-profile-modal');
+            switchMainTab('profile');
+            showNotification('プロフィールを更新しました', 'PROFILE UPDATED');
+
             await db.collection('users').doc(currentUser.uid).set({
                 displayName: newDisplayName,
                 username: newUsername,
@@ -1721,75 +2171,18 @@
                 avatar: tempAvatarBase64,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
-
-            closeModal('edit-profile-modal');
-            switchMainTab('profile');
-            showNotification('プロフィールを更新しました');
-        }
-
-        function openUnlockModal(id) {
-            selectedTrophyId = id;
-            const trophy = getAllTrophies().find(t => String(t.id) === String(id));
-            document.getElementById('modal-trophy-title').innerText = `「${trophy.name}」`;
-            document.getElementById('photo-preview').style.display = 'none';
-            document.getElementById('photo-input').value = '';
-            openModal('unlock-modal');
-        }
-
-        function previewImage(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const img = document.getElementById('photo-preview');
-                    img.src = evt.target.result;
-                    img.style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
-        async function confirmUnlock() {
-            if (!selectedTrophyId) return;
-
-            const trophy = getAllTrophies().find(t => String(t.id) === String(selectedTrophyId));
-            const dateStr = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
-            const photoData = document.getElementById('photo-preview').src || null;
-
-            userState[selectedTrophyId] = {
-                date: dateStr,
-                photo: photoData
-            };
-
-            await db.collection('users').doc(currentUser.uid).collection('trophies').doc('status').set(userState);
-
-            await db.collection('posts').add({
-                uid: currentUser.uid,
-                displayName: myProfile.displayName,
-                username: myProfile.username,
-                userAvatar: myProfile.avatar,
-                trophyId: selectedTrophyId,
-                trophyName: trophy.name,
-                photo: photoData,
-                date: dateStr,
-                likes: [],
-                comments: [],
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            closeModal('unlock-modal');
-            switchMainTab('trophies');
-            showNotification(trophy.name);
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-        function showNotification(title) {
+        function showNotification(title, subtitle = 'Trophy Unlocked') {
             const notif = document.getElementById('notification');
+            document.getElementById('notif-subtitle').innerText = subtitle;
             document.getElementById('notif-title').innerText = title;
             notif.classList.add('show');
-            setTimeout(() => notif.classList.remove('show'), 3500);
+            if (notifTimer) clearTimeout(notifTimer);
+            notifTimer = setTimeout(() => notif.classList.remove('show'), 3500);
         }
     </script>
 </body>

@@ -20,6 +20,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
+        /* デフォルト：ダークモード */
         :root {
             --bg-main: #000000;
             --surface-card: #0d0d0d;
@@ -30,6 +31,21 @@
             --text-secondary: #8e8e93;
             --text-tertiary: #48484a;
             --accent-red: #ff2d55;
+            --nav-bg: rgba(0, 0, 0, 0.92);
+        }
+
+        /* ライトモード用変数 */
+        body.light-mode {
+            --bg-main: #f2f2f7;
+            --surface-card: #ffffff;
+            --surface-hover: #e5e5ea;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --border-light: rgba(0, 0, 0, 0.2);
+            --text-primary: #000000;
+            --text-secondary: #3a3a3c;
+            --text-tertiary: #8e8e93;
+            --accent-red: #ff3b30;
+            --nav-bg: rgba(255, 255, 255, 0.92);
         }
 
         * {
@@ -49,6 +65,7 @@
             padding-bottom: 80px;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* Header */
@@ -56,7 +73,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(0, 0, 0, 0.85);
+            background: var(--nav-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border-color);
@@ -117,7 +134,7 @@
         }
 
         .stat-badge {
-            background: rgba(255, 255, 255, 0.04);
+            background: var(--surface-card);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 6px;
@@ -133,7 +150,7 @@
             margin-bottom: 2px;
         }
 
-        .stat-badge .rank-val { font-size: 0.85rem; font-weight: 700; }
+        .stat-badge .rank-val { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
 
         /* Bottom Navigation Bar (4タブ) */
         .bottom-nav {
@@ -142,7 +159,7 @@
             left: 0;
             right: 0;
             height: 60px;
-            background: rgba(0, 0, 0, 0.92);
+            background: var(--nav-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-top: 1px solid var(--border-color);
@@ -195,7 +212,7 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--surface-hover);
             border: 1px solid var(--border-light);
             display: flex;
             align-items: center;
@@ -231,7 +248,7 @@
         }
 
         .btn-action-small.following {
-            background: rgba(255, 255, 255, 0.15);
+            background: var(--surface-hover);
             border-color: transparent;
         }
 
@@ -250,20 +267,20 @@
         }
 
         .trophy-card.unlocked {
-            background: #121212;
+            background: var(--surface-card);
             border-color: var(--border-light);
         }
 
         .trophy-card.ultimate {
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--text-primary);
+            box-shadow: inset 0 0 15px rgba(128, 128, 128, 0.05);
         }
 
         .icon-box {
             width: 44px;
             height: 44px;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.03);
+            background: var(--surface-hover);
             border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
@@ -275,8 +292,8 @@
 
         .unlocked .icon-box {
             color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.3);
+            background: var(--surface-hover);
+            border-color: var(--border-light);
         }
 
         .trophy-info { flex-grow: 1; }
@@ -291,7 +308,7 @@
             letter-spacing: 1px;
             padding: 2px 6px;
             border-radius: 4px;
-            background: rgba(255, 255, 255, 0.06);
+            background: var(--surface-hover);
             color: var(--text-secondary);
             text-transform: uppercase;
         }
@@ -336,7 +353,7 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--surface-hover);
             object-fit: cover;
             display: flex;
             align-items: center;
@@ -344,11 +361,11 @@
             color: var(--text-secondary);
         }
 
-        .feed-user-name { font-size: 0.85rem; font-weight: 700; }
+        .feed-user-name { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
         .feed-time { font-size: 0.65rem; color: var(--text-secondary); }
 
         .feed-trophy-banner {
-            background: rgba(255, 255, 255, 0.04);
+            background: var(--surface-hover);
             border: 1px solid var(--border-color);
             border-radius: 10px;
             padding: 12px;
@@ -393,7 +410,7 @@
             margin-top: 8px;
         }
 
-        /* 1列3枚のギャラリー（Instagram風） */
+        /* 1列3枚のギャラリー */
         .gallery-grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -435,27 +452,27 @@
             transform: translateX(-50%) translateY(-100px);
             width: 90%;
             max-width: 400px;
-            background: #ffffff;
-            color: #000000;
+            background: var(--text-primary);
+            color: var(--bg-main);
             border-radius: 12px;
             padding: 14px 18px;
             display: flex;
             align-items: center;
             gap: 14px;
-            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         #notification.show { transform: translateX(-50%) translateY(0); }
-        .notif-icon { width: 36px; height: 36px; background: #000000; color: #ffffff; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .notif-icon { width: 36px; height: 36px; background: var(--bg-main); color: var(--text-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
 
         /* Modals */
         .modal {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(10px);
             z-index: 500;
             align-items: center;
@@ -466,19 +483,20 @@
         .modal.active { display: flex; }
 
         .modal-content {
-            background: #0d0d0d;
+            background: var(--surface-card);
             border: 1px solid var(--border-light);
             border-radius: 16px;
             width: 100%;
             max-width: 400px;
             padding: 24px;
+            color: var(--text-primary);
         }
 
         .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; text-align: center; letter-spacing: 0.5px; }
 
         .form-input {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface-hover);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 12px;
@@ -492,7 +510,7 @@
 
         .form-select {
             width: 100%;
-            background: #121212;
+            background: var(--surface-hover);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 12px;
@@ -522,7 +540,7 @@
             text-align: center;
             cursor: pointer;
             margin-bottom: 16px;
-            background: rgba(255, 255, 255, 0.02);
+            background: var(--surface-hover);
         }
 
         .photo-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; }
@@ -572,6 +590,21 @@
         </div>
     </div>
 
+    <!-- Settings Modal (設定画面) -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-title">⚙️ 設定</div>
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 8px; color: var(--text-secondary);">テーマ切り替え</div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="modal-btn" id="theme-dark-btn" onclick="setTheme('dark')" style="background: #222; color: #fff; border: 1px solid #444;">ダークモード</button>
+                    <button class="modal-btn" id="theme-light-btn" onclick="setTheme('light')" style="background: #f2f2f7; color: #000; border: 1px solid #ccc;">ライトモード</button>
+                </div>
+            </div>
+            <button class="modal-btn btn-cancel" onclick="closeModal('settings-modal')">閉じる</button>
+        </div>
+    </div>
+
     <!-- Custom Trophy Modal -->
     <div class="modal" id="custom-trophy-modal">
         <div class="modal-content">
@@ -611,7 +644,7 @@
 
     <div class="container" id="main-container"></div>
 
-    <!-- Bottom Navigation Bar (合計4タブ) -->
+    <!-- Bottom Navigation Bar (4タブ) -->
     <nav class="bottom-nav">
         <button class="nav-item" id="nav-btn-feed" onclick="switchMainTab('feed')">
             <i class="fa-solid fa-house"></i>
@@ -634,7 +667,7 @@
     <div id="notification">
         <div class="notif-icon"><i class="fa-solid fa-trophy"></i></div>
         <div class="notif-text">
-            <div style="font-size: 0.6rem; font-weight: 900; color: #666;">Trophy Unlocked</div>
+            <div style="font-size: 0.6rem; font-weight: 900; color: var(--text-secondary);">Trophy Unlocked</div>
             <div class="title" id="notif-title" style="font-size: 0.85rem; font-weight: 700;">実績タイトル</div>
         </div>
     </div>
@@ -674,7 +707,7 @@
 
         let currentUser = null;
         let userState = {};
-        let myProfile = { username: "", bio: "", avatar: "", following: [], followers: [] };
+        let myProfile = { username: "", bio: "", avatar: "", theme: "dark", following: [], followers: [] };
         let customTrophies = [];
         let isSignUpMode = false;
         let selectedTrophyId = null;
@@ -771,7 +804,8 @@
             } else {
                 currentUser = null;
                 userState = {};
-                myProfile = { username: "", bio: "", avatar: "", following: [], followers: [] };
+                myProfile = { username: "", bio: "", avatar: "", theme: "dark", following: [], followers: [] };
+                setTheme("dark");
                 document.getElementById('auth-modal').classList.add('active');
                 switchMainTab('trophies');
             }
@@ -786,13 +820,27 @@
                     username: data.username || "",
                     bio: data.bio || "人生の実績解除中！",
                     avatar: data.avatar || "",
+                    theme: data.theme || "dark",
                     following: data.following || [],
                     followers: data.followers || []
                 };
+                setTheme(myProfile.theme);
                 loadUserData();
             } else {
                 document.getElementById('username-modal').classList.add('active');
             }
+        }
+
+        // ユーザー名の重複チェック関数
+        async function isUsernameTaken(username) {
+            const snapshot = await db.collection('users').where('username', '==', username).get();
+            let taken = false;
+            snapshot.forEach(doc => {
+                if (doc.id !== currentUser.uid) {
+                    taken = true;
+                }
+            });
+            return taken;
         }
 
         async function saveInitialProfile() {
@@ -800,10 +848,16 @@
             const bio = document.getElementById('bio-input').value.trim() || "人生の実績解除中！";
             if (!username) return alert('ユーザー名を入力してください');
 
+            // 重複チェック
+            if (await isUsernameTaken(username)) {
+                return alert('このユーザー名はすでに使われています。別の名前にしてください。');
+            }
+
             await db.collection('users').doc(currentUser.uid).set({
                 username: username,
                 bio: bio,
                 avatar: "",
+                theme: "dark",
                 following: [],
                 followers: [],
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -812,6 +866,8 @@
             myProfile.uid = currentUser.uid;
             myProfile.username = username;
             myProfile.bio = bio;
+            myProfile.theme = "dark";
+            setTheme("dark");
             document.getElementById('username-modal').classList.remove('active');
             loadUserData();
         }
@@ -879,7 +935,25 @@
         }
 
         /* -------------------------------------------------------------
-           実績一覧 View (真ん中のトロフィータブ)
+           テーマ切り替え (ダーク/ライト)
+        ------------------------------------------------------------- */
+        async function setTheme(themeName) {
+            myProfile.theme = themeName;
+            if (themeName === 'light') {
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+            }
+
+            if (currentUser) {
+                await db.collection('users').doc(currentUser.uid).set({
+                    theme: themeName
+                }, { merge: true });
+            }
+        }
+
+        /* -------------------------------------------------------------
+           実績一覧 View
         ------------------------------------------------------------- */
         function renderTrophiesView() {
             const container = document.getElementById('main-container');
@@ -952,7 +1026,7 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View (右端のタブ：プロフィール ＋ 1行3枚のアルバムサムネイル)
+           マイページ View (設定ボタン＆ギャラリー)
         ------------------------------------------------------------- */
         function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -975,7 +1049,10 @@
                         <div>フォロー <span>${(myProfile.following || []).length}</span></div>
                         <div>フォロワー <span>${(myProfile.followers || []).length}</span></div>
                     </div>
-                    <button class="btn-action-small" onclick="openEditProfileModal()">プロフィール編集</button>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <button class="btn-action-small" onclick="openEditProfileModal()">プロフィール編集</button>
+                        <button class="btn-action-small" onclick="openModal('settings-modal')"><i class="fa-solid fa-gear"></i> 設定</button>
+                    </div>
                 </div>
             `;
             container.appendChild(headerBox);
@@ -1113,7 +1190,7 @@
         }
 
         /* -------------------------------------------------------------
-           ユーザー検索 View (下部検索タブ)
+           ユーザー検索 View
         ------------------------------------------------------------- */
         function renderSearchView() {
             const container = document.getElementById('main-container');
@@ -1179,7 +1256,6 @@
             const statsBox = document.getElementById('stats-grid-box');
             statsBox.style.display = 'grid';
             
-            // 他人のプロフィールを表示
             const container = document.getElementById('main-container');
             container.innerHTML = '';
 
@@ -1206,7 +1282,6 @@
             `;
             container.appendChild(headerBox);
 
-            // 他人の実績一覧
             const trophyListEl = document.createElement('div');
             let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
             let totalUnlocked = 0;

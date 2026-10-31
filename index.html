@@ -76,6 +76,7 @@
             letter-spacing: 3px;
             text-transform: uppercase;
             color: var(--text-primary);
+            cursor: pointer;
         }
 
         .header-right {
@@ -156,6 +157,7 @@
             font-weight: 600;
             white-space: nowrap;
             transition: all 0.2s ease;
+            cursor: pointer;
         }
 
         .filter-btn.active {
@@ -169,6 +171,49 @@
             padding: 16px 20px;
             max-width: 600px;
             margin: 0 auto;
+        }
+
+        /* Profile Header Box */
+        .profile-header-box {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .profile-avatar-large {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .profile-info-box { flex-grow: 1; }
+        .profile-name-txt { font-size: 1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
+        .profile-bio-txt { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; }
+
+        .edit-profile-btn {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
         }
 
         .trophy-card {
@@ -272,6 +317,39 @@
             cursor: pointer;
         }
 
+        /* Search View */
+        .search-container { padding: 20px 0; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+
+        .user-result-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .user-result-card:hover { background: var(--surface-hover); }
+
+        .user-avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
         /* Notification */
         #notification {
             position: fixed;
@@ -305,7 +383,7 @@
             justify-content: center;
         }
 
-        /* Modals (Auth & Unlock) */
+        /* Modals */
         .modal {
             display: none;
             position: fixed;
@@ -408,34 +486,67 @@
         </div>
     </div>
 
+    <!-- Username & Profile Setup Modal -->
+    <div class="modal" id="username-modal">
+        <div class="modal-content">
+            <div class="modal-title">プロフィール初期設定</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px; text-align: center;">ユーザー名とステータスメッセージを設定しましょう</div>
+            <input type="text" id="username-input" class="form-input" placeholder="ユーザー名 (例: shota_trophy)">
+            <input type="text" id="bio-input" class="form-input" placeholder="ステータスメッセージ (例: 人生の実績解除中！)">
+            <button class="modal-btn" onclick="saveInitialProfile()">決定する</button>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="edit-profile-modal">
+        <div class="modal-content">
+            <div class="modal-title">プロフィールを編集</div>
+            <div class="photo-upload-zone" onclick="document.getElementById('avatar-input').click()">
+                <i class="fa-solid fa-camera" style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 8px;"></i>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">アイコン画像を変更</div>
+            </div>
+            <img id="avatar-preview" class="photo-preview" alt="Avatar Preview">
+            <input type="file" id="avatar-input" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
+            
+            <input type="text" id="edit-bio-input" class="form-input" placeholder="ステータスメッセージ">
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeEditProfileModal()">キャンセル</button>
+                <button class="modal-btn" onclick="saveProfileChanges()">保存する</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     <header>
         <div class="header-top">
-            <div class="brand-logo">Life Trophies</div>
+            <div class="brand-logo" onclick="switchView('trophies')">Life Trophies</div>
             <div class="header-right">
                 <div class="progress-stat">PROGRESS <span id="progress-percent">0%</span></div>
                 <button class="logout-btn" onclick="logout()">ログアウト</button>
             </div>
         </div>
 
-        <div class="stats-grid">
+        <div class="stats-grid" id="stats-grid-box">
             <div class="stat-badge"><span class="rank-label">PLATINUM</span><span class="rank-val" id="count-plat">0</span></div>
             <div class="stat-badge"><span class="rank-label">GOLD</span><span class="rank-val" id="count-gold">0</span></div>
             <div class="stat-badge"><span class="rank-label">SILVER</span><span class="rank-val" id="count-silver">0</span></div>
             <div class="stat-badge"><span class="rank-label">BRONZE</span><span class="rank-val" id="count-bronze">0</span></div>
         </div>
 
-        <div class="filter-nav">
+        <div class="filter-nav" id="filter-nav">
             <button class="filter-btn active" onclick="filterTrophies('all')">ALL</button>
             <button class="filter-btn" onclick="filterTrophies('unlocked')">UNLOCKED</button>
             <button class="filter-btn" onclick="filterTrophies('platinum')">PLATINUM</button>
             <button class="filter-btn" onclick="filterTrophies('gold')">GOLD</button>
             <button class="filter-btn" onclick="filterTrophies('silver')">SILVER</button>
             <button class="filter-btn" onclick="filterTrophies('bronze')">BRONZE</button>
+            <button class="filter-btn" onclick="switchView('search')" style="border-color: rgba(255,255,255,0.4);"><i class="fa-solid fa-magnifying-glass"></i> ユーザー検索</button>
         </div>
     </header>
 
-    <div class="container" id="trophy-list"></div>
+    <div class="container" id="main-container">
+        <div id="trophy-list"></div>
+    </div>
 
     <div id="notification">
         <div class="notif-icon"><i class="fa-solid fa-trophy"></i></div>
@@ -479,8 +590,11 @@
 
         let currentUser = null;
         let userState = {};
+        let myProfile = { username: "", bio: "", avatar: "" };
         let isSignUpMode = false;
         let selectedTrophyId = null;
+        let currentView = 'trophies';
+        let tempAvatarBase64 = "";
 
         const defaultTrophies = [
             { id: 1, name: '夢、叶えし者', condition: '夢を叶える', rank: 'platinum', isUltimate: true },
@@ -563,18 +677,52 @@
             { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze' }
         ];
 
-        auth.onAuthStateChanged(user => {
+        auth.onAuthStateChanged(async user => {
             if (user) {
                 currentUser = user;
                 document.getElementById('auth-modal').classList.remove('active');
-                loadUserData();
+                await checkProfileAndLoad();
             } else {
                 currentUser = null;
                 userState = {};
+                myProfile = { username: "", bio: "", avatar: "" };
                 document.getElementById('auth-modal').classList.add('active');
                 renderTrophies();
             }
         });
+
+        async function checkProfileAndLoad() {
+            const userDoc = await db.collection('users').doc(currentUser.uid).get();
+            if (userDoc.exists && userDoc.data().username) {
+                const data = userDoc.data();
+                myProfile = {
+                    username: data.username || "",
+                    bio: data.bio || "人生の実績解除中！",
+                    avatar: data.avatar || ""
+                };
+                loadUserData();
+            } else {
+                document.getElementById('username-modal').classList.add('active');
+            }
+        }
+
+        async function saveInitialProfile() {
+            const username = document.getElementById('username-input').value.trim();
+            const bio = document.getElementById('bio-input').value.trim() || "人生の実績解除中！";
+            if (!username) return alert('ユーザー名を入力してください');
+
+            await db.collection('users').doc(currentUser.uid).set({
+                username: username,
+                bio: bio,
+                avatar: "",
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            myProfile.username = username;
+            myProfile.bio = bio;
+            document.getElementById('username-modal').classList.remove('active');
+            loadUserData();
+        }
 
         function toggleAuthMode() {
             isSignUpMode = !isSignUpMode;
@@ -607,12 +755,8 @@
             if (!currentUser) return;
             const docRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('status');
             const doc = await docRef.get();
-            if (doc.exists) {
-                userState = doc.data() || {};
-            } else {
-                userState = {};
-            }
-            renderTrophies();
+            userState = doc.exists ? doc.data() || {} : {};
+            switchView('trophies');
         }
 
         async function saveUserData() {
@@ -621,21 +765,63 @@
             await docRef.set(userState);
         }
 
-        function renderTrophies(filter = 'all') {
-            const listEl = document.getElementById('trophy-list');
-            listEl.innerHTML = '';
+        function switchView(view, targetProfile = null, targetState = null) {
+            currentView = view;
+            const statsBox = document.getElementById('stats-grid-box');
+            const filterNav = document.getElementById('filter-nav');
+
+            if (view === 'trophies') {
+                statsBox.style.display = 'grid';
+                filterNav.style.display = 'flex';
+                renderTrophiesView(myProfile, userState, true);
+            } else if (view === 'profile') {
+                statsBox.style.display = 'grid';
+                filterNav.style.display = 'none';
+                renderTrophiesView(targetProfile, targetState, false);
+            } else if (view === 'search') {
+                statsBox.style.display = 'none';
+                filterNav.style.display = 'flex';
+                renderSearchView();
+            }
+        }
+
+        function renderTrophiesView(profile, state, isSelf, filter = 'all') {
+            const container = document.getElementById('main-container');
+            container.innerHTML = '';
+
+            // プロフィールヘッダー
+            const headerBox = document.createElement('div');
+            headerBox.className = 'profile-header-box';
+            
+            const avatarHTML = profile.avatar 
+                ? `<img src="${profile.avatar}" class="profile-avatar-large">` 
+                : `<div class="profile-avatar-large"><i class="fa-solid fa-user"></i></div>`;
+
+            headerBox.innerHTML = `
+                ${avatarHTML}
+                <div class="profile-info-box">
+                    <div class="profile-name-txt">@${profile.username}</div>
+                    <div class="profile-bio-txt">${profile.bio || 'ステータス未設定'}</div>
+                    ${isSelf ? `<button class="edit-profile-btn" onclick="openEditProfileModal()">プロフィール編集</button>` : ''}
+                </div>
+            `;
+            container.appendChild(headerBox);
+
+            // 実績リスト
+            const trophyListEl = document.createElement('div');
+            trophyListEl.id = 'trophy-list';
 
             let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
             let totalUnlocked = 0;
 
             defaultTrophies.forEach(t => {
-                const isUnlocked = !!userState[t.id];
+                const isUnlocked = !!state[t.id];
                 if (isUnlocked) {
                     count[t.rank]++;
                     totalUnlocked++;
                 }
 
-                if (filter !== 'all') {
+                if (isSelf && filter !== 'all') {
                     if (filter === 'unlocked' && !isUnlocked) return;
                     if (filter !== 'unlocked' && t.rank !== filter) return;
                 }
@@ -650,13 +836,15 @@
                         <div class="trophy-condition">${t.condition}</div>
                         <div class="trophy-meta">
                             <span class="rank-tag">${t.rank}</span>
-                            ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date}</span>` : ''}
+                            ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${state[t.id].date}</span>` : ''}
                         </div>
                     </div>
-                    ${!isUnlocked ? `<button class="unlock-btn" onclick="openUnlockModal(${t.id})">解除</button>` : ''}
+                    ${isSelf && !isUnlocked ? `<button class="unlock-btn" onclick="openUnlockModal(${t.id})">解除</button>` : ''}
                 `;
-                listEl.appendChild(card);
+                trophyListEl.appendChild(card);
             });
+
+            container.appendChild(trophyListEl);
 
             document.getElementById('count-plat').innerText = count.platinum;
             document.getElementById('count-gold').innerText = count.gold;
@@ -667,10 +855,117 @@
             document.getElementById('progress-percent').innerText = `${percent}%`;
         }
 
+        function renderSearchView() {
+            const container = document.getElementById('main-container');
+            container.innerHTML = `
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="search-query" class="form-input" placeholder="ユーザー名で検索..." style="margin-bottom:0;">
+                        <button class="modal-btn" style="width: 100px; margin-top:0;" onclick="searchUsers()">検索</button>
+                    </div>
+                    <div id="search-results"></div>
+                </div>
+            `;
+        }
+
+        async function searchUsers() {
+            const q = document.getElementById('search-query').value.trim();
+            const resultsEl = document.getElementById('search-results');
+            resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">検索中...</div>';
+
+            try {
+                const snapshot = await db.collection('users').get();
+                resultsEl.innerHTML = '';
+                let found = false;
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.username && data.username.includes(q)) {
+                        found = true;
+                        const avatarHTML = data.avatar 
+                            ? `<img src="${data.avatar}" class="user-avatar-small">` 
+                            : `<div class="user-avatar-small"><i class="fa-solid fa-user"></i></div>`;
+
+                        const card = document.createElement('div');
+                        card.className = 'user-result-card';
+                        card.innerHTML = `
+                            ${avatarHTML}
+                            <div style="flex-grow:1;">
+                                <div style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">@${data.username}</div>
+                                <div style="font-size:0.7rem; color:var(--text-secondary); margin-top:2px;">${data.bio || 'ステータスなし'}</div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary);"></i>
+                        `;
+                        card.onclick = () => viewUserProfile(doc.id, data);
+                        resultsEl.appendChild(card);
+                    }
+                });
+
+                if (!found) {
+                    resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">ユーザーが見つかりませんでした</div>';
+                }
+            } catch (e) {
+                resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">検索エラーが発生しました</div>';
+            }
+        }
+
+        async function viewUserProfile(uid, profileData) {
+            const doc = await db.collection('users').doc(uid).collection('trophies').doc('status').get();
+            const targetState = doc.exists ? doc.data() || {} : {};
+            switchView('profile', profileData, targetState);
+        }
+
+        function openEditProfileModal() {
+            document.getElementById('edit-bio-input').value = myProfile.bio;
+            const img = document.getElementById('avatar-preview');
+            if (myProfile.avatar) {
+                img.src = myProfile.avatar;
+                img.style.display = 'block';
+            } else {
+                img.style.display = 'none';
+            }
+            tempAvatarBase64 = myProfile.avatar;
+            document.getElementById('edit-profile-modal').classList.add('active');
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('edit-profile-modal').classList.remove('active');
+        }
+
+        function previewAvatar(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    tempAvatarBase64 = evt.target.result;
+                    const img = document.getElementById('avatar-preview');
+                    img.src = tempAvatarBase64;
+                    img.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function saveProfileChanges() {
+            const newBio = document.getElementById('edit-bio-input').value.trim() || "人生の実績解除中！";
+            myProfile.bio = newBio;
+            myProfile.avatar = tempAvatarBase64;
+
+            await db.collection('users').doc(currentUser.uid).set({
+                bio: newBio,
+                avatar: tempAvatarBase64,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            closeEditProfileModal();
+            switchView('trophies');
+            showNotification('プロフィールを更新しました');
+        }
+
         function filterTrophies(filter) {
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-            renderTrophies(filter);
+            renderTrophiesView(myProfile, userState, true, filter);
         }
 
         function openUnlockModal(id) {
@@ -711,7 +1006,7 @@
 
             await saveUserData();
             closeUnlockModal();
-            renderTrophies();
+            switchView('trophies');
             showNotification(trophy.name);
         }
 

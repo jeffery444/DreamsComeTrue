@@ -345,6 +345,12 @@
             cursor: pointer;
         }
 
+        .card-actions-group {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
         /* Feed Card */
         .feed-card {
             background: var(--surface-card);
@@ -873,6 +879,7 @@
             } else {
                 currentUser = null;
                 userState = {};
+                customTrophies = [];
                 myProfile = { displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
                 setTheme("dark");
                 document.getElementById('auth-modal').classList.add('active');
@@ -984,13 +991,18 @@
 
         async function loadUserData() {
             if (!currentUser) return;
-            const docRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('status');
-            const doc = await docRef.get();
-            userState = doc.exists ? doc.data() || {} : {};
+            try {
+                const docRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('status');
+                const doc = await docRef.get();
+                userState = doc.exists ? doc.data() || {} : {};
 
-            const customDoc = await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom');
-            const cDoc = await customDoc.get();
-            customTrophies = cDoc.exists ? cDoc.data().items || [] : [];
+                const customDocRef = db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom');
+                const customDoc = await customDocRef.get();
+                customTrophies = customDoc.exists ? customDoc.data().items || [] : [];
+            } catch (e) {
+                userState = {};
+                customTrophies = [];
+            }
 
             switchMainTab('trophies');
         }
@@ -1087,12 +1099,12 @@
                 const card = document.createElement('div');
                 card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
                 
-                // カスタム実績の場合は削除ボタンを右側に表示
-                let rightButtonHTML = '';
+                let actionButtonsHTML = '';
+                if (!isUnlocked) {
+                    actionButtonsHTML += `<button class="unlock-btn" onclick="openUnlockModal('${t.id}')">解除</button>`;
+                }
                 if (t.isCustom) {
-                    rightButtonHTML = `<button class="unlock-btn" style="background:rgba(255,59,48,0.15); color:var(--accent-red); border:none;" onclick="deleteCustomTrophy('${t.id}')">削除</button>`;
-                } else if (!isUnlocked) {
-                    rightButtonHTML = `<button class="unlock-btn" onclick="openUnlockModal('${t.id}')">解除</button>`;
+                    actionButtonsHTML += `<button class="unlock-btn" style="background:rgba(255,59,48,0.15); color:var(--accent-red); border:none;" onclick="deleteCustomTrophy('${t.id}')">削除</button>`;
                 }
 
                 card.innerHTML = `
@@ -1105,7 +1117,9 @@
                             ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date}</span>` : ''}
                         </div>
                     </div>
-                    ${rightButtonHTML}
+                    <div class="card-actions-group">
+                        ${actionButtonsHTML}
+                    </div>
                 `;
                 trophyListEl.appendChild(card);
             });
@@ -1130,7 +1144,6 @@
             customTrophies = customTrophies.filter(t => String(t.id) !== String(id));
             await db.collection('users').doc(currentUser.uid).collection('trophies').doc('custom').set({ items: customTrophies });
 
-            // 解除済みデータがあればそちらからも削除
             if (userState[id]) {
                 delete userState[id];
                 await db.collection('users').doc(currentUser.uid).collection('trophies').doc('status').set(userState);

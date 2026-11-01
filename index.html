@@ -34,7 +34,7 @@
             --text-secondary: #8e8e93;
             --text-tertiary: #48484a;
             --accent-red: #ff2d55;
-            --nav-bg: rgba(0, 0, 0, 0.92);
+            --nav-bg: rgba(0, 0, 0, 0.95);
         }
 
         /* ライトモード用変数 */
@@ -48,7 +48,7 @@
             --text-secondary: #3a3a3c;
             --text-tertiary: #8e8e93;
             --accent-red: #ff3b30;
-            --nav-bg: rgba(255, 255, 255, 0.92);
+            --nav-bg: rgba(255, 255, 255, 0.95);
         }
 
         * {
@@ -65,7 +65,8 @@
             color: var(--text-primary);
             font-family: 'Inter', 'Noto Sans JP', -apple-system, sans-serif;
             min-height: 100vh;
-            padding-bottom: 80px;
+            /* 下部ナビゲーションに隠れないよう十分な余白を確保 */
+            padding-bottom: calc(90px + env(safe-area-inset-bottom));
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             transition: background-color 0.3s, color 0.3s;
@@ -126,6 +127,7 @@
             font-size: 1.1rem;
             cursor: pointer;
             position: relative;
+            padding: 4px;
         }
 
         .notif-badge-dot {
@@ -178,13 +180,13 @@
 
         .stat-badge .rank-val { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
 
-        /* 5タブ構成のボトムナビゲーションバー */
+        /* 5タブ構成のボトムナビゲーションバー（タッチ不具合修正版） */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 60px;
+            height: 65px;
             background: var(--nav-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -192,8 +194,9 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            z-index: 1000;
+            z-index: 9999; /* 最前面に配置して確実にタッチできるようにする */
             padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
         }
 
         .nav-item {
@@ -211,18 +214,21 @@
             background: transparent;
             border: none;
             transition: color 0.2s;
+            pointer-events: auto; /* タッチイベントを確実に拾う */
         }
 
         .nav-item.active { color: var(--text-primary); }
-        .nav-item i { font-size: 1.15rem; }
+        .nav-item i { font-size: 1.2rem; pointer-events: none; }
 
         .container {
             padding: 16px 20px;
             max-width: 600px;
             margin: 0 auto;
+            position: relative;
+            z-index: 10;
         }
 
-        /* Board Category Switcher (3タブ対応：通常 / カスタム / サークル) */
+        /* Board Category Switcher */
         .category-tabs {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -597,7 +603,7 @@
             align-items: center;
             gap: 14px;
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-            z-index: 3000;
+            z-index: 30000;
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             pointer-events: none;
         }
@@ -605,17 +611,18 @@
         #notification.show { transform: translateX(-50%) translateY(0); }
         .notif-icon { width: 36px; height: 36px; background: var(--bg-main); color: var(--text-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-        /* Modals */
+        /* Modals (確実に最前面＆操作可能に修正) */
         .modal {
             display: none;
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(10px);
-            z-index: 2000;
+            z-index: 20000;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            pointer-events: auto;
         }
 
         .modal.active { display: flex; }
@@ -630,6 +637,8 @@
             color: var(--text-primary);
             max-height: 85vh;
             overflow-y: auto;
+            position: relative;
+            z-index: 20001;
         }
 
         .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; text-align: center; letter-spacing: 0.5px; }
@@ -692,6 +701,7 @@
             background: var(--text-primary);
             color: var(--bg-main);
             margin-top: 6px;
+            pointer-events: auto;
         }
 
         .modal-btn:disabled {
@@ -735,7 +745,7 @@
     </div>
 
     <!-- Initial Profile Setup Modal -->
-    <div class="modal" id="username-modal" style="z-index: 2500;">
+    <div class="modal" id="username-modal" style="z-index: 25000;">
         <div class="modal-content">
             <div class="modal-title">✨ プロフィール初期設定</div>
             <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 14px; text-align: center; line-height: 1.4;">
@@ -930,7 +940,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v4.0</span>
+                Life Trophies <span class="version-badge">v4.1</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -951,7 +961,7 @@
 
     <div class="container" id="main-container"></div>
 
-    <!-- 5タブ構成のボトムナビゲーションバー（真ん中にサークル配置） -->
+    <!-- 5タブ構成のボトムナビゲーションバー（タッチ不具合修正版） -->
     <nav class="bottom-nav">
         <button class="nav-item" id="nav-btn-feed" onclick="switchMainTab('feed')">
             <i class="fa-solid fa-house"></i>
@@ -1003,15 +1013,15 @@
         let userState = {};
         let myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [], joinedCircles: [] };
         let customTrophies = [];
-        let circleTrophies = []; // 自分が参加しているサークルのサークル実績リスト
-        let activeCircles = [];  // 全サークルリスト
-        let currentActiveCircleId = null; // 現在閲覧中のサークルID
+        let circleTrophies = [];
+        let activeCircles = [];
+        let currentActiveCircleId = null;
         let revertedIds = [];
         let isSignUpMode = false;
         let isAuthProcessing = false;
         let selectedTrophyId = null;
         let activeTab = 'trophies';
-        let boardCategory = 'default'; // 'default', 'custom', 'circle'
+        let boardCategory = 'default';
         let trophyFilter = 'all';
         let tempAvatarBase64 = "";
         let tempUnlockPhotoBase64 = "";
@@ -1666,7 +1676,7 @@
         }
 
         /* -------------------------------------------------------------
-           実績一覧 View (通常・カスタム・サークル実績の3タブ対応)
+           実績一覧 View
         ------------------------------------------------------------- */
         async function loadCircleTrophiesForBoard() {
             circleTrophies = [];
@@ -1706,7 +1716,6 @@
                 container.appendChild(warnBanner);
             }
 
-            // 3つのカテゴリータブ（通常 / カスタム / サークル実績）
             const categorySwitcher = document.createElement('div');
             categorySwitcher.className = 'category-tabs';
             categorySwitcher.innerHTML = `
@@ -1861,6 +1870,60 @@
             container.appendChild(trophyListEl);
         }
 
+        function addCustomTrophy() {
+            const titleInput = document.getElementById('custom-title');
+            const conditionInput = document.getElementById('custom-condition');
+            const rankSelect = document.getElementById('custom-rank');
+            
+            const title = titleInput.value.trim();
+            const condition = conditionInput.value.trim();
+            const rank = rankSelect.value;
+            
+            if (!title || !condition) {
+                alert('実績タイトルと達成条件の両方を入力してください');
+                return;
+            }
+
+            const newTrophy = {
+                id: 'custom_' + Date.now(),
+                name: title,
+                condition: condition,
+                rank: rank,
+                isCustom: true
+            };
+
+            customTrophies.push(newTrophy);
+
+            titleInput.value = '';
+            conditionInput.value = '';
+            closeModal('custom-trophy-modal');
+
+            boardCategory = 'custom';
+            trophyFilter = 'all';
+            switchMainTab('trophies');
+            showNotification(`カスタム実績「${title}」を追加しました！`, 'CUSTOM TROPHY ADDED');
+
+            saveCustomTrophiesToStorage();
+        }
+
+        async function deleteCustomTrophy(id) {
+            const target = customTrophies.find(t => String(t.id) === String(id));
+            const targetName = target ? target.name : 'カスタム実績';
+
+            if (!confirm(`カスタム実績「${targetName}」を削除しますか？`)) return;
+
+            customTrophies = customTrophies.filter(t => String(t.id) !== String(id));
+            if (userState[id]) {
+                delete userState[id];
+                await removeSingleUnlockFromStorage(id);
+            }
+
+            renderTrophiesView();
+            showNotification(`「${targetName}」を削除しました`, 'CUSTOM TROPHY DELETED');
+
+            saveCustomTrophiesToStorage();
+        }
+
         /* -------------------------------------------------------------
            サークル（Circle）機能 View & ロジック
         ------------------------------------------------------------- */
@@ -1903,7 +1966,6 @@
             activeCircles.forEach(circle => {
                 const members = Array.isArray(circle.members) ? circle.members : [];
                 const isJoined = members.includes(currentUser.uid);
-                const isHost = circle.hostUid === currentUser.uid;
                 const trophies = Array.isArray(circle.circleTrophies) ? circle.circleTrophies : [];
 
                 const card = document.createElement('div');

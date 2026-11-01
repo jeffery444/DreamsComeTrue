@@ -23,7 +23,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* デフォルト：ダークモード */
         :root {
             --bg-main: #000000;
             --surface-card: #0d0d0d;
@@ -37,7 +36,6 @@
             --nav-bg: rgba(0, 0, 0, 0.95);
         }
 
-        /* ライトモード用変数 */
         body.light-mode {
             --bg-main: #f2f2f7;
             --surface-card: #ffffff;
@@ -69,7 +67,6 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Header */
         header {
             position: sticky;
             top: 0;
@@ -150,7 +147,6 @@
             font-size: 1rem;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -177,7 +173,6 @@
 
         .stat-badge .rank-val { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
 
-        /* ボトムナビゲーションバー（z-indexの競合を完全に防ぐ最適値） */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -210,7 +205,7 @@
             background: transparent;
             border: none;
             outline: none;
-            pointer-events: auto;
+            pointer-events: auto !important;
         }
 
         .nav-item.active { color: var(--text-primary); }
@@ -220,11 +215,8 @@
             padding: 16px 20px;
             max-width: 600px;
             margin: 0 auto;
-            position: relative;
-            z-index: 1;
         }
 
-        /* Board Category Switcher */
         .category-tabs {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -248,6 +240,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            pointer-events: auto !important;
         }
 
         .category-tab-btn.active {
@@ -255,7 +248,6 @@
             color: var(--bg-main);
         }
 
-        /* Profile Banner Box */
         .profile-card-header {
             background: var(--surface-card);
             border: 1px solid var(--border-color);
@@ -307,6 +299,7 @@
             font-size: 0.7rem;
             font-weight: 700;
             cursor: pointer;
+            pointer-events: auto !important;
         }
 
         .btn-action-small.following {
@@ -314,7 +307,6 @@
             border-color: transparent;
         }
 
-        /* Trophy Card */
         .trophy-card {
             background: var(--surface-card);
             border: 1px solid var(--border-color);
@@ -400,6 +392,7 @@
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
+            pointer-events: auto !important;
         }
 
         .delete-btn {
@@ -412,6 +405,7 @@
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
+            pointer-events: auto !important;
         }
 
         .card-actions-group {
@@ -421,7 +415,6 @@
             flex-shrink: 0;
         }
 
-        /* Feed Card */
         .feed-card {
             background: var(--surface-card);
             border: 1px solid var(--border-color);
@@ -507,6 +500,7 @@
             align-items: center;
             gap: 6px;
             cursor: pointer;
+            pointer-events: auto !important;
         }
         .feed-action-btn.liked { color: var(--accent-red); }
 
@@ -524,7 +518,6 @@
             margin-top: 8px;
         }
 
-        /* 1列3枚のギャラリー */
         .gallery-grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -559,7 +552,6 @@
             color: #fff;
         }
 
-        /* 解除済み実績管理カード */
         .unlocked-manage-card {
             background: var(--surface-hover);
             border: 1px solid var(--border-color);
@@ -581,7 +573,6 @@
             flex-shrink: 0;
         }
 
-        /* Notification Toast */
         #notification {
             position: fixed;
             top: calc(16px + env(safe-area-inset-top));
@@ -597,7 +588,7 @@
             align-items: center;
             gap: 14px;
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-            z-index: 1000;
+            z-index: 3000;
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             pointer-events: none;
         }
@@ -605,14 +596,13 @@
         #notification.show { transform: translateX(-50%) translateY(0); }
         .notif-icon { width: 36px; height: 36px; background: var(--bg-main); color: var(--text-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-        /* Modals (z-index を適切な階層に調整し、親要素によるブロックを解消) */
         .modal {
             display: none;
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(10px);
-            z-index: 1000;
+            z-index: 2000;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -630,8 +620,6 @@
             color: var(--text-primary);
             max-height: 85vh;
             overflow-y: auto;
-            position: relative;
-            z-index: 1001;
         }
 
         .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; text-align: center; letter-spacing: 0.5px; }
@@ -648,6 +636,7 @@
             outline: none;
             user-select: text;
             -webkit-user-select: text;
+            pointer-events: auto !important;
         }
 
         .form-input:focus { border-color: var(--text-primary); }
@@ -667,6 +656,7 @@
             font-family: inherit;
             user-select: text;
             -webkit-user-select: text;
+            pointer-events: auto !important;
         }
 
         .form-textarea:focus { border-color: var(--text-primary); }
@@ -681,6 +671,7 @@
             font-size: 0.9rem;
             margin-bottom: 12px;
             outline: none;
+            pointer-events: auto !important;
         }
 
         .modal-btn {
@@ -694,6 +685,7 @@
             background: var(--text-primary);
             color: var(--bg-main);
             margin-top: 6px;
+            pointer-events: auto !important;
         }
 
         .modal-btn:disabled {
@@ -710,6 +702,7 @@
             margin-bottom: 16px;
             background: var(--surface-hover);
             transition: border-color 0.2s;
+            pointer-events: auto !important;
         }
 
         .photo-upload-zone.required-highlight {
@@ -718,7 +711,7 @@
 
         .photo-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
+        .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); pointer-events: auto !important; }
     </style>
 </head>
 <body>
@@ -932,7 +925,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v4.3</span>
+                Life Trophies <span class="version-badge">v4.4</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -953,7 +946,7 @@
 
     <div class="container" id="main-container"></div>
 
-    <!-- 5タブ構成のボトムナビゲーションバー（v4.3修復版） -->
+    <!-- 5タブ構成のボトムナビゲーションバー -->
     <nav class="bottom-nav">
         <button class="nav-item" id="nav-btn-feed" onclick="switchMainTab('feed')">
             <i class="fa-solid fa-house"></i>
@@ -1622,9 +1615,8 @@
         function switchMainTab(tab) {
             activeTab = tab;
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            if (document.getElementById(`nav-btn-${tab}`)) {
-                document.getElementById(`nav-btn-${tab}`).classList.add('active');
-            }
+            const activeBtn = document.getElementById(`nav-btn-${tab}`);
+            if (activeBtn) activeBtn.classList.add('active');
 
             const statsBox = document.getElementById('stats-grid-box');
             if (tab === 'trophies' || tab === 'other-profile') {

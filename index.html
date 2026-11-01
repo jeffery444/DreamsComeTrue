@@ -7,837 +7,169 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Life Trophies</title>
-    
-    <!-- PWA Settings -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Life Trophies">
-    
-    <!-- FontAwesome & Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-    <!-- Firebase SDK (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
     <style>
         :root {
-            --bg-main: #000000;
-            --surface-card: #0d0d0d;
-            --surface-hover: #171717;
-            --border-color: rgba(255, 255, 255, 0.12);
-            --border-light: rgba(255, 255, 255, 0.25);
-            --text-primary: #ffffff;
-            --text-secondary: #8e8e93;
-            --text-tertiary: #48484a;
-            --accent-red: #ff2d55;
-            --nav-bg: rgba(0, 0, 0, 0.95);
-
-            --rank-platinum: #e5f7ff;
-            --rank-platinum-glow: rgba(162, 226, 255, 0.45);
-            --rank-gold: #ffd700;
-            --rank-gold-glow: rgba(255, 215, 0, 0.35);
-            --rank-silver: #c0c0c0;
-            --rank-silver-glow: rgba(192, 192, 192, 0.35);
-            --rank-bronze: #cd7f32;
-            --rank-bronze-glow: rgba(205, 127, 50, 0.35);
+            --bg-main: #000000; --surface-card: #0d0d0d; --surface-hover: #171717;
+            --border-color: rgba(255, 255, 255, 0.12); --border-light: rgba(255, 255, 255, 0.25);
+            --text-primary: #ffffff; --text-secondary: #8e8e93; --text-tertiary: #48484a;
+            --accent-red: #ff2d55; --accent-green: #30d158; --nav-bg: rgba(0, 0, 0, 0.95);
+            --rank-platinum: #e5f7ff; --rank-platinum-glow: rgba(162, 226, 255, 0.45);
+            --rank-gold: #ffd700; --rank-gold-glow: rgba(255, 215, 0, 0.35);
+            --rank-silver: #c0c0c0; --rank-silver-glow: rgba(192, 192, 192, 0.35);
+            --rank-bronze: #cd7f32; --rank-bronze-glow: rgba(205, 127, 50, 0.35);
         }
-
         body.light-mode {
-            --bg-main: #f2f2f7;
-            --surface-card: #ffffff;
-            --surface-hover: #e5e5ea;
-            --border-color: rgba(0, 0, 0, 0.1);
-            --border-light: rgba(0, 0, 0, 0.2);
-            --text-primary: #000000;
-            --text-secondary: #3a3a3c;
-            --text-tertiary: #8e8e93;
-            --accent-red: #ff3b30;
-            --nav-bg: rgba(255, 255, 255, 0.95);
-
-            --rank-platinum: #0099cc;
-            --rank-gold: #d4af37;
-            --rank-silver: #7a7a80;
-            --rank-bronze: #b86b23;
+            --bg-main: #f2f2f7; --surface-card: #ffffff; --surface-hover: #e5e5ea;
+            --border-color: rgba(0, 0, 0, 0.1); --border-light: rgba(0, 0, 0, 0.2);
+            --text-primary: #000000; --text-secondary: #3a3a3c; --text-tertiary: #8e8e93;
+            --accent-red: #ff3b30; --accent-green: #28cd41; --nav-bg: rgba(255, 255, 255, 0.95);
+            --rank-platinum: #0099cc; --rank-gold: #d4af37; --rank-silver: #7a7a80; --rank-bronze: #b86b23;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body {
-            background-color: var(--bg-main);
-            color: var(--text-primary);
+            background-color: var(--bg-main); color: var(--text-primary);
             font-family: 'Inter', 'Noto Sans JP', -apple-system, sans-serif;
-            min-height: 100vh;
-            padding-bottom: 100px;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh; padding-bottom: 100px; overflow-x: hidden;
+            -webkit-font-smoothing: antialiased; transition: background-color 0.3s, color 0.3s;
         }
-
         header {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            background: var(--nav-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            position: sticky; top: 0; z-index: 50; background: var(--nav-bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border-color);
-            padding: 14px 20px;
-            padding-top: calc(14px + env(safe-area-inset-top));
+            padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top));
         }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .brand-logo {
-            font-size: 1.1rem;
-            font-weight: 900;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            align-items: baseline;
-            gap: 6px;
-        }
-
-        .version-badge {
-            font-size: 0.55rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-            background: var(--surface-hover);
-            padding: 2px 5px;
-            border-radius: 4px;
-            letter-spacing: 0;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .header-icon-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1.1rem;
-            cursor: pointer;
-            position: relative;
-            padding: 6px;
-            pointer-events: auto !important;
-        }
-
-        .notif-badge-dot {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 8px;
-            height: 8px;
-            background: var(--accent-red);
-            border-radius: 50%;
-            display: none;
-        }
-
-        .progress-stat {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            letter-spacing: 1px;
-        }
-
-        .progress-stat span {
-            color: var(--text-primary);
-            font-size: 1rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-            margin-bottom: 4px;
-        }
-
-        .stat-badge {
-            background: var(--surface-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 6px;
-            text-align: center;
-        }
-
-        .stat-badge .rank-label {
-            font-size: 0.55rem;
-            font-weight: 800;
-            letter-spacing: 1px;
-            display: block;
-            margin-bottom: 2px;
-        }
-
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .brand-logo { font-size: 1.1rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--text-primary); cursor: pointer; display: flex; align-items: baseline; gap: 6px; }
+        .version-badge { font-size: 0.55rem; font-weight: 700; color: var(--text-secondary); background: var(--surface-hover); padding: 2px 5px; border-radius: 4px; letter-spacing: 0; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .header-icon-btn { background: transparent; border: none; color: var(--text-primary); font-size: 1.1rem; cursor: pointer; position: relative; padding: 6px; pointer-events: auto !important; }
+        .notif-badge-dot { position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; background: var(--accent-red); border-radius: 50%; display: none; }
+        .progress-stat { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 1px; }
+        .progress-stat span { color: var(--text-primary); font-size: 1rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 4px; }
+        .stat-badge { background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px; text-align: center; }
+        .stat-badge .rank-label { font-size: 0.55rem; font-weight: 800; letter-spacing: 1px; display: block; margin-bottom: 2px; }
         .stat-badge.plat-stat .rank-label { color: var(--rank-platinum); }
         .stat-badge.gold-stat .rank-label { color: var(--rank-gold); }
         .stat-badge.silver-stat .rank-label { color: var(--rank-silver); }
         .stat-badge.bronze-stat .rank-label { color: var(--rank-bronze); }
-
         .stat-badge .rank-val { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
-
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 65px;
-            background: var(--nav-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 100;
-            padding-bottom: env(safe-area-inset-bottom);
+            position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: var(--nav-bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center;
+            z-index: 100; padding-bottom: env(safe-area-inset-bottom);
         }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            font-size: 0.55rem;
-            font-weight: 600;
-            gap: 3px;
-            cursor: pointer;
-            flex: 1;
-            height: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            pointer-events: auto !important;
-        }
-
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 0.55rem; font-weight: 600; gap: 3px; cursor: pointer; flex: 1; height: 100%; background: transparent; border: none; outline: none; pointer-events: auto !important; }
         .nav-item.active { color: var(--text-primary); }
         .nav-item i { font-size: 1.2rem; pointer-events: none; }
-
-        .container {
-            padding: 16px 20px;
-            max-width: 600px;
-            margin: 0 auto;
-            pointer-events: auto !important;
-        }
-
-        .category-tabs {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 4px;
-            margin-bottom: 14px;
-            background: var(--surface-card);
-            padding: 4px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-        }
-
-        .category-tabs-2 {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 6px;
-            margin-bottom: 14px;
-            background: var(--surface-card);
-            padding: 4px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-        }
-
-        .category-tab-btn {
-            padding: 8px 2px;
-            border: none;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--text-secondary);
-            font-size: 0.65rem;
-            font-weight: 800;
-            cursor: pointer;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-align: center;
-            pointer-events: auto !important;
-        }
-
-        .category-tab-btn.active {
-            background: var(--text-primary);
-            color: var(--bg-main);
-        }
-
-        .profile-card-header {
-            background: var(--surface-card);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 18px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .profile-avatar-large {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--surface-hover);
-            border: 1px solid var(--border-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            color: var(--text-secondary);
-            object-fit: cover;
-            flex-shrink: 0;
-        }
-
+        .container { padding: 16px 20px; max-width: 600px; margin: 0 auto; pointer-events: auto !important; }
+        .category-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 14px; background: var(--surface-card); padding: 4px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .category-tabs-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 14px; background: var(--surface-card); padding: 4px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .category-tab-btn { padding: 8px 2px; border: none; border-radius: 8px; background: transparent; color: var(--text-secondary); font-size: 0.65rem; font-weight: 800; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; pointer-events: auto !important; }
+        .category-tab-btn.active { background: var(--text-primary); color: var(--bg-main); }
+        .profile-card-header { background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; }
+        .profile-avatar-large { width: 60px; height: 60px; border-radius: 50%; background: var(--surface-hover); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: var(--text-secondary); object-fit: cover; flex-shrink: 0; }
         .profile-info { flex-grow: 1; min-width: 0; }
         .profile-displayname { font-size: 1rem; font-weight: 900; color: var(--text-primary); margin-bottom: 2px; }
         .profile-username { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
         .profile-email-tag { font-size: 0.65rem; color: var(--text-tertiary); margin-bottom: 6px; word-break: break-all; }
         .profile-bio { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.3; margin-bottom: 8px; }
-
-        .follow-stats-row {
-            display: flex;
-            gap: 12px;
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
+        .follow-stats-row { display: flex; gap: 12px; font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 8px; }
         .follow-stats-row div { cursor: pointer; pointer-events: auto !important; }
         .follow-stats-row span { font-weight: 700; color: var(--text-primary); }
-
-        .btn-action-small {
-            background: transparent;
-            border: 1px solid var(--border-light);
-            color: var(--text-primary);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            cursor: pointer;
-            pointer-events: auto !important;
-        }
-
-        .btn-action-small.following {
-            background: var(--surface-hover);
-            border-color: transparent;
-        }
-
-        .btn-primary-small {
-            background: var(--text-primary);
-            border: 1px solid var(--text-primary);
-            color: var(--bg-main);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            cursor: pointer;
-            pointer-events: auto !important;
-        }
-
-        .trophy-card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            position: relative;
-        }
-
-        .trophy-card.unlocked {
-            background: var(--surface-card);
-            border-color: var(--border-light);
-        }
-
-        .trophy-card.ultimate {
-            border: 1px solid var(--rank-platinum);
-            box-shadow: inset 0 0 15px rgba(229, 247, 255, 0.08);
-        }
-
-        .icon-box {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            background: var(--surface-hover);
-            border: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.15rem;
-            color: var(--text-tertiary);
-            flex-shrink: 0;
-            overflow: hidden;
-            transition: all 0.2s;
-        }
-
-        .icon-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
+        .btn-action-small { background: transparent; border: 1px solid var(--border-light); color: var(--text-primary); padding: 6px 12px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; pointer-events: auto !important; }
+        .btn-action-small.following { background: var(--surface-hover); border-color: transparent; }
+        .btn-primary-small { background: var(--text-primary); border: 1px solid var(--text-primary); color: var(--bg-main); padding: 6px 12px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; cursor: pointer; pointer-events: auto !important; }
+        .trophy-card { background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; position: relative; }
+        .trophy-card.unlocked { background: var(--surface-card); border-color: var(--border-light); }
+        .trophy-card.ultimate { border: 1px solid var(--rank-platinum); box-shadow: inset 0 0 15px rgba(229, 247, 255, 0.08); }
+        .icon-box { width: 44px; height: 44px; border-radius: 10px; background: var(--surface-hover); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; color: var(--text-tertiary); flex-shrink: 0; overflow: hidden; transition: all 0.2s; }
+        .icon-box img { width: 100%; height: 100%; object-fit: cover; }
         .icon-box.rank-platinum { color: var(--rank-platinum); opacity: 0.55; }
         .icon-box.rank-gold { color: var(--rank-gold); opacity: 0.55; }
         .icon-box.rank-silver { color: var(--rank-silver); opacity: 0.55; }
         .icon-box.rank-bronze { color: var(--rank-bronze); opacity: 0.55; }
-
         .unlocked .icon-box.rank-platinum { opacity: 1; border-color: var(--rank-platinum); box-shadow: 0 0 12px var(--rank-platinum-glow); }
         .unlocked .icon-box.rank-gold { opacity: 1; border-color: rgba(255, 215, 0, 0.5); box-shadow: 0 0 10px var(--rank-gold-glow); }
         .unlocked .icon-box.rank-silver { opacity: 1; border-color: rgba(192, 192, 192, 0.5); box-shadow: 0 0 10px var(--rank-silver-glow); }
         .unlocked .icon-box.rank-bronze { opacity: 1; border-color: rgba(205, 127, 50, 0.5); box-shadow: 0 0 10px var(--rank-bronze-glow); }
-
         .trophy-info { flex-grow: 1; min-width: 0; }
         .trophy-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 3px; color: var(--text-primary); word-break: break-word; }
         .trophy-card:not(.unlocked) .trophy-name { color: var(--text-secondary); }
         .trophy-condition { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.3; margin-bottom: 6px; word-break: break-word; }
-
         .trophy-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .rank-tag {
-            font-size: 0.6rem;
-            font-weight: 800;
-            letter-spacing: 1px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: var(--surface-hover);
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            border: 1px solid transparent;
-        }
-
+        .rank-tag { font-size: 0.6rem; font-weight: 800; letter-spacing: 1px; padding: 2px 6px; border-radius: 4px; background: var(--surface-hover); color: var(--text-secondary); text-transform: uppercase; border: 1px solid transparent; }
         .rank-tag.rank-platinum { color: var(--rank-platinum); border-color: rgba(229, 247, 255, 0.3); background: rgba(229, 247, 255, 0.08); }
         .rank-tag.rank-gold { color: var(--rank-gold); border-color: rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.08); }
         .rank-tag.rank-silver { color: var(--rank-silver); border-color: rgba(192, 192, 192, 0.3); background: rgba(192, 192, 192, 0.08); }
         .rank-tag.rank-bronze { color: var(--rank-bronze); border-color: rgba(205, 127, 50, 0.3); background: rgba(205, 127, 50, 0.08); }
-
-        .unlocked-tag {
-            font-size: 0.62rem;
-            color: var(--text-primary);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .unlock-btn {
-            background: transparent;
-            border: 1px solid var(--border-light);
-            color: var(--text-primary);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            pointer-events: auto !important;
-        }
-
-        .delete-btn {
-            background: rgba(255, 59, 48, 0.15);
-            border: 1px solid rgba(255, 59, 48, 0.3);
-            color: var(--accent-red);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            pointer-events: auto !important;
-        }
-
-        .card-actions-group {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .feed-card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .feed-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .feed-user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            pointer-events: auto !important;
-        }
-
-        .feed-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--surface-hover);
-            object-fit: cover;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-        }
-
+        .unlocked-tag { font-size: 0.62rem; color: var(--text-primary); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .unlock-btn { background: transparent; border: 1px solid var(--border-light); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap; pointer-events: auto !important; }
+        .delete-btn { background: rgba(255, 59, 48, 0.15); border: 1px solid rgba(255, 59, 48, 0.3); color: var(--accent-red); padding: 8px 12px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap; pointer-events: auto !important; }
+        .approve-btn { background: rgba(48, 209, 88, 0.15); border: 1px solid rgba(48, 209, 88, 0.4); color: var(--accent-green); padding: 6px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; white-space: nowrap; pointer-events: auto !important; }
+        .card-actions-group { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+        .feed-card { background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+        .feed-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .feed-user-info { display: flex; align-items: center; gap: 12px; cursor: pointer; pointer-events: auto !important; }
+        .feed-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-hover); object-fit: cover; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
         .feed-display-name { font-size: 0.85rem; font-weight: 800; color: var(--text-primary); }
         .feed-user-name { font-size: 0.65rem; color: var(--text-secondary); }
         .feed-time { font-size: 0.65rem; color: var(--text-secondary); }
-
-        .feed-trophy-banner {
-            background: var(--surface-hover);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 12px;
-        }
-
-        .feed-photo {
-            width: 100%;
-            max-height: 250px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            pointer-events: auto !important;
-        }
-
-        .feed-comment-box {
-            font-size: 0.8rem;
-            color: var(--text-primary);
-            background: var(--surface-hover);
-            padding: 10px 12px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-
-        .feed-actions {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .feed-actions-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .feed-action-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            pointer-events: auto !important;
-        }
+        .feed-trophy-banner { background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+        .feed-photo { width: 100%; max-height: 250px; object-fit: cover; border-radius: 10px; margin-bottom: 12px; cursor: pointer; pointer-events: auto !important; }
+        .feed-comment-box { font-size: 0.8rem; color: var(--text-primary); background: var(--surface-hover); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; line-height: 1.4; word-break: break-word; }
+        .feed-actions { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary); }
+        .feed-actions-left { display: flex; align-items: center; gap: 16px; }
+        .feed-action-btn { display: flex; align-items: center; gap: 6px; cursor: pointer; pointer-events: auto !important; }
         .feed-action-btn.liked { color: var(--accent-red); }
-
-        .feed-comments-section {
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-color);
-        }
+        .feed-comments-section { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-color); }
         .comment-item { font-size: 0.75rem; margin-bottom: 6px; color: var(--text-secondary); }
         .comment-item b { color: var(--text-primary); }
-
-        .comment-input-box {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
-        .chat-box-container {
-            background: var(--surface-card);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            height: 52vh;
-            min-height: 320px;
-        }
-
-        .chat-messages-area {
-            flex-grow: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding-right: 4px;
-            margin-bottom: 12px;
-        }
-
-        .chat-bubble-row {
-            display: flex;
-            flex-direction: column;
-            max-width: 82%;
-        }
-
-        .chat-bubble-row.me {
-            align-self: flex-end;
-            align-items: flex-end;
-        }
-
-        .chat-bubble-row.other {
-            align-self: flex-start;
-            align-items: flex-start;
-        }
-
-        .chat-sender-name {
-            font-size: 0.62rem;
-            color: var(--text-secondary);
-            margin-bottom: 3px;
-            padding: 0 4px;
-        }
-
-        .chat-bubble {
-            padding: 9px 12px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-
-        .chat-bubble-row.me .chat-bubble {
-            background: var(--text-primary);
-            color: var(--bg-main);
-            border-bottom-right-radius: 2px;
-            font-weight: 500;
-        }
-
-        .chat-bubble-row.other .chat-bubble {
-            background: var(--surface-hover);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            border-bottom-left-radius: 2px;
-        }
-
-        .chat-time {
-            font-size: 0.55rem;
-            color: var(--text-tertiary);
-            margin-top: 2px;
-            padding: 0 4px;
-        }
-
-        .gallery-grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
-        }
-
-        .gallery-item {
-            aspect-ratio: 1;
-            position: relative;
-            overflow: hidden;
-            border-radius: 6px;
-            background: var(--surface-card);
-            cursor: pointer;
-            pointer-events: auto !important;
-        }
-
-        .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .gallery-item-title {
-            position: absolute;
-            bottom: 0;
-            inset-x: 0;
-            background: rgba(0,0,0,0.75);
-            font-size: 0.55rem;
-            padding: 3px 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #fff;
-        }
-
-        .unlocked-manage-card {
-            background: var(--surface-hover);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .unlocked-manage-thumb {
-            width: 44px;
-            height: 44px;
-            border-radius: 6px;
-            object-fit: cover;
-            background: var(--surface-card);
-            flex-shrink: 0;
-        }
-
-        #notification {
-            position: fixed;
-            top: calc(16px + env(safe-area-inset-top));
-            left: 50%;
-            transform: translateX(-50%) translateY(-120px);
-            width: 92%;
-            max-width: 400px;
-            background: var(--text-primary);
-            color: var(--bg-main);
-            border-radius: 12px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-            z-index: 3000;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            pointer-events: none;
-        }
-
+        .comment-input-box { display: flex; gap: 6px; margin-top: 8px; }
+        .chat-box-container { background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; height: 52vh; min-height: 320px; }
+        .chat-messages-area { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; margin-bottom: 12px; }
+        .chat-bubble-row { display: flex; flex-direction: column; max-width: 82%; }
+        .chat-bubble-row.me { align-self: flex-end; align-items: flex-end; }
+        .chat-bubble-row.other { align-self: flex-start; align-items: flex-start; }
+        .chat-sender-name { font-size: 0.62rem; color: var(--text-secondary); margin-bottom: 3px; padding: 0 4px; }
+        .chat-bubble { padding: 9px 12px; border-radius: 12px; font-size: 0.8rem; line-height: 1.4; word-break: break-word; }
+        .chat-bubble-row.me .chat-bubble { background: var(--text-primary); color: var(--bg-main); border-bottom-right-radius: 2px; font-weight: 500; }
+        .chat-bubble-row.other .chat-bubble { background: var(--surface-hover); color: var(--text-primary); border: 1px solid var(--border-color); border-bottom-left-radius: 2px; }
+        .chat-time { font-size: 0.55rem; color: var(--text-tertiary); margin-top: 2px; padding: 0 4px; }
+        .gallery-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .gallery-item { aspect-ratio: 1; position: relative; overflow: hidden; border-radius: 6px; background: var(--surface-card); cursor: pointer; pointer-events: auto !important; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-item-title { position: absolute; bottom: 0; inset-x: 0; background: rgba(0,0,0,0.75); font-size: 0.55rem; padding: 3px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .unlocked-manage-card { background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .unlocked-manage-thumb { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; background: var(--surface-card); flex-shrink: 0; }
+        .policy-badge { font-size: 0.62rem; font-weight: 800; padding: 3px 8px; border-radius: 12px; display: inline-block; }
+        .policy-badge.open { background: rgba(48, 209, 88, 0.15); color: var(--accent-green); border: 1px solid rgba(48, 209, 88, 0.3); }
+        .policy-badge.approval { background: rgba(255, 215, 0, 0.15); color: var(--rank-gold); border: 1px solid rgba(255, 215, 0, 0.3); }
+        #notification { position: fixed; top: calc(16px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%) translateY(-120px); width: 92%; max-width: 400px; background: var(--text-primary); color: var(--bg-main); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35); z-index: 3000; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; }
         #notification.show { transform: translateX(-50%) translateY(0); }
         .notif-icon { width: 36px; height: 36px; background: var(--bg-main); color: var(--rank-gold); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            z-index: 2000;
-        }
-
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 2000; }
         .modal.active { display: flex; align-items: center; justify-content: center; }
-
-        .modal-content {
-            background: var(--surface-card);
-            border: 1px solid var(--border-light);
-            border-radius: 16px;
-            width: 90%;
-            max-width: 400px;
-            padding: 24px;
-            color: var(--text-primary);
-            max-height: 85vh;
-            overflow-y: auto;
-            pointer-events: auto !important;
-        }
-
+        .modal-content { background: var(--surface-card); border: 1px solid var(--border-light); border-radius: 16px; width: 90%; max-width: 400px; padding: 24px; color: var(--text-primary); max-height: 85vh; overflow-y: auto; pointer-events: auto !important; }
         .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; text-align: center; letter-spacing: 0.5px; }
-
-        .form-input {
-            width: 100%;
-            background: var(--surface-hover);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            margin-bottom: 12px;
-            outline: none;
-            user-select: text;
-            -webkit-user-select: text;
-            pointer-events: auto !important;
-        }
-
+        .form-input { width: 100%; background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; color: var(--text-primary); font-size: 0.9rem; margin-bottom: 12px; outline: none; user-select: text; -webkit-user-select: text; pointer-events: auto !important; }
         .form-input:focus { border-color: var(--text-primary); }
-
-        .form-textarea {
-            width: 100%;
-            background: var(--surface-hover);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            margin-bottom: 12px;
-            outline: none;
-            resize: none;
-            height: 80px;
-            font-family: inherit;
-            user-select: text;
-            -webkit-user-select: text;
-            pointer-events: auto !important;
-        }
-
+        .form-textarea { width: 100%; background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; color: var(--text-primary); font-size: 0.9rem; margin-bottom: 12px; outline: none; resize: none; height: 80px; font-family: inherit; user-select: text; -webkit-user-select: text; pointer-events: auto !important; }
         .form-textarea:focus { border-color: var(--text-primary); }
-
-        .form-select {
-            width: 100%;
-            background: var(--surface-hover);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            margin-bottom: 12px;
-            outline: none;
-            pointer-events: auto !important;
-        }
-
-        .modal-btn {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            font-size: 0.85rem;
-            font-weight: 700;
-            cursor: pointer;
-            background: var(--text-primary);
-            color: var(--bg-main);
-            margin-top: 6px;
-            pointer-events: auto !important;
-        }
-
-        .modal-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .photo-upload-zone {
-            border: 2px dashed var(--border-light);
-            border-radius: 10px;
-            padding: 24px;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 16px;
-            background: var(--surface-hover);
-            transition: border-color 0.2s;
-            pointer-events: auto !important;
-        }
-
-        .photo-upload-zone.required-highlight {
-            border-color: var(--accent-red);
-        }
-
+        .form-select { width: 100%; background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; color: var(--text-primary); font-size: 0.9rem; margin-bottom: 12px; outline: none; pointer-events: auto !important; }
+        .modal-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 700; cursor: pointer; background: var(--text-primary); color: var(--bg-main); margin-top: 6px; pointer-events: auto !important; }
+        .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .photo-upload-zone { border: 2px dashed var(--border-light); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; margin-bottom: 16px; background: var(--surface-hover); transition: border-color 0.2s; pointer-events: auto !important; }
+        .photo-upload-zone.required-highlight { border-color: var(--accent-red); }
         .photo-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 10px; }
         .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); pointer-events: auto !important; }
@@ -884,7 +216,6 @@
             </div>
             <img id="avatar-preview" class="photo-preview" alt="Avatar Preview">
             <input type="file" id="avatar-input" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
-            
             <input type="text" id="edit-displayname-input" class="form-input" placeholder="表示名">
             <input type="text" id="edit-username-input" class="form-input" placeholder="ユーザーID">
             <input type="text" id="edit-bio-input" class="form-input" placeholder="ステータスメッセージ">
@@ -899,15 +230,13 @@
     <div class="modal" id="settings-modal">
         <div class="modal-content">
             <div class="modal-title">⚙️ 設定</div>
-            
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">外観テーマ</div>
                 <div style="display: flex; gap: 10px;">
-                    <button class="modal-btn" id="theme-dark-btn" onclick="setTheme('dark', true)" style="background: #222; color: #fff; border: 1px solid #444; margin-top:0;">ダーク</button>
-                    <button class="modal-btn" id="theme-light-btn" onclick="setTheme('light', true)" style="background: #f2f2f7; color: #000; border: 1px solid #ccc; margin-top:0;">ライト</button>
+                    <button class="modal-btn" onclick="setTheme('dark', true)" style="background: #222; color: #fff; border: 1px solid #444; margin-top:0;">ダーク</button>
+                    <button class="modal-btn" onclick="setTheme('light', true)" style="background: #f2f2f7; color: #000; border: 1px solid #ccc; margin-top:0;">ライト</button>
                 </div>
             </div>
-
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">プライバシー設定</div>
                 <select id="privacy-select" class="form-select" onchange="savePrivacySetting(this.value)">
@@ -915,7 +244,6 @@
                     <option value="followers">フォロワーのみ公開</option>
                 </select>
             </div>
-
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">アカウント管理</div>
                 <button class="modal-btn" onclick="closeModal('settings-modal'); openEditProfileModal();" style="background: var(--surface-hover); color: var(--text-primary); border: 1px solid var(--border-color); margin-bottom: 6px;">プロフィール情報を編集</button>
@@ -923,7 +251,6 @@
                 <button class="modal-btn" onclick="logout()" style="background: var(--surface-hover); color: var(--text-primary); border: 1px solid var(--border-color); margin-bottom: 6px;">ログアウト</button>
                 <button class="modal-btn" onclick="deleteAccount()" style="background: rgba(255,59,48,0.15); color: var(--accent-red); border: none;">アカウントを削除する</button>
             </div>
-
             <button class="modal-btn btn-cancel" onclick="closeModal('settings-modal')">閉じる</button>
         </div>
     </div>
@@ -943,19 +270,27 @@
         </div>
     </div>
 
-    <!-- Photo Lightbox / Detail Zoom Modal -->
+    <!-- Photo Lightbox / Detail Zoom Modal (いいね数＆コメント一覧対応) -->
     <div class="modal" id="photo-lightbox-modal" onclick="closeModal('photo-lightbox-modal')">
         <div class="modal-content" onclick="event.stopPropagation()" style="text-align: center; max-width: 440px;">
             <div class="modal-title" id="lightbox-title" style="margin-bottom: 10px; font-size: 0.95rem;">実績詳細</div>
-            <img id="lightbox-image" style="width: 100%; max-height: 320px; object-fit: cover; border-radius: 10px; margin-bottom: 12px;" alt="Zoomed Photo">
+            <img id="lightbox-image" style="width: 100%; max-height: 280px; object-fit: cover; border-radius: 10px; margin-bottom: 12px;" alt="Zoomed Photo">
             <div id="lightbox-condition" style="font-size: 0.75rem; color: var(--text-primary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; text-align: left; font-weight: 700;"></div>
             <div id="lightbox-date" style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 8px;"></div>
-            <div id="lightbox-comment" style="font-size: 0.85rem; background: var(--surface-hover); padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: left; line-height: 1.4; word-break: break-word;"></div>
+            <div id="lightbox-comment" style="font-size: 0.82rem; background: var(--surface-hover); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; text-align: left; line-height: 1.4; word-break: break-word;"></div>
             
+            <!-- いいね数＆コメント表示エリア -->
+            <div id="lightbox-social-section" style="background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; margin-bottom: 14px; text-align: left;">
+                <div style="display:flex; align-items:center; gap:14px; font-size:0.8rem; font-weight:700; margin-bottom:8px; border-bottom:1px solid var(--border-color); padding-bottom:6px;">
+                    <span style="color:var(--accent-red);"><i class="fa-solid fa-heart"></i> いいね <span id="lightbox-likes-count">0</span>件</span>
+                    <span style="color:var(--text-secondary);"><i class="fa-solid fa-comment"></i> コメント <span id="lightbox-comments-count">0</span>件</span>
+                </div>
+                <div id="lightbox-comments-list" style="max-height:130px; overflow-y:auto; font-size:0.75rem;"></div>
+            </div>
+
             <div id="lightbox-delete-container" style="margin-bottom: 12px; display: none;">
                 <button class="delete-btn" id="lightbox-delete-post-btn" style="width: 100%; padding: 10px; font-size: 0.8rem;">🗑️ このタイムライン投稿を削除する</button>
             </div>
-
             <button class="modal-btn btn-cancel" onclick="closeModal('photo-lightbox-modal')">閉じる</button>
         </div>
     </div>
@@ -997,12 +332,17 @@
         </div>
     </div>
 
-    <!-- Create Circle Modal (サークル立ち上げ) -->
+    <!-- Create Circle Modal (参加方式選択対応) -->
     <div class="modal" id="create-circle-modal">
         <div class="modal-content">
             <div class="modal-title">⭕ サークルを立ち上げる</div>
             <input type="text" id="circle-name-input" class="form-input" placeholder="サークル名 (例: 週末エンジニア部)">
             <textarea id="circle-bio-input" class="form-textarea" placeholder="サークル自己紹介 (例: 一緒に新しいサービスを作ろう！)"></textarea>
+            <div style="font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:6px;">参加ルール（後から変更可能）</div>
+            <select id="circle-policy-select" class="form-select">
+                <option value="open">🔓 自由参加（誰でもすぐ参加可能）</option>
+                <option value="approval">🔒 承認制（ホストの承認が必要）</option>
+            </select>
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" onclick="closeModal('create-circle-modal')">キャンセル</button>
                 <button class="modal-btn" onclick="createCircle()">立ち上げる</button>
@@ -1010,7 +350,7 @@
         </div>
     </div>
 
-    <!-- Create Circle Trophy Modal (サークル実績作成) -->
+    <!-- Create Circle Trophy Modal -->
     <div class="modal" id="circle-trophy-modal">
         <div class="modal-content">
             <div class="modal-title">⭕ サークル実績を作成</div>
@@ -1040,9 +380,7 @@
             </div>
             <img id="photo-preview" class="photo-preview" alt="Preview">
             <input type="file" id="photo-input" accept="image/*" style="display: none;" onchange="previewImage(event)">
-            
             <textarea id="unlock-comment-input" class="form-textarea" placeholder="思い出や感想のコメントを残す（任意）"></textarea>
-
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" onclick="closeModal('unlock-modal')">キャンセル</button>
                 <button class="modal-btn" id="confirm-unlock-btn" onclick="confirmUnlock()">解除する</button>
@@ -1054,7 +392,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v1.0</span>
+                Life Trophies <span class="version-badge">v1.1</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -1064,7 +402,6 @@
                 <div class="progress-stat">PROGRESS <span id="progress-percent">0%</span></div>
             </div>
         </div>
-
         <div class="stats-grid" id="stats-grid-box">
             <div class="stat-badge plat-stat"><span class="rank-label"><i class="fa-solid fa-trophy"></i> PLATINUM</span><span class="rank-val" id="count-plat">0</span></div>
             <div class="stat-badge gold-stat"><span class="rank-label"><i class="fa-solid fa-trophy"></i> GOLD</span><span class="rank-val" id="count-gold">0</span></div>
@@ -1075,31 +412,14 @@
 
     <div class="container" id="main-container"></div>
 
-    <!-- 5タブ構成のボトムナビゲーションバー -->
     <nav class="bottom-nav">
-        <button class="nav-item" id="nav-btn-feed" onclick="switchMainTab('feed')">
-            <i class="fa-solid fa-house"></i>
-            <span>ホーム</span>
-        </button>
-        <button class="nav-item active" id="nav-btn-trophies" onclick="switchMainTab('trophies')">
-            <i class="fa-solid fa-trophy"></i>
-            <span>実績</span>
-        </button>
-        <button class="nav-item" id="nav-btn-circle" onclick="switchMainTab('circle')">
-            <i class="fa-solid fa-circle-nodes"></i>
-            <span>サークル</span>
-        </button>
-        <button class="nav-item" id="nav-btn-search" onclick="switchMainTab('search')">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <span>検索</span>
-        </button>
-        <button class="nav-item" id="nav-btn-profile" onclick="switchMainTab('profile')">
-            <i class="fa-solid fa-user"></i>
-            <span>マイページ</span>
-        </button>
+        <button class="nav-item" id="nav-btn-feed" onclick="switchMainTab('feed')"><i class="fa-solid fa-house"></i><span>ホーム</span></button>
+        <button class="nav-item active" id="nav-btn-trophies" onclick="switchMainTab('trophies')"><i class="fa-solid fa-trophy"></i><span>実績</span></button>
+        <button class="nav-item" id="nav-btn-circle" onclick="switchMainTab('circle')"><i class="fa-solid fa-circle-nodes"></i><span>サークル</span></button>
+        <button class="nav-item" id="nav-btn-search" onclick="switchMainTab('search')"><i class="fa-solid fa-magnifying-glass"></i><span>検索</span></button>
+        <button class="nav-item" id="nav-btn-profile" onclick="switchMainTab('profile')"><i class="fa-solid fa-user"></i><span>マイページ</span></button>
     </nav>
 
-    <!-- Popup Notification -->
     <div id="notification">
         <div class="notif-icon"><i class="fa-solid fa-trophy"></i></div>
         <div class="notif-text">
@@ -1118,10 +438,7 @@
             appId: "1:913187912196:web:e2739facf7420836ee9351",
             measurementId: "G-YCH8JM2YCW"
         };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
@@ -1132,7 +449,8 @@
         let circleTrophies = [];
         let activeCircles = [];
         let currentActiveCircleId = null;
-        let circleRoomSubTab = 'trophies';
+        let circleViewMode = 'list'; // 'list', 'preview', 'room'
+        let circleRoomSubTab = 'trophies'; // 'trophies', 'chat', 'members'
         let lastCircleSearchQuery = "";
         let revertedIds = [];
         let isSignUpMode = false;
@@ -1256,61 +574,36 @@
         }
 
         function withTimeout(promise, ms = 2000) {
-            return Promise.race([
-                promise,
-                new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
-            ]);
+            return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))]);
         }
 
         function compressImageFile(file, maxSize, quality) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.onload = function(evt) {
+                reader.onload = e => {
                     const img = new Image();
-                    img.onload = function() {
-                        let width = img.width;
-                        let height = img.height;
-                        if (width > height) {
-                            if (width > maxSize) {
-                                height = Math.round(height * (maxSize / width));
-                                width = maxSize;
-                            }
-                        } else {
-                            if (height > maxSize) {
-                                width = Math.round(width * (maxSize / height));
-                                height = maxSize;
-                            }
-                        }
+                    img.onload = () => {
+                        let w = img.width, h = img.height;
+                        if (w > h) { if (w > maxSize) { h = Math.round(h * (maxSize / w)); w = maxSize; } }
+                        else { if (h > maxSize) { w = Math.round(w * (maxSize / h)); h = maxSize; } }
                         const canvas = document.createElement('canvas');
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                         resolve(canvas.toDataURL('image/jpeg', quality));
                     };
-                    img.onerror = reject;
-                    img.src = evt.target.result;
+                    img.onerror = reject; img.src = e.target.result;
                 };
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
+                reader.onerror = reject; reader.readAsDataURL(file);
             });
         }
 
         function saveProfileToLocalCache(uid, profileObj) {
-            if (!uid) return;
-            try {
-                localStorage.setItem(`lt_profile_${uid}`, JSON.stringify(profileObj));
-            } catch (e) {}
+            if (uid) { try { localStorage.setItem(`lt_profile_${uid}`, JSON.stringify(profileObj)); } catch (e) {} }
         }
 
         function getProfileFromLocalCache(uid) {
             if (!uid) return null;
-            try {
-                const s = localStorage.getItem(`lt_profile_${uid}`);
-                return s ? JSON.parse(s) : null;
-            } catch (e) {
-                return null;
-            }
+            try { const s = localStorage.getItem(`lt_profile_${uid}`); return s ? JSON.parse(s) : null; } catch (e) { return null; }
         }
 
         function syncProfileToCloudBackground(uid, profileData) {
@@ -1318,17 +611,11 @@
             try {
                 db.collection('users').doc(uid).set(profileData, { merge: true }).catch(() => {});
                 db.collection('posts').doc('profile_' + uid).set({
-                    isProfileIndex: true,
-                    uid: uid,
-                    email: profileData.email || "",
-                    displayName: profileData.displayName || profileData.username,
-                    username: profileData.username,
-                    searchUsername: (profileData.username || "").toLowerCase(),
-                    bio: profileData.bio || "人生の実績解除中！",
-                    userAvatar: profileData.avatar || "",
-                    customTrophies: customTrophies || [],
-                    joinedCircles: myProfile.joinedCircles || [],
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    isProfileIndex: true, uid: uid, email: profileData.email || "",
+                    displayName: profileData.displayName || profileData.username, username: profileData.username,
+                    searchUsername: (profileData.username || "").toLowerCase(), bio: profileData.bio || "人生の実績解除中！",
+                    userAvatar: profileData.avatar || "", customTrophies: customTrophies || [],
+                    joinedCircles: myProfile.joinedCircles || [], updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true }).catch(() => {});
             } catch (e) {}
         }
@@ -1346,8 +633,7 @@
 
         async function saveSingleUnlockToStorage(trophyId, unlockData) {
             if (!currentUser) return;
-            const uid = currentUser.uid;
-            const key = String(trophyId);
+            const uid = currentUser.uid, key = String(trophyId);
             revertedIds = revertedIds.filter(id => String(id) !== key);
             try {
                 localStorage.setItem(`lt_reverted_${uid}`, JSON.stringify(revertedIds));
@@ -1359,206 +645,111 @@
 
         async function removeSingleUnlockFromStorage(trophyId) {
             if (!currentUser) return;
-            const uid = currentUser.uid;
-            const key = String(trophyId);
+            const uid = currentUser.uid, key = String(trophyId);
             if (!revertedIds.includes(key)) revertedIds.push(key);
             try {
                 localStorage.setItem(`lt_reverted_${uid}`, JSON.stringify(revertedIds));
                 localStorage.setItem(`lt_status_${uid}`, JSON.stringify(userState));
                 db.collection('users').doc(uid).collection('unlocked_items').doc(key).delete().catch(()=>{});
-                db.collection('users').doc(uid).collection('trophies').doc('status').update({
-                    [key]: firebase.firestore.FieldValue.delete()
-                }).catch(()=>{});
+                db.collection('users').doc(uid).collection('trophies').doc('status').update({ [key]: firebase.firestore.FieldValue.delete() }).catch(()=>{});
             } catch (e) {}
-
             try {
                 const postsSnap = await db.collection('posts').where('uid', '==', uid).get();
                 if (postsSnap && !postsSnap.empty) {
-                    const batch = db.batch();
-                    let count = 0;
-                    postsSnap.forEach(doc => {
-                        const p = doc.data();
-                        if (String(p.trophyId) === String(key)) {
-                            batch.delete(doc.ref);
-                            count++;
-                        }
-                    });
+                    const batch = db.batch(); let count = 0;
+                    postsSnap.forEach(doc => { if (String(doc.data().trophyId) === key) { batch.delete(doc.ref); count++; } });
                     if (count > 0) await batch.commit();
                 }
             } catch (e) {}
         }
 
         async function deletePostByPostId(postId, trophyId) {
-            if (!currentUser || !postId) return;
-            if (!confirm('このタイムライン投稿を削除しますか？')) return;
-
+            if (!currentUser || !postId || !confirm('このタイムライン投稿を削除しますか？')) return;
             try {
                 await db.collection('posts').doc(postId).delete();
-                if (trophyId && userState[trophyId]) {
-                    delete userState[trophyId];
-                    await removeSingleUnlockFromStorage(trophyId);
-                }
-
-                closeModal('photo-lightbox-modal');
-                switchMainTab(activeTab);
+                if (trophyId && userState[trophyId]) { delete userState[trophyId]; await removeSingleUnlockFromStorage(trophyId); }
+                closeModal('photo-lightbox-modal'); switchMainTab(activeTab);
                 showNotification('タイムライン投稿を削除しました', 'POST DELETED');
-            } catch (e) {
-                alert('投稿の削除に失敗しました: ' + e.message);
-            }
+            } catch (e) { alert('投稿の削除に失敗しました: ' + e.message); }
         }
 
         auth.onAuthStateChanged(async user => {
             try {
                 if (user) {
-                    currentUser = user;
-                    closeModal('auth-modal');
-                    await checkProfileAndLoad();
-                    checkUnreadNotifications();
+                    currentUser = user; closeModal('auth-modal');
+                    await checkProfileAndLoad(); checkUnreadNotifications();
                 } else {
-                    currentUser = null;
-                    userState = {};
-                    customTrophies = [];
-                    circleTrophies = [];
-                    activeCircles = [];
+                    currentUser = null; userState = {}; customTrophies = []; circleTrophies = []; activeCircles = [];
                     myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [], joinedCircles: [] };
-                    setTheme("dark", false);
-                    closeModal('username-modal');
-                    openModal('auth-modal');
-                    switchMainTab('trophies');
+                    setTheme("dark", false); closeModal('username-modal'); openModal('auth-modal'); switchMainTab('trophies');
                 }
-            } catch (err) {
-                switchMainTab('trophies');
-            }
+            } catch (err) { switchMainTab('trophies'); }
         });
 
         async function checkProfileAndLoad() {
             if (!currentUser) return;
-            const uid = currentUser.uid;
-            const email = currentUser.email || "";
-
+            const uid = currentUser.uid, email = currentUser.email || "";
             const cachedProfile = getProfileFromLocalCache(uid);
             if (cachedProfile && cachedProfile.username && String(cachedProfile.username).trim() !== "") {
                 myProfile = Object.assign({}, myProfile, cachedProfile, { uid, email });
-                setTheme(myProfile.theme || "dark", false);
-                closeModal('username-modal');
+                setTheme(myProfile.theme || "dark", false); closeModal('username-modal');
             }
-
             let firestoreData = null;
-            try {
-                const userDoc = await withTimeout(db.collection('users').doc(uid).get(), 2000);
-                if (userDoc && userDoc.exists) {
-                    firestoreData = userDoc.data();
-                }
-            } catch (e) {}
-
+            try { const userDoc = await withTimeout(db.collection('users').doc(uid).get(), 2000); if (userDoc && userDoc.exists) firestoreData = userDoc.data(); } catch (e) {}
             if (!firestoreData || !firestoreData.username) {
                 try {
                     const idxDoc = await withTimeout(db.collection('posts').doc('profile_' + uid).get(), 1500);
                     if (idxDoc && idxDoc.exists && idxDoc.data().username) {
                         const d = idxDoc.data();
-                        firestoreData = Object.assign({}, firestoreData || {}, {
-                            displayName: d.displayName,
-                            username: d.username,
-                            bio: d.bio,
-                            avatar: d.userAvatar,
-                            customTrophies: d.customTrophies || [],
-                            joinedCircles: d.joinedCircles || []
-                        });
+                        firestoreData = Object.assign({}, firestoreData || {}, { displayName: d.displayName, username: d.username, bio: d.bio, avatar: d.userAvatar, customTrophies: d.customTrophies || [], joinedCircles: d.joinedCircles || [] });
                     }
                 } catch (e) {}
             }
-
-            const validUsername = (firestoreData && firestoreData.username && String(firestoreData.username).trim() !== "")
-                ? String(firestoreData.username).trim()
-                : (cachedProfile && cachedProfile.username && String(cachedProfile.username).trim() !== "" ? String(cachedProfile.username).trim() : "");
-
+            const validUsername = (firestoreData && firestoreData.username && String(firestoreData.username).trim() !== "") ? String(firestoreData.username).trim() : (cachedProfile && cachedProfile.username ? String(cachedProfile.username).trim() : "");
             if (validUsername !== "") {
                 const source = Object.assign({}, cachedProfile || {}, firestoreData || {});
                 myProfile = {
-                    uid: uid,
-                    email: email,
-                    displayName: source.displayName || validUsername,
-                    username: validUsername,
-                    bio: source.bio || "人生の実績解除中！",
-                    avatar: source.avatar || "",
-                    theme: source.theme || "dark",
-                    privacy: source.privacy || "public",
-                    following: Array.isArray(source.following) ? source.following : [],
-                    followers: Array.isArray(source.followers) ? source.followers : [],
+                    uid, email, displayName: source.displayName || validUsername, username: validUsername,
+                    bio: source.bio || "人生の実績解除中！", avatar: source.avatar || "", theme: source.theme || "dark", privacy: source.privacy || "public",
+                    following: Array.isArray(source.following) ? source.following : [], followers: Array.isArray(source.followers) ? source.followers : [],
                     joinedCircles: Array.isArray(source.joinedCircles) ? source.joinedCircles : []
                 };
-
-                saveProfileToLocalCache(uid, myProfile);
-                setTheme(myProfile.theme, false);
-                const privSelect = document.getElementById('privacy-select');
-                if (privSelect) privSelect.value = myProfile.privacy;
-
-                syncProfileToCloudBackground(uid, myProfile);
-                closeModal('username-modal');
-                await loadUserData(firestoreData);
+                saveProfileToLocalCache(uid, myProfile); setTheme(myProfile.theme, false);
+                const privSelect = document.getElementById('privacy-select'); if (privSelect) privSelect.value = myProfile.privacy;
+                syncProfileToCloudBackground(uid, myProfile); closeModal('username-modal'); await loadUserData(firestoreData);
             } else {
-                await loadUserData(firestoreData);
-                openInitialProfileSetupModal();
+                await loadUserData(firestoreData); openInitialProfileSetupModal();
             }
         }
 
         function openInitialProfileSetupModal() {
             if (!currentUser) return;
             const emailDisp = document.getElementById('setup-email-display');
-            if (emailDisp) {
-                emailDisp.innerText = `登録メールアドレス: ${currentUser.email || '確認済'}`;
-            }
-            const dInput = document.getElementById('displayname-input');
-            const uInput = document.getElementById('username-input');
-            const bInput = document.getElementById('bio-input');
-            if (dInput) dInput.value = myProfile.displayName || '';
-            if (uInput) uInput.value = myProfile.username || '';
-            if (bInput) bInput.value = myProfile.bio || '';
+            if (emailDisp) emailDisp.innerText = `登録メールアドレス: ${currentUser.email || '確認済'}`;
+            document.getElementById('displayname-input').value = myProfile.displayName || '';
+            document.getElementById('username-input').value = myProfile.username || '';
+            document.getElementById('bio-input').value = myProfile.bio || '';
             openModal('username-modal');
         }
 
         function saveInitialProfile() {
             const user = currentUser || auth.currentUser;
-            if (!user) {
-                closeModal('username-modal');
-                openModal('auth-modal');
-                return;
-            }
-
+            if (!user) { closeModal('username-modal'); openModal('auth-modal'); return; }
             const displayName = document.getElementById('displayname-input').value.trim();
             const username = document.getElementById('username-input').value.trim().replace(/^@/, '');
             const bio = document.getElementById('bio-input').value.trim() || "人生の実績解除中！";
-
             if (!displayName) return alert('表示名を入力してください');
             if (!username) return alert('ユーザーIDを入力してください');
-
-            const uid = user.uid;
-            const email = user.email || "";
-
+            const uid = user.uid, email = user.email || "";
             const profileData = {
-                uid: uid,
-                email: email,
-                displayName: displayName,
-                username: username,
-                searchUsername: username.toLowerCase(),
-                bio: bio,
-                avatar: myProfile.avatar || "",
-                theme: myProfile.theme || "dark",
-                privacy: myProfile.privacy || "public",
-                following: myProfile.following || [],
-                followers: myProfile.followers || [],
-                customTrophies: customTrophies || [],
-                joinedCircles: myProfile.joinedCircles || [],
-                updatedAt: new Date().toISOString()
+                uid, email, displayName, username, searchUsername: username.toLowerCase(), bio,
+                avatar: myProfile.avatar || "", theme: myProfile.theme || "dark", privacy: myProfile.privacy || "public",
+                following: myProfile.following || [], followers: myProfile.followers || [],
+                customTrophies: customTrophies || [], joinedCircles: myProfile.joinedCircles || [], updatedAt: new Date().toISOString()
             };
-
-            myProfile = Object.assign({}, profileData);
-            saveProfileToLocalCache(uid, myProfile);
-
-            closeModal('username-modal');
-            switchMainTab('profile');
+            myProfile = Object.assign({}, profileData); saveProfileToLocalCache(uid, myProfile);
+            closeModal('username-modal'); switchMainTab('profile');
             showNotification(`ようこそ、${displayName} (@${username}) さん！`, 'PROFILE COMPLETED');
-
             syncProfileToCloudBackground(uid, profileData);
         }
 
@@ -1571,214 +762,101 @@
 
         async function handleAuth() {
             if (isAuthProcessing) return;
-
-            const emailInput = document.getElementById('auth-email');
-            const passInput = document.getElementById('auth-password');
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
             const submitBtn = document.getElementById('auth-submit-btn');
-
-            const email = emailInput.value.trim();
-            const password = passInput.value;
-
-            if (!email || !password) {
-                return alert('メールアドレスとパスワードを入力してください');
-            }
-            if (password.length < 6) {
-                return alert('パスワードは6文字以上で入力してください');
-            }
-
-            isAuthProcessing = true;
-            submitBtn.disabled = true;
-            submitBtn.innerText = '認証中...';
-
+            if (!email || !password) return alert('メールアドレスとパスワードを入力してください');
+            if (password.length < 6) return alert('パスワードは6文字以上で入力してください');
+            isAuthProcessing = true; submitBtn.disabled = true; submitBtn.innerText = '認証中...';
             try {
                 if (isSignUpMode) {
                     const cred = await auth.createUserWithEmailAndPassword(email, password);
-                    currentUser = cred.user;
-                    closeModal('auth-modal');
-                    openInitialProfileSetupModal();
+                    currentUser = cred.user; closeModal('auth-modal'); openInitialProfileSetupModal();
                 } else {
                     await auth.signInWithEmailAndPassword(email, password);
                 }
             } catch (error) {
                 if (isSignUpMode && error.code === 'auth/email-already-in-use') {
-                    try {
-                        await auth.signInWithEmailAndPassword(email, password);
-                        return;
-                    } catch (signInErr) {
-                        alert(`メールアドレス「${email}」は既に登録されています。\nログイン画面に切り替えますので、設定したパスワードでログインしてください。`);
-                        isSignUpMode = false;
-                        document.getElementById('auth-title').innerText = 'ログイン';
-                        document.getElementById('auth-submit-btn').innerText = 'ログイン';
-                        document.getElementById('auth-switch-text').innerText = 'アカウントをお持ちでない方は新規登録';
+                    try { await auth.signInWithEmailAndPassword(email, password); return; }
+                    catch (e) {
+                        alert(`メールアドレス「${email}」は既に登録されています。ログイン画面に切り替えます。`);
+                        isSignUpMode = false; toggleAuthMode(); isSignUpMode = false;
                     }
-                } else {
-                    let msg = error.message;
-                    if (error.code === 'auth/weak-password') {
-                        msg = 'パスワードは6文字以上で入力してください。';
-                    } else if (error.code === 'auth/invalid-email') {
-                        msg = 'メールアドレスの形式が正しくありません。';
-                    } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-                        msg = 'メールアドレスまたはパスワードが間違っています。（未登録の場合は下のリンクから新規登録してください）';
-                    }
-                    alert('認証エラー: ' + msg);
-                }
+                } else { alert('認証エラー: ' + error.message); }
             } finally {
-                isAuthProcessing = false;
-                submitBtn.disabled = false;
+                isAuthProcessing = false; submitBtn.disabled = false;
                 submitBtn.innerText = isSignUpMode ? '登録する' : 'ログイン';
             }
         }
 
-        async function logout() {
-            closeModal('settings-modal');
-            closeModal('username-modal');
-            await auth.signOut();
-        }
+        async function logout() { closeModal('settings-modal'); closeModal('username-modal'); await auth.signOut(); }
 
         async function deleteAccount() {
-            if (!confirm('本当にアカウントを削除しますか？\n作成したカスタム実績、タイムライン投稿、フォロー関係などすべてのデータが完全に削除され、元に戻せません。')) return;
-            
-            const user = currentUser || auth.currentUser;
-            if (!user) return;
+            if (!confirm('本当にアカウントを削除しますか？すべてのデータが完全に削除され、元に戻せません。')) return;
+            const user = currentUser || auth.currentUser; if (!user) return;
             const uid = user.uid;
-
             try {
                 const postsSnap = await db.collection('posts').where('uid', '==', uid).get();
-                if (!postsSnap.empty) {
-                    const batch = db.batch();
-                    postsSnap.forEach(doc => batch.delete(doc.ref));
-                    await batch.commit();
-                }
-
+                if (!postsSnap.empty) { const batch = db.batch(); postsSnap.forEach(doc => batch.delete(doc.ref)); await batch.commit(); }
                 await db.collection('users').doc(uid).delete().catch(()=>{});
-
-                localStorage.removeItem(`lt_profile_${uid}`);
-                localStorage.removeItem(`lt_custom_${uid}`);
-                localStorage.removeItem(`lt_status_${uid}`);
-                localStorage.removeItem(`lt_reverted_${uid}`);
-
-                await user.delete();
-                alert('アカウントおよび関連データを完全に削除しました。');
-            } catch (error) {
-                alert('エラー: セキュリティ保護のため、一度ログアウトして再ログインしてから削除を実行してください (' + error.message + ')');
-            }
+                localStorage.removeItem(`lt_profile_${uid}`); localStorage.removeItem(`lt_custom_${uid}`);
+                localStorage.removeItem(`lt_status_${uid}`); localStorage.removeItem(`lt_reverted_${uid}`);
+                await user.delete(); alert('アカウントを削除しました。');
+            } catch (error) { alert('一度ログアウトして再ログインしてから削除を実行してください (' + error.message + ')'); }
         }
 
         async function loadUserData(userDocData) {
             if (!currentUser) return;
             const uid = currentUser.uid;
-
-            let mergedStatus = {};
-            let mergedCustom = [];
-
+            let mergedStatus = {}, mergedCustom = [];
+            try { const r = localStorage.getItem(`lt_reverted_${uid}`); revertedIds = r ? JSON.parse(r) : []; } catch (e) { revertedIds = []; }
             try {
-                const revStr = localStorage.getItem(`lt_reverted_${uid}`);
-                revertedIds = revStr ? JSON.parse(revStr) : [];
-            } catch (e) {
-                revertedIds = [];
-            }
-
-            try {
-                const localStatusStr = localStorage.getItem(`lt_status_${uid}`);
-                if (localStatusStr) Object.assign(mergedStatus, JSON.parse(localStatusStr));
-                const localCustomStr = localStorage.getItem(`lt_custom_${uid}`);
-                if (localCustomStr) mergedCustom = JSON.parse(localCustomStr);
+                const ls = localStorage.getItem(`lt_status_${uid}`); if (ls) Object.assign(mergedStatus, JSON.parse(ls));
+                const lc = localStorage.getItem(`lt_custom_${uid}`); if (lc) mergedCustom = JSON.parse(lc);
             } catch (e) {}
-
             if (userDocData) {
                 if (userDocData.trophyStatus) Object.assign(mergedStatus, userDocData.trophyStatus);
-                if (Array.isArray(userDocData.customTrophies) && userDocData.customTrophies.length > mergedCustom.length) {
-                    mergedCustom = userDocData.customTrophies;
-                }
-                if (Array.isArray(userDocData.joinedCircles)) {
-                    myProfile.joinedCircles = userDocData.joinedCircles;
-                }
+                if (Array.isArray(userDocData.customTrophies) && userDocData.customTrophies.length > mergedCustom.length) mergedCustom = userDocData.customTrophies;
+                if (Array.isArray(userDocData.joinedCircles)) myProfile.joinedCircles = userDocData.joinedCircles;
             }
-
-            userState = mergedStatus;
-            customTrophies = mergedCustom;
-            switchMainTab(activeTab);
-
-            try {
-                const statusDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('status').get(), 2000);
-                if (statusDoc && statusDoc.exists && statusDoc.data()) Object.assign(userState, statusDoc.data());
-            } catch (e) {}
-
-            try {
-                const customDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('custom').get(), 2000);
-                if (customDoc && customDoc.exists && customDoc.data() && Array.isArray(customDoc.data().items)) {
-                    if (customDoc.data().items.length > customTrophies.length) customTrophies = customDoc.data().items;
-                }
-            } catch (e) {}
-
-            try {
-                const unlockedSnap = await withTimeout(db.collection('users').doc(uid).collection('unlocked_items').get(), 2000);
-                if (unlockedSnap) {
-                    unlockedSnap.forEach(doc => { userState[doc.id] = doc.data(); });
-                }
-            } catch (e) {}
-
-            recoverFromPosts(false);
-            switchMainTab(activeTab);
+            userState = mergedStatus; customTrophies = mergedCustom; switchMainTab(activeTab);
+            try { const sDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('status').get(), 2000); if (sDoc && sDoc.exists) Object.assign(userState, sDoc.data()); } catch (e) {}
+            try { const cDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('custom').get(), 2000); if (cDoc && cDoc.exists && Array.isArray(cDoc.data().items) && cDoc.data().items.length > customTrophies.length) customTrophies = cDoc.data().items; } catch (e) {}
+            try { const uSnap = await withTimeout(db.collection('users').doc(uid).collection('unlocked_items').get(), 2000); if (uSnap) uSnap.forEach(doc => { userState[doc.id] = doc.data(); }); } catch (e) {}
+            recoverFromPosts(false); switchMainTab(activeTab);
         }
 
         async function recoverFromPosts(isManualClick = false) {
             if (!currentUser) return;
-            const uid = currentUser.uid;
-            let recoveredCount = 0;
-
+            const uid = currentUser.uid; let recoveredCount = 0;
             try {
                 const postsSnap = await withTimeout(db.collection('posts').where('uid', '==', uid).get(), 2500);
                 postsSnap.forEach(doc => {
                     const post = doc.data();
                     if (post.isProfileIndex || post.isCircleDoc) return;
                     let tId = post.trophyId;
-
                     if (!tId && post.trophyName) {
                         const matched = [...defaultTrophies, ...customTrophies, ...limitedTrophies202611].find(t => t.name === post.trophyName);
                         if (matched) tId = matched.id;
                     }
-
                     if (tId !== undefined && tId !== null) {
                         const key = String(tId);
                         if (!userState[key] && !revertedIds.includes(key)) {
-                            userState[key] = {
-                                date: post.date || '復元済',
-                                photo: post.photo || null,
-                                comment: post.comment || '',
-                                condition: post.condition || '',
-                                trophyName: post.trophyName || ''
-                            };
+                            userState[key] = { date: post.date || '復元済', photo: post.photo || null, comment: post.comment || '', condition: post.condition || '', trophyName: post.trophyName || '' };
                             recoveredCount++;
                         }
-
                         if (key.startsWith('custom_') && !customTrophies.find(t => String(t.id) === key)) {
-                            customTrophies.push({
-                                id: key,
-                                name: post.trophyName || 'カスタム実績',
-                                condition: post.condition || 'タイムライン履歴から復元',
-                                rank: 'gold',
-                                isCustom: true
-                            });
+                            customTrophies.push({ id: key, name: post.trophyName || 'カスタム実績', condition: post.condition || '履歴から復元', rank: 'gold', isCustom: true });
                         }
                     }
                 });
-
                 if (recoveredCount > 0) {
                     localStorage.setItem(`lt_status_${uid}`, JSON.stringify(userState));
                     localStorage.setItem(`lt_custom_${uid}`, JSON.stringify(customTrophies));
-                    for (const [k, v] of Object.entries(userState)) {
-                        db.collection('users').doc(uid).collection('unlocked_items').doc(String(k)).set(v).catch(()=>{});
-                    }
-                    saveCustomTrophiesToStorage();
-                    switchMainTab(activeTab);
-                    showNotification(`${recoveredCount}件の実績データをタイムライン履歴から復元しました！`, 'DATA RECOVERED');
-                } else if (isManualClick) {
-                    alert('タイムライン履歴を確認しましたが、追加で復元できる過去の実績データはありませんでした。');
-                }
-            } catch (e) {
-                if (isManualClick) alert('復元スキャン中にエラーが発生しました: ' + e.message);
-            }
+                    saveCustomTrophiesToStorage(); switchMainTab(activeTab);
+                    showNotification(`${recoveredCount}件の実績を復元しました！`, 'DATA RECOVERED');
+                } else if (isManualClick) { alert('追加で復元できるデータはありませんでした。'); }
+            } catch (e) { if (isManualClick) alert('復元エラー: ' + e.message); }
         }
 
         function switchMainTab(tab) {
@@ -1786,38 +864,21 @@
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
             const activeBtn = document.getElementById(`nav-btn-${tab}`);
             if (activeBtn) activeBtn.classList.add('active');
-
             const statsBox = document.getElementById('stats-grid-box');
-            if (statsBox) {
-                if (tab === 'trophies' || tab === 'other-profile') {
-                    statsBox.style.display = 'grid';
-                } else {
-                    statsBox.style.display = 'none';
-                }
-            }
-
+            if (statsBox) statsBox.style.display = (tab === 'trophies' || tab === 'other-profile') ? 'grid' : 'none';
             if (tab === 'trophies') renderTrophiesView();
             else if (tab === 'feed') renderFeedView();
-            else if (tab === 'circle') {
-                currentActiveCircleId = null;
-                renderCircleView();
-            }
+            else if (tab === 'circle') { currentActiveCircleId = null; circleViewMode = 'list'; renderCircleView(); }
             else if (tab === 'search') renderSearchView();
             else if (tab === 'profile') renderMyProfileView();
         }
 
-        function getAllTrophies() {
-            return [...defaultTrophies, ...customTrophies, ...circleTrophies, ...getActiveLimitedTrophies()];
-        }
+        function getAllTrophies() { return [...defaultTrophies, ...customTrophies, ...circleTrophies, ...getActiveLimitedTrophies()]; }
 
         function setTheme(themeName, shouldSaveToDb = false) {
             myProfile.theme = themeName;
-            if (themeName === 'light') {
-                document.body.classList.add('light-mode');
-            } else {
-                document.body.classList.remove('light-mode');
-            }
-
+            if (themeName === 'light') document.body.classList.add('light-mode');
+            else document.body.classList.remove('light-mode');
             if (shouldSaveToDb && currentUser) {
                 saveProfileToLocalCache(currentUser.uid, myProfile);
                 db.collection('users').doc(currentUser.uid).set({ theme: themeName }, { merge: true }).catch(()=>{});
@@ -1834,13 +895,10 @@
         }
 
         /* -------------------------------------------------------------
-           サークルデータのクラウド＆ローカルハイブリッド同期ヘルパー
+           サークルデータ同期＆ユーザー情報取得ヘルパー
         ------------------------------------------------------------- */
         function getDeletedCircleIds() {
-            try {
-                const s = localStorage.getItem('lt_deleted_circles');
-                return s ? JSON.parse(s) : [];
-            } catch (e) { return []; }
+            try { const s = localStorage.getItem('lt_deleted_circles'); return s ? JSON.parse(s) : []; } catch (e) { return []; }
         }
 
         async function fetchAllCirclesSafe() {
@@ -1848,123 +906,73 @@
             const circleMap = {};
             try {
                 const localStr = localStorage.getItem('lt_circles_cache');
-                if (localStr) {
-                    JSON.parse(localStr).forEach(c => {
-                        if (c && c.id && !deletedIds.includes(c.id) && !c.isDeleted) {
-                            circleMap[c.id] = c;
-                        }
-                    });
-                }
+                if (localStr) JSON.parse(localStr).forEach(c => { if (c && c.id && !deletedIds.includes(c.id) && !c.isDeleted) circleMap[c.id] = c; });
             } catch (e) {}
-
             try {
                 const snap = await withTimeout(db.collection('posts').where('isCircleDoc', '==', true).get(), 2000);
-                if (snap) {
-                    snap.forEach(doc => {
-                        const d = doc.data();
-                        const cid = d.circleId || doc.id;
-                        if (!deletedIds.includes(cid) && !d.isDeleted) {
-                            circleMap[cid] = Object.assign({ id: cid }, d);
-                        }
-                    });
-                }
+                if (snap) snap.forEach(doc => { const d = doc.data(), cid = d.circleId || doc.id; if (!deletedIds.includes(cid) && !d.isDeleted) circleMap[cid] = Object.assign({ id: cid }, d); });
             } catch (e) {}
-
             try {
                 const snap2 = await withTimeout(db.collection('circles').get(), 1500);
-                if (snap2) {
-                    snap2.forEach(doc => {
-                        const d = doc.data();
-                        if (!deletedIds.includes(doc.id) && !d.isDeleted) {
-                            circleMap[doc.id] = Object.assign({ id: doc.id }, d);
-                        }
-                    });
-                }
+                if (snap2) snap2.forEach(doc => { const d = doc.data(); if (!deletedIds.includes(doc.id) && !d.isDeleted) circleMap[doc.id] = Object.assign({ id: doc.id }, d); });
             } catch (e) {}
-
             const list = Object.values(circleMap);
-            try {
-                localStorage.setItem('lt_circles_cache', JSON.stringify(list));
-            } catch (e) {}
+            try { localStorage.setItem('lt_circles_cache', JSON.stringify(list)); } catch (e) {}
             return list;
         }
 
         async function saveCircleSafe(circleId, circleData) {
-            const payload = Object.assign({}, circleData, {
-                id: circleId,
-                circleId: circleId,
-                isCircleDoc: true
-            });
-
+            const payload = Object.assign({}, circleData, { id: circleId, circleId: circleId, isCircleDoc: true });
             try {
                 const localStr = localStorage.getItem('lt_circles_cache');
                 let list = localStr ? JSON.parse(localStr) : [];
                 const idx = list.findIndex(c => c.id === circleId);
-                if (idx >= 0) list[idx] = Object.assign(list[idx], payload);
-                else list.unshift(payload);
+                if (idx >= 0) list[idx] = Object.assign(list[idx], payload); else list.unshift(payload);
                 localStorage.setItem('lt_circles_cache', JSON.stringify(list));
             } catch (e) {}
-
-            try {
-                await db.collection('posts').doc(circleId).set(payload, { merge: true });
-            } catch (e) {}
-            try {
-                await db.collection('circles').doc(circleId).set(payload, { merge: true });
-            } catch (e) {}
+            try { await db.collection('posts').doc(circleId).set(payload, { merge: true }); } catch (e) {}
+            try { await db.collection('circles').doc(circleId).set(payload, { merge: true }); } catch (e) {}
         }
 
         async function deleteCircleCompletely(circleId) {
             try {
-                const delList = getDeletedCircleIds();
-                if (!delList.includes(circleId)) delList.push(circleId);
+                const delList = getDeletedCircleIds(); if (!delList.includes(circleId)) delList.push(circleId);
                 localStorage.setItem('lt_deleted_circles', JSON.stringify(delList));
             } catch (e) {}
-
             try {
                 const localStr = localStorage.getItem('lt_circles_cache');
-                if (localStr) {
-                    const list = JSON.parse(localStr).filter(c => c.id !== circleId);
-                    localStorage.setItem('lt_circles_cache', JSON.stringify(list));
-                }
+                if (localStr) localStorage.setItem('lt_circles_cache', JSON.stringify(JSON.parse(localStr).filter(c => c.id !== circleId)));
             } catch (e) {}
-
             activeCircles = activeCircles.filter(c => c.id !== circleId);
             myProfile.joinedCircles = (myProfile.joinedCircles || []).filter(id => id !== circleId);
-            if (currentUser) {
-                saveProfileToLocalCache(currentUser.uid, myProfile);
-                syncProfileToCloudBackground(currentUser.uid, myProfile);
-            }
+            if (currentUser) { saveProfileToLocalCache(currentUser.uid, myProfile); syncProfileToCloudBackground(currentUser.uid, myProfile); }
+            try { await db.collection('posts').doc(circleId).delete(); } catch (e) { try { await db.collection('posts').doc(circleId).set({ isDeleted: true }, { merge: true }); } catch (err) {} }
+            try { await db.collection('circles').doc(circleId).delete(); } catch (e) { try { await db.collection('circles').doc(circleId).set({ isDeleted: true }, { merge: true }); } catch (err) {} }
+        }
 
+        async function fetchBasicUserInfo(uid) {
+            if (currentUser && uid === currentUser.uid) return { uid, displayName: myProfile.displayName || myProfile.username || '自分', username: myProfile.username || 'me', avatar: myProfile.avatar || '', bio: myProfile.bio || '' };
             try {
-                await db.collection('posts').doc(circleId).delete();
-            } catch (e) {
-                try { await db.collection('posts').doc(circleId).set({ isDeleted: true }, { merge: true }); } catch (err) {}
-            }
+                const doc = await withTimeout(db.collection('users').doc(uid).get(), 1500);
+                if (doc && doc.exists) { const d = doc.data(); return { uid, displayName: d.displayName || d.username || 'ユーザー', username: d.username || 'user', avatar: d.avatar || '', bio: d.bio || '' }; }
+            } catch (e) {}
             try {
-                await db.collection('circles').doc(circleId).delete();
-            } catch (e) {
-                try { await db.collection('circles').doc(circleId).set({ isDeleted: true }, { merge: true }); } catch (err) {}
-            }
+                const idx = await withTimeout(db.collection('posts').doc('profile_' + uid).get(), 1500);
+                if (idx && idx.exists) { const d = idx.data(); return { uid, displayName: d.displayName || d.username || 'ユーザー', username: d.username || 'user', avatar: d.userAvatar || '', bio: d.bio || '' }; }
+            } catch (e) {}
+            return { uid, displayName: 'メンバー', username: 'member', avatar: '', bio: '' };
         }
 
         async function loadCircleTrophiesForBoard() {
             circleTrophies = [];
             try {
-                const allCircles = await fetchAllCirclesSafe();
-                activeCircles = allCircles;
+                const allCircles = await fetchAllCirclesSafe(); activeCircles = allCircles;
                 allCircles.forEach(cData => {
                     const members = Array.isArray(cData.members) ? cData.members : [];
                     const isJoined = (currentUser && members.includes(currentUser.uid)) || (myProfile.joinedCircles || []).includes(cData.id);
                     if (isJoined && Array.isArray(cData.circleTrophies)) {
                         cData.circleTrophies.forEach(ct => {
-                            circleTrophies.push({
-                                id: ct.id,
-                                name: `⭕ ${cData.circleName}: ${ct.name}`,
-                                condition: ct.condition,
-                                rank: ct.rank || 'gold',
-                                isCircleTrophy: true,
-                                circleId: cData.id
-                            });
+                            circleTrophies.push({ id: ct.id, name: `⭕ ${cData.circleName}: ${ct.name}`, condition: ct.condition, rank: ct.rank || 'gold', isCircleTrophy: true, circleId: cData.id });
                         });
                     }
                 });
@@ -1975,54 +983,34 @@
            実績一覧 View
         ------------------------------------------------------------- */
         async function renderTrophiesView() {
-            const container = document.getElementById('main-container');
-            if (!container) return;
-
-            await loadCircleTrophiesForBoard();
-            container.innerHTML = '';
+            const container = document.getElementById('main-container'); if (!container) return;
+            await loadCircleTrophiesForBoard(); container.innerHTML = '';
 
             if (currentUser && !myProfile.username) {
                 const warnBanner = document.createElement('div');
                 warnBanner.style.cssText = 'background:rgba(255,45,85,0.15); border:1px solid var(--accent-red); padding:12px; border-radius:10px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;';
-                warnBanner.innerHTML = `
-                    <div style="font-size:0.75rem; font-weight:700; color:var(--text-primary);">⚠️ ユーザーIDが未設定です（検索に表示されません）</div>
-                    <button class="btn-action-small" style="border-color:var(--accent-red); flex-shrink:0;" onclick="openInitialProfileSetupModal()">今すぐ設定</button>
-                `;
+                warnBanner.innerHTML = `<div style="font-size:0.75rem; font-weight:700; color:var(--text-primary);">⚠️ ユーザーIDが未設定です（検索に表示されません）</div><button class="btn-action-small" style="border-color:var(--accent-red); flex-shrink:0;" onclick="openInitialProfileSetupModal()">今すぐ設定</button>`;
                 container.appendChild(warnBanner);
             }
 
             const activeLimited = getActiveLimitedTrophies();
-
             const categorySwitcher = document.createElement('div');
             categorySwitcher.className = 'category-tabs';
             categorySwitcher.innerHTML = `
-                <button class="category-tab-btn ${boardCategory === 'default' ? 'active' : ''}" onclick="boardCategory='default'; renderTrophiesView();">
-                    🏆 通常 (${defaultTrophies.length})
-                </button>
-                <button class="category-tab-btn ${boardCategory === 'limited' ? 'active' : ''}" onclick="boardCategory='limited'; renderTrophiesView();">
-                    ⏳ 11月 (${activeLimited.length})
-                </button>
-                <button class="category-tab-btn ${boardCategory === 'custom' ? 'active' : ''}" onclick="boardCategory='custom'; renderTrophiesView();">
-                    ✨ カスタム (${customTrophies.length})
-                </button>
-                <button class="category-tab-btn ${boardCategory === 'circle' ? 'active' : ''}" onclick="boardCategory='circle'; renderTrophiesView();">
-                    ⭕ サークル (${circleTrophies.length})
-                </button>
+                <button class="category-tab-btn ${boardCategory === 'default' ? 'active' : ''}" onclick="boardCategory='default'; renderTrophiesView();">🏆 通常 (${defaultTrophies.length})</button>
+                <button class="category-tab-btn ${boardCategory === 'limited' ? 'active' : ''}" onclick="boardCategory='limited'; renderTrophiesView();">⏳ 11月 (${activeLimited.length})</button>
+                <button class="category-tab-btn ${boardCategory === 'custom' ? 'active' : ''}" onclick="boardCategory='custom'; renderTrophiesView();">✨ カスタム (${customTrophies.length})</button>
+                <button class="category-tab-btn ${boardCategory === 'circle' ? 'active' : ''}" onclick="boardCategory='circle'; renderTrophiesView();">⭕ サークル (${circleTrophies.length})</button>
             `;
             container.appendChild(categorySwitcher);
 
             const actionRow = document.createElement('div');
             actionRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;';
-            
             let boardTitle = '🏆 トロフィーボード';
             if (boardCategory === 'limited') boardTitle = '⏳ 2026年11月限定実績';
             if (boardCategory === 'custom') boardTitle = '✨ マイ・カスタム実績';
             if (boardCategory === 'circle') boardTitle = '⭕ 参加サークルの実績';
-
-            actionRow.innerHTML = `
-                <div style="font-size:0.85rem; font-weight:800; color:var(--text-primary);">${boardTitle}</div>
-                ${boardCategory === 'custom' ? '<button class="btn-action-small" onclick="openModal(\'custom-trophy-modal\')">+ カスタム作成</button>' : ''}
-            `;
+            actionRow.innerHTML = `<div style="font-size:0.85rem; font-weight:800; color:var(--text-primary);">${boardTitle}</div>${boardCategory === 'custom' ? '<button class="btn-action-small" onclick="openModal(\'custom-trophy-modal\')">+ カスタム作成</button>' : ''}`;
             container.appendChild(actionRow);
 
             const filterRow = document.createElement('div');
@@ -2041,29 +1029,14 @@
             });
             container.appendChild(filterRow);
 
-            let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
-            let totalUnlocked = 0;
+            let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 }, totalUnlocked = 0;
             const allTrophiesList = getAllTrophies();
-
-            allTrophiesList.forEach(t => {
-                if (userState[t.id]) {
-                    if (count[t.rank] !== undefined) count[t.rank]++;
-                    totalUnlocked++;
-                }
-            });
-
-            const cp = document.getElementById('count-plat');
-            const cg = document.getElementById('count-gold');
-            const cs = document.getElementById('count-silver');
-            const cb = document.getElementById('count-bronze');
-            if (cp) cp.innerText = count.platinum;
-            if (cg) cg.innerText = count.gold;
-            if (cs) cs.innerText = count.silver;
-            if (cb) cb.innerText = count.bronze;
-
-            const percent = allTrophiesList.length > 0 ? Math.round((totalUnlocked / allTrophiesList.length) * 100) : 0;
-            const pp = document.getElementById('progress-percent');
-            if (pp) pp.innerText = `${percent}%`;
+            allTrophiesList.forEach(t => { if (userState[t.id]) { if (count[t.rank] !== undefined) count[t.rank]++; totalUnlocked++; } });
+            document.getElementById('count-plat').innerText = count.platinum;
+            document.getElementById('count-gold').innerText = count.gold;
+            document.getElementById('count-silver').innerText = count.silver;
+            document.getElementById('count-bronze').innerText = count.bronze;
+            document.getElementById('progress-percent').innerText = `${allTrophiesList.length > 0 ? Math.round((totalUnlocked / allTrophiesList.length) * 100) : 0}%`;
 
             let targetList = defaultTrophies;
             if (boardCategory === 'limited') targetList = activeLimited;
@@ -2071,180 +1044,83 @@
             if (boardCategory === 'circle') targetList = circleTrophies;
 
             const trophyListEl = document.createElement('div');
-
-            if (boardCategory === 'limited' && activeLimited.length === 0) {
-                trophyListEl.innerHTML = `
-                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
-                        現在オープンしている期間限定実績はありません。<br>（期間中に解除した実績はマイページに残ります）
-                    </div>
-                `;
-                container.appendChild(trophyListEl);
-                return;
-            }
-
-            if (boardCategory === 'custom' && customTrophies.length === 0) {
-                trophyListEl.innerHTML = `
-                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
-                        まだカスタム実績がありません。<br>上の「+ カスタム作成」から目標を追加しましょう！
-                    </div>
-                `;
-                container.appendChild(trophyListEl);
-                return;
-            }
-
-            if (boardCategory === 'circle' && circleTrophies.length === 0) {
-                trophyListEl.innerHTML = `
-                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
-                        参加しているサークルにまだサークル実績がありません。<br>「サークルタブ」からサークルに参加・作成して実績を作ろう！
-                    </div>
-                `;
-                container.appendChild(trophyListEl);
-                return;
+            if (targetList.length === 0) {
+                trophyListEl.innerHTML = `<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">表示できる実績がありません。</div>`;
+                container.appendChild(trophyListEl); return;
             }
 
             let visibleCount = 0;
             targetList.forEach(t => {
                 const isUnlocked = !!userState[t.id];
                 const rankClass = `rank-${t.rank || 'bronze'}`;
-
                 if (trophyFilter !== 'all') {
                     if (trophyFilter === 'unlocked' && !isUnlocked) return;
                     if (trophyFilter !== 'unlocked' && t.rank !== trophyFilter) return;
                 }
-
                 visibleCount++;
                 const card = document.createElement('div');
                 card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
-                
-                const iconContent = (isUnlocked && userState[t.id].photo)
-                    ? `<img src="${userState[t.id].photo}" alt="Trophy Photo">`
-                    : `<i class="fa-solid fa-trophy"></i>`;
-
+                const iconContent = (isUnlocked && userState[t.id].photo) ? `<img src="${userState[t.id].photo}" alt="Trophy Photo">` : `<i class="fa-solid fa-trophy"></i>`;
                 let displayNameStr = t.name;
                 if (t.isLimited) displayNameStr = `⏳ ${t.name}`;
                 else if (t.isCustom) displayNameStr = `✨ ${t.name}`;
-                else if (t.isCircleTrophy) displayNameStr = `${t.name}`;
                 else if (t.isUltimate) displayNameStr = `★ ${t.name}`;
 
-                const infoBox = document.createElement('div');
-                infoBox.className = 'trophy-info';
-                infoBox.innerHTML = `
-                    <div class="trophy-name">${displayNameStr}</div>
-                    <div class="trophy-condition">${t.condition}</div>
-                    <div class="trophy-meta">
-                        <span class="rank-tag ${rankClass}">${t.rank}</span>
-                        ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date} 解除済</span>` : ''}
-                    </div>
-                `;
-
-                const iconBox = document.createElement('div');
-                iconBox.className = `icon-box ${rankClass}`;
-                iconBox.innerHTML = iconContent;
-
-                const actionsGroup = document.createElement('div');
-                actionsGroup.className = 'card-actions-group';
-
+                const iconBox = document.createElement('div'); iconBox.className = `icon-box ${rankClass}`; iconBox.innerHTML = iconContent;
+                const infoBox = document.createElement('div'); infoBox.className = 'trophy-info';
+                infoBox.innerHTML = `<div class="trophy-name">${displayNameStr}</div><div class="trophy-condition">${t.condition}</div><div class="trophy-meta"><span class="rank-tag ${rankClass}">${t.rank}</span>${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date} 解除済</span>` : ''}</div>`;
+                const actionsGroup = document.createElement('div'); actionsGroup.className = 'card-actions-group';
                 if (!isUnlocked) {
-                    const unlockBtn = document.createElement('button');
-                    unlockBtn.className = 'unlock-btn';
-                    unlockBtn.innerText = '解除';
-                    unlockBtn.onclick = () => openUnlockModal(t.id);
-                    actionsGroup.appendChild(unlockBtn);
+                    const unlockBtn = document.createElement('button'); unlockBtn.className = 'unlock-btn'; unlockBtn.innerText = '解除';
+                    unlockBtn.onclick = () => openUnlockModal(t.id); actionsGroup.appendChild(unlockBtn);
                 }
-
                 if (t.isCustom || boardCategory === 'custom') {
-                    const delBtn = document.createElement('button');
-                    delBtn.className = 'delete-btn';
-                    delBtn.innerText = '削除';
-                    delBtn.onclick = () => deleteCustomTrophy(t.id);
-                    actionsGroup.appendChild(delBtn);
+                    const delBtn = document.createElement('button'); delBtn.className = 'delete-btn'; delBtn.innerText = '削除';
+                    delBtn.onclick = () => deleteCustomTrophy(t.id); actionsGroup.appendChild(delBtn);
                 }
-
-                card.appendChild(iconBox);
-                card.appendChild(infoBox);
-                card.appendChild(actionsGroup);
+                card.appendChild(iconBox); card.appendChild(infoBox); card.appendChild(actionsGroup);
                 trophyListEl.appendChild(card);
             });
-
-            if (visibleCount === 0) {
-                trophyListEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">条件に一致する実績がありません</div>';
-            }
-
+            if (visibleCount === 0) trophyListEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">条件に一致する実績がありません</div>';
             container.appendChild(trophyListEl);
         }
 
         function addCustomTrophy() {
-            const titleInput = document.getElementById('custom-title');
-            const conditionInput = document.getElementById('custom-condition');
-            const rankSelect = document.getElementById('custom-rank');
-            
-            const title = titleInput.value.trim();
-            const condition = conditionInput.value.trim();
-            const rank = rankSelect.value;
-            
-            if (!title || !condition) {
-                alert('実績タイトルと達成条件の両方を入力してください');
-                return;
-            }
-
-            const newTrophy = {
-                id: 'custom_' + Date.now(),
-                name: title,
-                condition: condition,
-                rank: rank,
-                isCustom: true
-            };
-
-            customTrophies.push(newTrophy);
-
-            titleInput.value = '';
-            conditionInput.value = '';
-            closeModal('custom-trophy-modal');
-
-            boardCategory = 'custom';
-            trophyFilter = 'all';
-            switchMainTab('trophies');
-            showNotification(`カスタム実績「${title}」を追加しました！`, 'CUSTOM TROPHY ADDED');
-
+            const title = document.getElementById('custom-title').value.trim();
+            const condition = document.getElementById('custom-condition').value.trim();
+            const rank = document.getElementById('custom-rank').value;
+            if (!title || !condition) return alert('実績タイトルと達成条件の両方を入力してください');
+            customTrophies.push({ id: 'custom_' + Date.now(), name: title, condition, rank, isCustom: true });
+            document.getElementById('custom-title').value = ''; document.getElementById('custom-condition').value = '';
+            closeModal('custom-trophy-modal'); boardCategory = 'custom'; trophyFilter = 'all';
+            switchMainTab('trophies'); showNotification(`カスタム実績「${title}」を追加しました！`, 'CUSTOM TROPHY ADDED');
             saveCustomTrophiesToStorage();
         }
 
         async function deleteCustomTrophy(id) {
             const target = customTrophies.find(t => String(t.id) === String(id));
-            const targetName = target ? target.name : 'カスタム実績';
-
-            if (!confirm(`カスタム実績「${targetName}」を削除しますか？`)) return;
-
+            if (!confirm(`カスタム実績「${target ? target.name : '実績'}」を削除しますか？`)) return;
             customTrophies = customTrophies.filter(t => String(t.id) !== String(id));
-            if (userState[id]) {
-                delete userState[id];
-                await removeSingleUnlockFromStorage(id);
-            }
-
-            renderTrophiesView();
-            showNotification(`「${targetName}」を削除しました`, 'CUSTOM TROPHY DELETED');
-
-            saveCustomTrophiesToStorage();
+            if (userState[id]) { delete userState[id]; await removeSingleUnlockFromStorage(id); }
+            renderTrophiesView(); saveCustomTrophiesToStorage();
         }
 
         /* -------------------------------------------------------------
-           ⭕ サークル機能 View & ロジック
+           ⭕ サークル機能（参加前プレビュー・承認制/自由参加・メンバー一覧・チャット）
         ------------------------------------------------------------- */
         async function renderCircleView() {
-            const container = document.getElementById('main-container');
-            if (!container) return;
+            const container = document.getElementById('main-container'); if (!container) return;
             container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">サークル情報を読み込み中...</div>';
-
             activeCircles = await fetchAllCirclesSafe();
 
             if (currentActiveCircleId) {
                 const targetCircle = activeCircles.find(c => c.id === currentActiveCircleId);
                 if (targetCircle) {
-                    renderCircleRoomView(targetCircle);
-                    return;
-                } else {
-                    currentActiveCircleId = null;
-                }
+                    const members = Array.isArray(targetCircle.members) ? targetCircle.members : [];
+                    const isJoined = (currentUser && members.includes(currentUser.uid)) || (myProfile.joinedCircles || []).includes(targetCircle.id);
+                    if (circleViewMode === 'preview' && !isJoined) { renderCirclePreviewMenu(targetCircle); return; }
+                    else { renderCircleRoomView(targetCircle); return; }
+                } else { currentActiveCircleId = null; circleViewMode = 'list'; }
             }
 
             container.innerHTML = `
@@ -2252,10 +1128,8 @@
                     <div style="font-size:0.95rem; font-weight:900;">⭕ サークル</div>
                     <button class="btn-action-small" onclick="openModal('create-circle-modal')">+ サークルを立ち上げる</button>
                 </div>
-
                 <div style="font-size:0.8rem; font-weight:800; color:var(--text-secondary); margin-bottom:8px;">📌 参加中のサークル</div>
                 <div id="joined-circles-container" style="margin-bottom:22px;"></div>
-
                 <div style="font-size:0.8rem; font-weight:800; color:var(--text-secondary); margin-bottom:8px;">🔍 サークル検索</div>
                 <div style="display:flex; gap:10px; margin-bottom:14px;">
                     <input type="text" id="circle-search-query" class="form-input" placeholder="サークル名やキーワードを入力..." style="margin-bottom:0;" oninput="searchCircles()">
@@ -2267,57 +1141,45 @@
                     </div>
                 </div>
             `;
-
             renderJoinedCirclesList();
-
             if (lastCircleSearchQuery) {
                 const qInput = document.getElementById('circle-search-query');
-                if (qInput) {
-                    qInput.value = lastCircleSearchQuery;
-                    searchCircles();
-                }
+                if (qInput) { qInput.value = lastCircleSearchQuery; searchCircles(); }
             }
         }
 
         function renderJoinedCirclesList() {
-            const listEl = document.getElementById('joined-circles-container');
-            if (!listEl) return;
+            const listEl = document.getElementById('joined-circles-container'); if (!listEl) return;
             listEl.innerHTML = '';
-
-            const joinedList = activeCircles.filter(circle => {
-                const members = Array.isArray(circle.members) ? circle.members : [];
-                return (currentUser && members.includes(currentUser.uid)) || (myProfile.joinedCircles || []).includes(circle.id);
+            const joinedList = activeCircles.filter(c => {
+                const members = Array.isArray(c.members) ? c.members : [];
+                return (currentUser && members.includes(currentUser.uid)) || (myProfile.joinedCircles || []).includes(c.id);
             });
-
             if (joinedList.length === 0) {
-                listEl.innerHTML = `
-                    <div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:22px 16px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
-                        まだ参加しているサークルがありません。<br>下の検索窓から探すか、「+ サークルを立ち上げる」から作成しよう！
-                    </div>
-                `;
+                listEl.innerHTML = `<div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:22px 16px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">まだ参加しているサークルがありません。</div>`;
                 return;
             }
-
             joinedList.forEach(circle => {
                 const members = Array.isArray(circle.members) ? circle.members : [];
+                const pending = Array.isArray(circle.pendingMembers) ? circle.pendingMembers : [];
                 const trophies = Array.isArray(circle.circleTrophies) ? circle.circleTrophies : [];
-                const chats = Array.isArray(circle.chatMessages) ? circle.chatMessages : [];
                 const isHost = currentUser && circle.hostUid === currentUser.uid;
+                const policy = circle.joinPolicy || 'open';
+                const policyBadge = policy === 'approval' ? `<span class="policy-badge approval">🔒 承認制</span>` : `<span class="policy-badge open">🔓 自由参加</span>`;
 
                 const card = document.createElement('div');
-                card.className = 'feed-card';
-                card.style.cssText = 'margin-bottom:10px; padding:14px 16px; cursor:pointer;';
+                card.className = 'feed-card'; card.style.cssText = 'margin-bottom:10px; padding:14px 16px; cursor:pointer;';
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <div style="font-size:0.95rem; font-weight:900; color:var(--text-primary);">
-                            ⭕ ${circle.circleName}
-                            ${isHost ? '<span style="font-size:0.6rem; background:var(--surface-hover); border:1px solid var(--border-light); padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">👑 ホスト</span>' : ''}
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:6px;">
+                        <div style="font-size:0.95rem; font-weight:900; color:var(--text-primary); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                            ⭕ ${circle.circleName} ${policyBadge}
+                            ${isHost && pending.length > 0 ? `<span style="font-size:0.6rem; background:var(--accent-red); color:#fff; padding:2px 6px; border-radius:10px;">申請 ${pending.length}件</span>` : ''}
                         </div>
-                        <button class="btn-primary-small">メニューへ <i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></button>
+                        <button class="btn-primary-small" style="flex-shrink:0;">メニューへ <i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></button>
                     </div>
                     <div style="font-size:0.74rem; color:var(--text-secondary); margin-bottom:8px; line-height:1.3;">${circle.circleBio || '自己紹介なし'}</div>
                     <div style="font-size:0.65rem; color:var(--text-tertiary);">
-                        👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 メンバー: <b>${members.length}人</b> ・ 🏆 実績: <b>${trophies.length}件</b> ・ 💬 チャット: <b>${chats.length}件</b>
+                        👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 メンバー: <b>${members.length}人</b> ・ 🏆 実績: <b>${trophies.length}件</b>
                     </div>
                 `;
                 card.onclick = () => openCircleMenu(circle.id);
@@ -2326,151 +1188,210 @@
         }
 
         function searchCircles() {
-            const qInput = document.getElementById('circle-search-query');
-            const resultsEl = document.getElementById('circle-search-results');
+            const qInput = document.getElementById('circle-search-query'), resultsEl = document.getElementById('circle-search-results');
             if (!qInput || !resultsEl) return;
-
-            const rawQ = qInput.value.trim().toLowerCase();
-            lastCircleSearchQuery = qInput.value.trim();
-
+            const rawQ = qInput.value.trim().toLowerCase(); lastCircleSearchQuery = qInput.value.trim();
             if (!rawQ) {
-                resultsEl.innerHTML = `
-                    <div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:24px 16px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">
-                        検索したいサークル名やキーワードを入力してください
-                    </div>
-                `;
+                resultsEl.innerHTML = `<div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:24px 16px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">検索したいサークル名やキーワードを入力してください</div>`;
                 return;
             }
-
-            const matched = activeCircles.filter(c => {
-                const cName = String(c.circleName || '').toLowerCase();
-                const cBio = String(c.circleBio || '').toLowerCase();
-                const hName = String(c.hostName || '').toLowerCase();
-                return cName.includes(rawQ) || cBio.includes(rawQ) || hName.includes(rawQ);
-            });
-
-            resultsEl.innerHTML = '';
-
-            const headerLabel = document.createElement('div');
-            headerLabel.style.cssText = 'font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:10px;';
-            headerLabel.innerText = `「${lastCircleSearchQuery}」のサークル検索結果 (${matched.length}件)`;
-            resultsEl.appendChild(headerLabel);
-
+            const matched = activeCircles.filter(c => String(c.circleName || '').toLowerCase().includes(rawQ) || String(c.circleBio || '').toLowerCase().includes(rawQ) || String(c.hostName || '').toLowerCase().includes(rawQ));
+            resultsEl.innerHTML = `<div style="font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:10px;">「${lastCircleSearchQuery}」の検索結果 (${matched.length}件)</div>`;
             if (matched.length === 0) {
-                resultsEl.innerHTML += `
-                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:24px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">
-                        一致するサークルが見つかりませんでした
-                    </div>
-                `;
+                resultsEl.innerHTML += `<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:24px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">一致するサークルが見つかりませんでした</div>`;
                 return;
             }
-
             matched.forEach(circle => {
                 const members = Array.isArray(circle.members) ? circle.members : [];
+                const pending = Array.isArray(circle.pendingMembers) ? circle.pendingMembers : [];
                 const isJoined = (currentUser && members.includes(currentUser.uid)) || (myProfile.joinedCircles || []).includes(circle.id);
+                const isPending = currentUser && pending.includes(currentUser.uid);
                 const trophies = Array.isArray(circle.circleTrophies) ? circle.circleTrophies : [];
+                const policy = circle.joinPolicy || 'open';
+                const policyBadge = policy === 'approval' ? `<span class="policy-badge approval">🔒 承認制</span>` : `<span class="policy-badge open">🔓 自由参加</span>`;
 
                 const card = document.createElement('div');
-                card.className = 'feed-card';
-                card.style.cssText = 'margin-bottom:10px; padding:14px 16px;';
+                card.className = 'feed-card'; card.style.cssText = 'margin-bottom:10px; padding:14px 16px; cursor:pointer;';
                 card.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">
-                        <div style="font-size:0.95rem; font-weight:900; color:var(--text-primary);">⭕ ${circle.circleName}</div>
-                        <div style="display:flex; gap:6px; flex-shrink:0;">
-                            ${isJoined
-                                ? `<button class="btn-primary-small" onclick="openCircleMenu('${circle.id}')">メニューを開く</button>`
-                                : `<button class="btn-action-small" onclick="joinCircleAndOpenMenu('${circle.id}')">参加して開く</button>`
-                            }
+                        <div style="font-size:0.95rem; font-weight:900; color:var(--text-primary); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                            ⭕ ${circle.circleName} ${policyBadge}
                         </div>
+                        <button class="${isJoined ? 'btn-primary-small' : 'btn-action-small'}" style="flex-shrink:0;">
+                            ${isJoined ? 'メニューを開く' : (isPending ? '⏳ 申請中 (詳細)' : '詳細・参加へ')}
+                        </button>
                     </div>
                     <div style="font-size:0.74rem; color:var(--text-secondary); margin-bottom:8px; line-height:1.3;">${circle.circleBio || '自己紹介なし'}</div>
                     <div style="font-size:0.65rem; color:var(--text-tertiary);">
                         👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 メンバー: <b>${members.length}人</b> ・ 🏆 サークル実績: <b>${trophies.length}件</b>
                     </div>
                 `;
+                card.onclick = () => { if (isJoined) openCircleMenu(circle.id); else openCirclePreview(circle.id); };
                 resultsEl.appendChild(card);
             });
         }
 
-        function openCircleMenu(circleId) {
-            currentActiveCircleId = circleId;
-            circleRoomSubTab = 'trophies';
-            renderCircleView();
+        function openCirclePreview(circleId) {
+            currentActiveCircleId = circleId; circleViewMode = 'preview'; renderCircleView();
         }
 
-        async function joinCircleAndOpenMenu(circleId) {
+        function openCircleMenu(circleId) {
+            currentActiveCircleId = circleId; circleViewMode = 'room'; circleRoomSubTab = 'trophies'; renderCircleView();
+        }
+
+        // 未参加サークルの参加前プレビューメニュー画面（自己紹介・実績一覧・承認制/自由参加を表示）
+        function renderCirclePreviewMenu(circle) {
+            const container = document.getElementById('main-container'); if (!container) return;
+            container.innerHTML = '';
+            const members = Array.isArray(circle.members) ? circle.members : [];
+            const pending = Array.isArray(circle.pendingMembers) ? circle.pendingMembers : [];
+            const isPending = currentUser && pending.includes(currentUser.uid);
+            const trophies = Array.isArray(circle.circleTrophies) ? circle.circleTrophies : [];
+            const policy = circle.joinPolicy || 'open';
+            const policyBadge = policy === 'approval' ? `<span class="policy-badge approval">🔒 承認制（ホストの承認が必要）</span>` : `<span class="policy-badge open">🔓 自由参加（誰でもすぐ参加可能）</span>`;
+
+            const topBar = document.createElement('div');
+            topBar.style.cssText = 'margin-bottom:12px;';
+            topBar.innerHTML = `<button class="btn-action-small" onclick="currentActiveCircleId=null; circleViewMode='list'; renderCircleView();"><i class="fa-solid fa-arrow-left"></i> サークル検索へ戻る</button>`;
+            container.appendChild(topBar);
+
+            const infoCard = document.createElement('div');
+            infoCard.className = 'feed-card';
+            infoCard.innerHTML = `
+                <div style="margin-bottom:8px;">${policyBadge}</div>
+                <div style="font-size:1.15rem; font-weight:900; color:var(--text-primary); margin-bottom:6px;">⭕ ${circle.circleName}</div>
+                <div style="font-size:0.8rem; color:var(--text-primary); background:var(--surface-hover); padding:12px; border-radius:8px; margin-bottom:12px; line-height:1.4;">
+                    <div style="font-size:0.65rem; font-weight:800; color:var(--text-secondary); margin-bottom:4px;">📋 サークル自己紹介</div>
+                    ${circle.circleBio || '自己紹介文はありません'}
+                </div>
+                <div style="font-size:0.72rem; color:var(--text-secondary); margin-bottom:16px;">
+                    👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 参加メンバー: <b>${members.length}人</b>
+                </div>
+                ${policy === 'open'
+                    ? `<button class="modal-btn" onclick="handleJoinOrRequestCircle('${circle.id}')">✨ このサークルに参加する</button>`
+                    : (isPending
+                        ? `<button class="modal-btn btn-cancel" onclick="cancelJoinRequest('${circle.id}')">⏳ 参加承認待ち（タップで申請取消）</button>`
+                        : `<button class="modal-btn" onclick="handleJoinOrRequestCircle('${circle.id}')">📩 ホストに参加申請を送る</button>`)
+                }
+            `;
+            container.appendChild(infoCard);
+
+            const tHeader = document.createElement('div');
+            tHeader.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
+            tHeader.innerText = `🏆 このサークルの実績一覧 (${trophies.length}件)`;
+            container.appendChild(tHeader);
+
+            const tListEl = document.createElement('div');
+            if (trophies.length === 0) {
+                tListEl.innerHTML = `<div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:24px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">まだサークル実績は登録されていません</div>`;
+            } else {
+                trophies.forEach(ct => {
+                    const rankClass = `rank-${ct.rank || 'gold'}`;
+                    const card = document.createElement('div');
+                    card.className = 'trophy-card';
+                    card.innerHTML = `
+                        <div class="icon-box ${rankClass}"><i class="fa-solid fa-trophy"></i></div>
+                        <div class="trophy-info">
+                            <div class="trophy-name">✨ ${ct.name}</div>
+                            <div class="trophy-condition">${ct.condition}</div>
+                            <div class="trophy-meta"><span class="rank-tag ${rankClass}">${ct.rank || 'gold'}</span></div>
+                        </div>
+                    `;
+                    tListEl.appendChild(card);
+                });
+            }
+            container.appendChild(tListEl);
+        }
+
+        async function handleJoinOrRequestCircle(circleId) {
             if (!currentUser) return;
             const uid = currentUser.uid;
-            const targetCircle = activeCircles.find(c => c.id === circleId);
-            if (!targetCircle) return;
+            const targetCircle = activeCircles.find(c => c.id === circleId); if (!targetCircle) return;
+            const policy = targetCircle.joinPolicy || 'open';
 
-            let members = Array.isArray(targetCircle.members) ? [...targetCircle.members] : [];
-            if (!members.includes(uid)) members.push(uid);
-            targetCircle.members = members;
+            if (policy === 'approval') {
+                if (!Array.isArray(targetCircle.pendingMembers)) targetCircle.pendingMembers = [];
+                if (!targetCircle.pendingMembers.includes(uid)) targetCircle.pendingMembers.push(uid);
+                await saveCircleSafe(circleId, targetCircle);
+                sendNotification(targetCircle.hostUid, 'circle_request', `がサークル「${targetCircle.circleName}」への参加を申請しました。`);
+                showNotification('ホストに参加申請を送りました！', 'REQUEST SENT');
+                renderCirclePreviewMenu(targetCircle);
+            } else {
+                if (!Array.isArray(targetCircle.members)) targetCircle.members = [];
+                if (!targetCircle.members.includes(uid)) targetCircle.members.push(uid);
+                if (!myProfile.joinedCircles) myProfile.joinedCircles = [];
+                if (!myProfile.joinedCircles.includes(circleId)) myProfile.joinedCircles.push(circleId);
+                await saveCircleSafe(circleId, targetCircle);
+                saveProfileToLocalCache(uid, myProfile); syncProfileToCloudBackground(uid, myProfile);
+                showNotification(`「${targetCircle.circleName}」に参加しました！`, 'CIRCLE JOINED');
+                openCircleMenu(circleId);
+            }
+        }
 
-            if (!myProfile.joinedCircles) myProfile.joinedCircles = [];
-            if (!myProfile.joinedCircles.includes(circleId)) myProfile.joinedCircles.push(circleId);
-
+        async function cancelJoinRequest(circleId) {
+            if (!currentUser) return;
+            const targetCircle = activeCircles.find(c => c.id === circleId); if (!targetCircle) return;
+            targetCircle.pendingMembers = (targetCircle.pendingMembers || []).filter(id => id !== currentUser.uid);
             await saveCircleSafe(circleId, targetCircle);
-            saveProfileToLocalCache(uid, myProfile);
-            syncProfileToCloudBackground(uid, myProfile);
-
-            showNotification(`「${targetCircle.circleName}」に参加しました！`, 'CIRCLE JOINED');
-            openCircleMenu(circleId);
+            showNotification('参加申請を取り消しました', 'REQUEST CANCELED');
+            renderCirclePreviewMenu(targetCircle);
         }
 
         /* -------------------------------------------------------------
-           ⭕ サークル専用メニュー（ルーム画面：実績 ＆ チャット ＆ 解散）
+           ⭕ サークル専用メニュー（実績・チャット・メンバー＆承認管理）
         ------------------------------------------------------------- */
-        function renderCircleRoomView(circle) {
-            const container = document.getElementById('main-container');
-            if (!container) return;
+        async function renderCircleRoomView(circle) {
+            const container = document.getElementById('main-container'); if (!container) return;
             container.innerHTML = '';
 
             const members = Array.isArray(circle.members) ? circle.members : [];
+            const pending = Array.isArray(circle.pendingMembers) ? circle.pendingMembers : [];
             const isHost = currentUser && circle.hostUid === currentUser.uid;
             const trophies = Array.isArray(circle.circleTrophies) ? circle.circleTrophies : [];
             const chats = Array.isArray(circle.chatMessages) ? circle.chatMessages : [];
+            const policy = circle.joinPolicy || 'open';
+            const policyBadge = policy === 'approval' ? `<span class="policy-badge approval">🔒 承認制</span>` : `<span class="policy-badge open">🔓 自由参加</span>`;
 
             const topBar = document.createElement('div');
             topBar.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;';
             topBar.innerHTML = `
-                <button class="btn-action-small" onclick="currentActiveCircleId=null; renderCircleView();">
-                    <i class="fa-solid fa-arrow-left"></i> サークル一覧・検索へ戻る
+                <button class="btn-action-small" onclick="currentActiveCircleId=null; circleViewMode='list'; renderCircleView();">
+                    <i class="fa-solid fa-arrow-left"></i> サークル一覧へ戻る
                 </button>
                 <div style="display:flex; gap:6px;">
                     ${isHost
                         ? `<button class="delete-btn" onclick="disbandCircle('${circle.id}')"><i class="fa-solid fa-trash"></i> サークルを解散</button>`
-                        : `<button class="btn-action-small" onclick="leaveCircleFromRoom('${circle.id}')">退会する</button>`
-                    }
+                        : `<button class="btn-action-small" onclick="leaveCircleFromRoom('${circle.id}')">退会する</button>`}
                 </div>
             `;
             container.appendChild(topBar);
 
             const banner = document.createElement('div');
-            banner.className = 'feed-card';
-            banner.style.cssText = 'margin-bottom:14px; padding:16px;';
+            banner.className = 'feed-card'; banner.style.cssText = 'margin-bottom:14px; padding:16px;';
             banner.innerHTML = `
-                <div style="font-size:1.1rem; font-weight:900; color:var(--text-primary); margin-bottom:4px;">
-                    ⭕ ${circle.circleName}
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+                    <div style="font-size:1.1rem; font-weight:900; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                        ⭕ ${circle.circleName} ${policyBadge}
+                    </div>
+                    ${isHost ? `
+                        <select class="form-select" style="width:auto; margin-bottom:0; padding:4px 8px; font-size:0.7rem; font-weight:700;" onchange="changeCircleJoinPolicy('${circle.id}', this.value)">
+                            <option value="open" ${policy === 'open' ? 'selected' : ''}>🔓 自由参加に変更</option>
+                            <option value="approval" ${policy === 'approval' ? 'selected' : ''}>🔒 承認制に変更</option>
+                        </select>
+                    ` : ''}
                 </div>
-                <div style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:10px; line-height:1.4;">
-                    ${circle.circleBio || '自己紹介なし'}
-                </div>
-                <div style="font-size:0.68rem; color:var(--text-tertiary);">
-                    👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 メンバー: <b>${members.length}人</b>
-                </div>
+                <div style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:10px; line-height:1.4;">${circle.circleBio || '自己紹介なし'}</div>
+                <div style="font-size:0.68rem; color:var(--text-tertiary);">👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 メンバー: <b>${members.length}人</b></div>
             `;
             container.appendChild(banner);
 
             const subTabs = document.createElement('div');
-            subTabs.className = 'category-tabs-2';
+            subTabs.className = 'category-tabs-3';
             subTabs.innerHTML = `
-                <button class="category-tab-btn ${circleRoomSubTab === 'trophies' ? 'active' : ''}" onclick="circleRoomSubTab='trophies'; renderCircleView();">
-                    🏆 サークル実績 (${trophies.length})
-                </button>
-                <button class="category-tab-btn ${circleRoomSubTab === 'chat' ? 'active' : ''}" onclick="circleRoomSubTab='chat'; renderCircleView();">
-                    💬 メンバーチャット (${chats.length})
+                <button class="category-tab-btn ${circleRoomSubTab === 'trophies' ? 'active' : ''}" onclick="circleRoomSubTab='trophies'; renderCircleView();">🏆 実績 (${trophies.length})</button>
+                <button class="category-tab-btn ${circleRoomSubTab === 'chat' ? 'active' : ''}" onclick="circleRoomSubTab='chat'; renderCircleView();">💬 チャット (${chats.length})</button>
+                <button class="category-tab-btn ${circleRoomSubTab === 'members' ? 'active' : ''}" onclick="circleRoomSubTab='members'; renderCircleView();">
+                    👥 メンバー (${members.length})${isHost && pending.length > 0 ? ` <span style="color:var(--accent-red);">●</span>` : ''}
                 </button>
             `;
             container.appendChild(subTabs);
@@ -2478,49 +1399,34 @@
             if (circleRoomSubTab === 'trophies') {
                 const actionHeader = document.createElement('div');
                 actionHeader.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;';
-                actionHeader.innerHTML = `
-                    <div style="font-size:0.85rem; font-weight:800;">🏆 サークル専用実績</div>
-                    <button class="btn-action-small" onclick="openCircleTrophyModal('${circle.id}')">+ サークル実績を作成</button>
-                `;
+                actionHeader.innerHTML = `<div style="font-size:0.85rem; font-weight:800;">🏆 サークル専用実績</div><button class="btn-action-small" onclick="openCircleTrophyModal('${circle.id}')">+ サークル実績を作成</button>`;
                 container.appendChild(actionHeader);
 
                 const tListEl = document.createElement('div');
                 if (trophies.length === 0) {
-                    tListEl.innerHTML = `
-                        <div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:32px 16px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
-                            まだサークル実績がありません。<br>右上の「+ サークル実績を作成」からメンバーみんなで目標を追加しよう！
-                        </div>
-                    `;
+                    tListEl.innerHTML = `<div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:32px 16px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">まだサークル実績がありません。</div>`;
                 } else {
                     trophies.forEach(ct => {
                         const isUnlocked = !!userState[ct.id];
                         const rankClass = `rank-${ct.rank || 'gold'}`;
                         const card = document.createElement('div');
                         card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''}`;
-                        const iconContent = (isUnlocked && userState[ct.id].photo)
-                            ? `<img src="${userState[ct.id].photo}" alt="Photo">`
-                            : `<i class="fa-solid fa-trophy"></i>`;
-
+                        const iconContent = (isUnlocked && userState[ct.id].photo) ? `<img src="${userState[ct.id].photo}" alt="Photo">` : `<i class="fa-solid fa-trophy"></i>`;
                         card.innerHTML = `
                             <div class="icon-box ${rankClass}">${iconContent}</div>
                             <div class="trophy-info">
                                 <div class="trophy-name">✨ ${ct.name}</div>
                                 <div class="trophy-condition">${ct.condition}</div>
-                                <div class="trophy-meta">
-                                    <span class="rank-tag ${rankClass}">${ct.rank || 'gold'}</span>
-                                    ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[ct.id].date} 解除済</span>` : ''}
-                                </div>
+                                <div class="trophy-meta"><span class="rank-tag ${rankClass}">${ct.rank || 'gold'}</span>${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[ct.id].date} 解除済</span>` : ''}</div>
                             </div>
-                            <div class="card-actions-group">
-                                ${!isUnlocked ? `<button class="unlock-btn" onclick="openUnlockModal('${ct.id}')">解除</button>` : ''}
-                            </div>
+                            <div class="card-actions-group">${!isUnlocked ? `<button class="unlock-btn" onclick="openUnlockModal('${ct.id}')">解除</button>` : ''}</div>
                         `;
                         tListEl.appendChild(card);
                     });
                 }
                 container.appendChild(tListEl);
 
-            } else {
+            } else if (circleRoomSubTab === 'chat') {
                 const chatBox = document.createElement('div');
                 chatBox.className = 'chat-box-container';
                 chatBox.innerHTML = `
@@ -2531,31 +1437,143 @@
                     </form>
                 `;
                 container.appendChild(chatBox);
-
                 const msgArea = document.getElementById('circle-chat-messages');
                 if (msgArea) {
                     if (chats.length === 0) {
-                        msgArea.innerHTML = `
-                            <div style="text-align:center; color:var(--text-secondary); font-size:0.75rem; margin:auto;">
-                                💬 まだメッセージがありません。<br>最初のメッセージを送ってみよう！
-                            </div>
-                        `;
+                        msgArea.innerHTML = `<div style="text-align:center; color:var(--text-secondary); font-size:0.75rem; margin:auto;">💬 まだメッセージがありません。<br>最初のメッセージを送ってみよう！</div>`;
                     } else {
                         chats.forEach(m => {
                             const isMe = currentUser && m.uid === currentUser.uid;
                             const row = document.createElement('div');
                             row.className = `chat-bubble-row ${isMe ? 'me' : 'other'}`;
-                            row.innerHTML = `
-                                <div class="chat-sender-name">${isMe ? 'あなた' : (m.senderName || 'メンバー')}</div>
-                                <div class="chat-bubble">${m.text}</div>
-                                <div class="chat-time">${m.time || ''}</div>
-                            `;
+                            row.innerHTML = `<div class="chat-sender-name">${isMe ? 'あなた' : (m.senderName || 'メンバー')}</div><div class="chat-bubble">${m.text}</div><div class="chat-time">${m.time || ''}</div>`;
                             msgArea.appendChild(row);
                         });
                         msgArea.scrollTop = msgArea.scrollHeight;
                     }
                 }
+
+            } else if (circleRoomSubTab === 'members') {
+                const memWrapper = document.createElement('div');
+                container.appendChild(memWrapper);
+
+                // ホスト専用：参加申請（承認待ち）リスト
+                if (isHost && pending.length > 0) {
+                                       const pendTitle = document.createElement('div');
+                    pendTitle.style.cssText = 'font-size:0.82rem; font-weight:800; color:var(--rank-gold); margin-bottom:8px;';
+                    pendTitle.innerHTML = `📩 参加承認待ちのユーザー (${pending.length}人)`;
+                    memWrapper.appendChild(pendTitle);
+
+                    const pendListEl = document.createElement('div');
+                    pendListEl.style.marginBottom = '18px';
+                    memWrapper.appendChild(pendListEl);
+
+                    for (const pUid of pending) {
+                        const uInfo = await fetchBasicUserInfo(pUid);
+                        const avatarHTML = uInfo.avatar 
+                            ? `<img src="${uInfo.avatar}" class="feed-avatar">` 
+                            : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
+
+                        const pCard = document.createElement('div');
+                        pCard.className = 'feed-card';
+                        pCard.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:10px 14px;';
+                        pCard.innerHTML = `
+                            <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openUserFromFeed('${pUid}')">
+                                ${avatarHTML}
+                                <div>
+                                    <div style="font-size:0.85rem; font-weight:700;">${uInfo.displayName}</div>
+                                    <div style="font-size:0.65rem; color:var(--text-secondary);">@${uInfo.username}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:6px;">
+                                <button class="approve-btn" onclick="approveCircleMember('${circle.id}', '${pUid}')">承認</button>
+                                <button class="delete-btn" style="padding:6px 10px; font-size:0.7rem;" onclick="rejectCircleMember('${circle.id}', '${pUid}')">拒否</button>
+                            </div>
+                        `;
+                        pendListEl.appendChild(pCard);
+                    }
+                }
+
+                // 参加メンバー一覧
+                const memTitle = document.createElement('div');
+                memTitle.style.cssText = 'font-size:0.82rem; font-weight:800; color:var(--text-primary); margin-bottom:8px;';
+                memTitle.innerHTML = `👥 参加メンバー一覧 (${members.length}人)`;
+                memWrapper.appendChild(memTitle);
+
+                const memListEl = document.createElement('div');
+                memWrapper.appendChild(memListEl);
+
+                for (const mUid of members) {
+                    const uInfo = await fetchBasicUserInfo(mUid);
+                    const isCircleHost = (mUid === circle.hostUid);
+                    const avatarHTML = uInfo.avatar 
+                        ? `<img src="${uInfo.avatar}" class="feed-avatar">` 
+                        : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
+
+                    const mCard = document.createElement('div');
+                    mCard.className = 'feed-card';
+                    mCard.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:10px 14px; cursor:pointer;';
+                    mCard.innerHTML = `
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            ${avatarHTML}
+                            <div>
+                                <div style="font-size:0.85rem; font-weight:700;">
+                                    ${uInfo.displayName}
+                                    ${isCircleHost ? '<span style="font-size:0.6rem; background:var(--surface-hover); border:1px solid var(--border-light); padding:2px 6px; border-radius:4px; margin-left:6px;">👑 ホスト</span>' : ''}
+                                </div>
+                                <div style="font-size:0.65rem; color:var(--text-secondary);">@${uInfo.username} ・ ${uInfo.bio || ''}</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                    `;
+                    mCard.onclick = () => openUserFromFeed(mUid);
+                    memListEl.appendChild(mCard);
+                }
             }
+        }
+
+        async function changeCircleJoinPolicy(circleId, newPolicy) {
+            if (!currentUser) return;
+            const targetCircle = activeCircles.find(c => c.id === circleId);
+            if (!targetCircle || targetCircle.hostUid !== currentUser.uid) return;
+
+            targetCircle.joinPolicy = newPolicy;
+            await saveCircleSafe(circleId, targetCircle);
+            showNotification(`参加ルールを「${newPolicy === 'approval' ? '承認制' : '自由参加'}」に変更しました`, 'POLICY UPDATED');
+            renderCircleRoomView(targetCircle);
+        }
+
+        async function approveCircleMember(circleId, targetUid) {
+            if (!currentUser) return;
+            const targetCircle = activeCircles.find(c => c.id === circleId);
+            if (!targetCircle || targetCircle.hostUid !== currentUser.uid) return;
+
+            targetCircle.pendingMembers = (targetCircle.pendingMembers || []).filter(id => id !== targetUid);
+            if (!Array.isArray(targetCircle.members)) targetCircle.members = [];
+            if (!targetCircle.members.includes(targetUid)) targetCircle.members.push(targetUid);
+
+            await saveCircleSafe(circleId, targetCircle);
+
+            try {
+                await db.collection('users').doc(targetUid).set({
+                    joinedCircles: firebase.firestore.FieldValue.arrayUnion(circleId)
+                }, { merge: true });
+            } catch (e) {}
+
+            sendNotification(targetUid, 'circle_approved', `がサークル「${targetCircle.circleName}」への参加を承認しました！`);
+            showNotification('メンバーの参加を承認しました！', 'MEMBER APPROVED');
+            renderCircleRoomView(targetCircle);
+        }
+
+        async function rejectCircleMember(circleId, targetUid) {
+            if (!currentUser) return;
+            const targetCircle = activeCircles.find(c => c.id === circleId);
+            if (!targetCircle || targetCircle.hostUid !== currentUser.uid) return;
+
+            targetCircle.pendingMembers = (targetCircle.pendingMembers || []).filter(id => id !== targetUid);
+            await saveCircleSafe(circleId, targetCircle);
+            showNotification('参加申請を拒否しました', 'REQUEST REJECTED');
+            renderCircleRoomView(targetCircle);
         }
 
         async function sendCircleChatMessage(circleId) {
@@ -2601,6 +1619,7 @@
 
             await deleteCircleCompletely(circleId);
             currentActiveCircleId = null;
+            circleViewMode = 'list';
             await loadCircleTrophiesForBoard();
             showNotification(`サークル「${targetCircle.circleName}」を解散しました`, 'CIRCLE DISBANDED');
             renderCircleView();
@@ -2622,6 +1641,7 @@
             syncProfileToCloudBackground(uid, myProfile);
 
             currentActiveCircleId = null;
+            circleViewMode = 'list';
             showNotification('サークルを退会しました', 'CIRCLE LEFT');
             renderCircleView();
         }
@@ -2630,8 +1650,10 @@
             if (!currentUser) return;
             const nameInput = document.getElementById('circle-name-input');
             const bioInput = document.getElementById('circle-bio-input');
+            const policySelect = document.getElementById('circle-policy-select');
             const cName = nameInput.value.trim();
             const cBio = bioInput.value.trim();
+            const cPolicy = policySelect ? policySelect.value : 'open';
 
             if (!cName) return alert('サークル名を入力してください');
 
@@ -2642,9 +1664,11 @@
                 isCircleDoc: true,
                 circleName: cName,
                 circleBio: cBio,
+                joinPolicy: cPolicy,
                 hostUid: currentUser.uid,
                 hostName: myProfile.displayName || myProfile.username || 'ユーザー',
                 members: [currentUser.uid],
+                pendingMembers: [],
                 circleTrophies: [],
                 chatMessages: [],
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2814,7 +1838,7 @@
         }
 
         /* -------------------------------------------------------------
-           ホーム（タイムライン）View
+           ホーム（タイムライン）View：フォローしている人（＋自分）の投稿のみ表示
         ------------------------------------------------------------- */
         async function renderFeedView() {
             const container = document.getElementById('main-container');
@@ -2822,8 +1846,11 @@
             container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">タイムライン読み込み中...</div>';
 
             try {
-                const snapshot = await withTimeout(db.collection('posts').orderBy('createdAt', 'desc').limit(40).get(), 3000);
-                container.innerHTML = '<div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">📡 タイムライン</div>';
+                const snapshot = await withTimeout(db.collection('posts').orderBy('createdAt', 'desc').limit(80).get(), 3000);
+                container.innerHTML = '<div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">📡 タイムライン (フォロー中)</div>';
+
+                const followingList = Array.isArray(myProfile.following) ? myProfile.following : [];
+                const allowedUids = currentUser ? [...followingList, currentUser.uid] : followingList;
 
                 const allTrophiesList = getAllTrophies();
                 let realPostCount = 0;
@@ -2832,6 +1859,9 @@
                     snapshot.forEach(doc => {
                         const post = doc.data();
                         if (post.isProfileIndex || post.isCircleDoc) return;
+                        // フォローしているユーザー（および自分自身）以外の投稿はスキップ
+                        if (!allowedUids.includes(post.uid)) return;
+
                         realPostCount++;
 
                         const postId = doc.id;
@@ -2914,7 +1944,7 @@
 
                         const imgBtn = document.getElementById(`feed-img-${postId}`);
                         if (imgBtn) {
-                            imgBtn.onclick = () => openPhotoLightbox(post.photo, post.trophyName || '実績', post.condition || '', post.date || '', post.comment || '', postId, post.uid);
+                            imgBtn.onclick = () => openPhotoLightbox(post.photo, post.trophyName || '実績', post.condition || '', post.date || '', post.comment || '', postId, post.uid, post.trophyId);
                         }
 
                         const shareBtn = document.getElementById(`feed-share-${postId}`);
@@ -2925,7 +1955,11 @@
                 }
 
                 if (realPostCount === 0) {
-                    container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">まだ投稿がありません。実績を解除してタイムラインに流そう！</div>';
+                    container.innerHTML += `
+                        <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">
+                            フォローしているユーザーの投稿がまだありません。<br>「検索」タブから友達を探してフォローしてみましょう！
+                        </div>
+                    `;
                 }
             } catch (e) {
                 container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">タイムラインの読み込みに失敗しました</div>';
@@ -3125,7 +2159,7 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View
+           マイページ View（サムネイルタップでいいね数・コメント表示）
         ------------------------------------------------------------- */
         async function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -3166,7 +2200,7 @@
 
             const albumTitle = document.createElement('div');
             albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
-            albumTitle.innerHTML = '📸 実績フォトギャラリー (タップで拡大)';
+            albumTitle.innerHTML = '📸 実績フォトギャラリー (タップで詳細・いいね・コメント表示)';
             container.appendChild(albumTitle);
 
             const grid = document.createElement('div');
@@ -3190,7 +2224,7 @@
                         <img src="${item.photo}" alt="${trophyName}">
                         <div class="gallery-item-title">${trophyName}</div>
                     `;
-                    el.onclick = () => openPhotoLightbox(item.photo, trophyName, trophyCondition, date, comment, null, null);
+                    el.onclick = () => openPhotoLightbox(item.photo, trophyName, trophyCondition, date, comment, null, currentUser ? currentUser.uid : null, id);
                     grid.appendChild(el);
                 }
             });
@@ -3202,7 +2236,8 @@
             }
         }
 
-        async function openPhotoLightbox(photoSrc, trophyName, conditionText, dateStr, commentText, postId = null, postOwnerUid = null) {
+        // 写真ライトボックス：対応するタイムライン投稿から「いいね数」と「コメント一覧」を自動取得して表示
+        async function openPhotoLightbox(photoSrc, trophyName, conditionText, dateStr, commentText, postId = null, postOwnerUid = null, trophyId = null) {
             document.getElementById('lightbox-title').innerText = `🏆 ${trophyName || '実績'}`;
             document.getElementById('lightbox-image').src = photoSrc;
             
@@ -3222,21 +2257,70 @@
                 commentEl.style.display = 'block';
                 commentEl.style.color = 'var(--text-primary)';
             } else {
-                commentEl.innerText = '（コメントなし）';
+                commentEl.innerText = '（思い出コメントなし）';
                 commentEl.style.display = 'block';
                 commentEl.style.color = 'var(--text-secondary)';
             }
 
+            // 初期状態リセット
+            const likesCountEl = document.getElementById('lightbox-likes-count');
+            const commentsCountEl = document.getElementById('lightbox-comments-count');
+            const commentsListEl = document.getElementById('lightbox-comments-list');
+            if (likesCountEl) likesCountEl.innerText = '0';
+            if (commentsCountEl) commentsCountEl.innerText = '0';
+            if (commentsListEl) commentsListEl.innerHTML = '<div style="color:var(--text-secondary); font-size:0.72rem;">読み込み中...</div>';
+
             const delContainer = document.getElementById('lightbox-delete-container');
             const delBtn = document.getElementById('lightbox-delete-post-btn');
-            if (currentUser && postOwnerUid && currentUser.uid === postOwnerUid && postId) {
-                delContainer.style.display = 'block';
-                delBtn.onclick = () => deletePostByPostId(postId, null);
-            } else {
-                delContainer.style.display = 'none';
-            }
+            if (delContainer) delContainer.style.display = 'none';
 
             openModal('photo-lightbox-modal');
+
+            // Firestoreから該当投稿のいいね＆コメントを取得
+            try {
+                let matchedPostDoc = null;
+                if (postId) {
+                    const doc = await withTimeout(db.collection('posts').doc(postId).get(), 2000);
+                    if (doc && doc.exists) matchedPostDoc = doc;
+                } else if (postOwnerUid) {
+                    const snap = await withTimeout(db.collection('posts').where('uid', '==', postOwnerUid).get(), 2000);
+                    if (snap && !snap.empty) {
+                        snap.forEach(d => {
+                            const p = d.data();
+                            if (p.isProfileIndex || p.isCircleDoc) return;
+                            if ((trophyId !== null && String(p.trophyId) === String(trophyId)) || (p.trophyName === trophyName && p.date === dateStr)) {
+                                matchedPostDoc = d;
+                            }
+                        });
+                    }
+                }
+
+                if (matchedPostDoc) {
+                    const pData = matchedPostDoc.data();
+                    const likesArr = Array.isArray(pData.likes) ? pData.likes : [];
+                    const commentsArr = Array.isArray(pData.comments) ? pData.comments : [];
+
+                    if (likesCountEl) likesCountEl.innerText = String(likesArr.length);
+                    if (commentsCountEl) commentsCountEl.innerText = String(commentsArr.length);
+
+                    if (commentsListEl) {
+                        if (commentsArr.length === 0) {
+                            commentsListEl.innerHTML = '<div style="color:var(--text-secondary); font-size:0.72rem;">まだコメントはありません</div>';
+                        } else {
+                            commentsListEl.innerHTML = commentsArr.map(c => `<div class="comment-item"><b>${c.displayName || c.username || 'ユーザー'}:</b> ${c.text}</div>`).join('');
+                        }
+                    }
+
+                    if (currentUser && postOwnerUid === currentUser.uid && delContainer && delBtn) {
+                        delContainer.style.display = 'block';
+                        delBtn.onclick = () => deletePostByPostId(matchedPostDoc.id, trophyId || pData.trophyId);
+                    }
+                } else {
+                    if (commentsListEl) commentsListEl.innerHTML = '<div style="color:var(--text-secondary); font-size:0.72rem;">まだコメントはありません</div>';
+                }
+            } catch (e) {
+                if (commentsListEl) commentsListEl.innerHTML = '<div style="color:var(--text-secondary); font-size:0.72rem;">まだコメントはありません</div>';
+            }
         }
 
         function openUnlockedManageModal() {
@@ -3420,7 +2504,7 @@
                         <img src="${item.photo}">
                         <div class="gallery-item-title">${tName}</div>
                     `;
-                    el.onclick = () => openPhotoLightbox(item.photo, tName, tCond, item.date || '', item.comment || '', null, null);
+                    el.onclick = () => openPhotoLightbox(item.photo, tName, tCond, item.date || '', item.comment || '', null, uid, id);
                     grid.appendChild(el);
                 }
             });
@@ -3437,6 +2521,8 @@
 
             allTargetTrophies.forEach(t => {
                 const isUnlocked = !!targetState[t.id];
+                if (t.isLimited && !isUnlocked && !isCurrentMonthActive(t.year, t.month)) return;
+
                 const rankClass = `rank-${t.rank || 'bronze'}`;
                 if (isUnlocked) {
                     if (count[t.rank] !== undefined) count[t.rank]++;
@@ -3450,7 +2536,10 @@
                     ? `<img src="${targetState[t.id].photo}" alt="Photo">`
                     : `<i class="fa-solid fa-trophy"></i>`;
 
-                const displayNameStr = t.isCustom ? `✨ ${t.name}` : (t.isUltimate ? `★ ${t.name}` : t.name);
+                let displayNameStr = t.name;
+                if (t.isLimited) displayNameStr = `⏳ ${t.name}`;
+                else if (t.isCustom) displayNameStr = `✨ ${t.name}`;
+                else if (t.isUltimate) displayNameStr = `★ ${t.name}`;
 
                 card.innerHTML = `
                     <div class="icon-box ${rankClass}">${iconContent}</div>
@@ -3601,32 +2690,29 @@
             try {
                 listContainer.innerHTML = '';
                 for (let uid of targetIds) {
-                    const userDoc = await withTimeout(db.collection('users').doc(uid).get(), 2000);
-                    if (userDoc && userDoc.exists) {
-                        const data = userDoc.data();
-                        const avatarHTML = data.avatar 
-                            ? `<img src="${data.avatar}" class="feed-avatar">` 
-                            : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
+                    const uInfo = await fetchBasicUserInfo(uid);
+                    const avatarHTML = uInfo.avatar 
+                        ? `<img src="${uInfo.avatar}" class="feed-avatar">` 
+                        : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
 
-                        const card = document.createElement('div');
-                        card.className = 'feed-card';
-                        card.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:10px 14px; cursor:pointer;';
-                        card.innerHTML = `
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                ${avatarHTML}
-                                <div>
-                                    <div style="font-size:0.85rem; font-weight:700;">${data.displayName || data.username}</div>
-                                    <div style="font-size:0.65rem; color:var(--text-secondary);">@${data.username}</div>
-                                </div>
+                    const card = document.createElement('div');
+                    card.className = 'feed-card';
+                    card.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:10px 14px; cursor:pointer;';
+                    card.innerHTML = `
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            ${avatarHTML}
+                            <div>
+                                <div style="font-size:0.85rem; font-weight:700;">${uInfo.displayName}</div>
+                                <div style="font-size:0.65rem; color:var(--text-secondary);">@${uInfo.username}</div>
                             </div>
-                            <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary); font-size:0.8rem;"></i>
-                        `;
-                        card.onclick = () => {
-                            closeModal('follow-list-modal');
-                            viewUserProfile(uid, data);
-                        };
-                        listContainer.appendChild(card);
-                    }
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary); font-size:0.8rem;"></i>
+                    `;
+                    card.onclick = () => {
+                        closeModal('follow-list-modal');
+                        openUserFromFeed(uid);
+                    };
+                    listContainer.appendChild(card);
                 }
             } catch (e) {
                 listContainer.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">読み込みに失敗しました</div>';

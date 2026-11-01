@@ -731,7 +731,7 @@
         </div>
     </div>
 
-    <!-- Initial Profile Setup Modal (待機ゼロ・即時完了仕様) -->
+    <!-- Initial Profile Setup Modal -->
     <div class="modal" id="username-modal" style="z-index: 2500;">
         <div class="modal-content">
             <div class="modal-title">✨ プロフィール初期設定</div>
@@ -889,7 +889,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v3.0</span>
+                Life Trophies <span class="version-badge">v3.1</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -1262,9 +1262,6 @@
             openModal('username-modal');
         }
 
-        /* -------------------------------------------------------------
-           初期プロフィール保存（完全同期・待機ゼロ・フリーズ100%防止）
-        ------------------------------------------------------------- */
         function saveInitialProfile() {
             const user = currentUser || auth.currentUser;
             if (!user) {
@@ -1298,16 +1295,13 @@
                 updatedAt: new Date().toISOString()
             };
 
-            // 1. まずローカルに即座に確定保存
             myProfile = Object.assign({}, profileData);
             saveProfileToLocalCache(uid, myProfile);
 
-            // 2. 待機ゼロ（ボタンのグレーアウトも一切なし）で即座にモーダルを閉じて画面表示
             closeModal('username-modal');
             switchMainTab('profile');
             showNotification(`ようこそ、${displayName} (@${username}) さん！`, 'PROFILE COMPLETED');
 
-            // 3. クラウドへの保存はすべてバックグラウンドで実行
             syncProfileToCloudBackground(uid, profileData);
         }
 
@@ -1432,7 +1426,6 @@
             customTrophies = mergedCustom;
             switchMainTab(activeTab);
 
-            // クラウド側の追加データは後から非同期でマージして再描画
             try {
                 const statusDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('status').get(), 2000);
                 if (statusDoc && statusDoc.exists && statusDoc.data()) Object.assign(userState, statusDoc.data());
@@ -1990,7 +1983,7 @@
         }
 
         /* -------------------------------------------------------------
-           他人のプロフィール画面 View
+           他人のプロフィール画面 View (フォロー・フォロワー連動強化)
         ------------------------------------------------------------- */
         async function viewUserProfile(uid, profileData) {
             if (profileData.privacy === 'followers' && !profileData.followers?.includes(currentUser.uid)) {
@@ -1999,9 +1992,15 @@
             }
 
             let targetState = profileData.trophyStatus || {};
+            let freshTargetData = Object.assign({}, profileData);
+
             try {
-                const doc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('status').get(), 2000);
-                if (doc && doc.exists) targetState = Object.assign({}, targetState, doc.data());
+                const doc = await withTimeout(db.collection('users').doc(uid).get(), 2000);
+                if (doc && doc.exists) {
+                    freshTargetData = Object.assign(freshTargetData, doc.data());
+                }
+                const statusDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('status').get(), 2000);
+                if (statusDoc && statusDoc.exists) targetState = Object.assign({}, targetState, statusDoc.data());
                 const unlockedSnap = await withTimeout(db.collection('users').doc(uid).collection('unlocked_items').get(), 2000);
                 if (unlockedSnap) unlockedSnap.forEach(d => { targetState[d.id] = d.data(); });
             } catch (e) {}
@@ -2022,7 +2021,7 @@
                 }
             } catch (e) {}
 
-            profileData.uid = uid;
+            freshTargetData.uid = uid;
             
             const statsBox = document.getElementById('stats-grid-box');
             statsBox.style.display = 'grid';
@@ -2038,21 +2037,23 @@
             const headerBox = document.createElement('div');
             headerBox.className = 'profile-card-header';
             
-            const avatarHTML = profileData.avatar 
-                ? `<img src="${profileData.avatar}" class="profile-avatar-large">` 
+            const avatarHTML = freshTargetData.avatar 
+                ? `<img src="${freshTargetData.avatar}" class="profile-avatar-large">` 
                 : `<div class="profile-avatar-large"><i class="fa-solid fa-user"></i></div>`;
 
             const isFollowing = (myProfile.following || []).includes(uid);
+            const followersCount = (freshTargetData.followers || []).length;
+            const followingCount = (freshTargetData.following || []).length;
 
             headerBox.innerHTML = `
                 ${avatarHTML}
                 <div class="profile-info">
-                    <div class="profile-displayname">${profileData.displayName || profileData.username || 'ユーザー'}</div>
-                    <div class="profile-username">@${profileData.username || 'user'}</div>
-                    <div class="profile-bio">${profileData.bio || 'ステータス未設定'}</div>
+                    <div class="profile-displayname">${freshTargetData.displayName || freshTargetData.username || 'ユーザー'}</div>
+                    <div class="profile-username">@${freshTargetData.username || 'user'}</div>
+                    <div class="profile-bio">${freshTargetData.bio || 'ステータス未設定'}</div>
                     <div class="follow-stats-row">
-                        <div>フォロー <span>${(profileData.following || []).length}</span></div>
-                        <div>フォロワー <span>${(profileData.followers || []).length}</span></div>
+                        <div>フォロー <span>${followingCount}</span></div>
+                        <div>フォロワー <span id="target-followers-count">${followersCount}</span></div>
                     </div>
                     <button class="btn-action-small ${isFollowing ? 'following' : ''}" id="follow-toggle-btn" onclick="toggleFollow('${uid}')">${isFollowing ? 'フォロー中' : 'フォローする'}</button>
                 </div>
@@ -2429,7 +2430,7 @@
         }
 
         /* -------------------------------------------------------------
-           ユーザー検索 View
+           ユーザー検索 View (文字入力時のみ絞り込み表示する仕様)
         ------------------------------------------------------------- */
         function renderSearchView() {
             const container = document.getElementById('main-container');
@@ -2439,9 +2440,12 @@
                     <input type="text" id="search-query" class="form-input" placeholder="ユーザーID (@なしでもOK) や表示名を入力..." style="margin-bottom:0;" oninput="searchUsers()">
                     <button class="modal-btn" style="width: 90px; margin-top:0;" onclick="searchUsers()">検索</button>
                 </div>
-                <div id="search-results"></div>
+                <div id="search-results">
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">
+                        検索したいユーザーのIDまたは名前を入力してください
+                    </div>
+                </div>
             `;
-            searchUsers();
         }
 
         async function searchUsers() {
@@ -2449,6 +2453,17 @@
             if (!qInput) return;
             const rawQ = qInput.value.trim().replace(/^@/, '').toLowerCase();
             const resultsEl = document.getElementById('search-results');
+
+            // 文字が何も入力されていない場合は検索結果を出さない（非表示）
+            if (!rawQ) {
+                resultsEl.innerHTML = `
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">
+                        検索したいユーザーのIDまたは名前を入力してください
+                    </div>
+                `;
+                return;
+            }
+
             resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:16px;">ユーザーを検索中...</div>';
 
             const userMap = {};
@@ -2503,7 +2518,6 @@
             const allUsers = Object.values(userMap);
 
             const matchedUsers = allUsers.filter(u => {
-                if (!rawQ) return true;
                 const uName = String(u.username || '').toLowerCase();
                 const dName = String(u.displayName || '').toLowerCase();
                 return uName.includes(rawQ) || dName.includes(rawQ);
@@ -2511,11 +2525,11 @@
 
             const headerLabel = document.createElement('div');
             headerLabel.style.cssText = 'font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:10px;';
-            headerLabel.innerText = rawQ ? `「${rawQ}」の検索結果 (${matchedUsers.length}件)` : `登録ユーザー一覧 (${matchedUsers.length}名)`;
+            headerLabel.innerText = `「${rawQ}」の検索結果 (${matchedUsers.length}件)`;
             resultsEl.appendChild(headerLabel);
 
             if (matchedUsers.length === 0) {
-                resultsEl.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:24px; background:var(--surface-card); border-radius:12px;">他の登録ユーザーがまだいないか、一致するユーザーが見つかりませんでした</div>';
+                resultsEl.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:24px; background:var(--surface-card); border-radius:12px;">一致するユーザーが見つかりませんでした</div>';
                 return;
             }
 
@@ -2542,30 +2556,57 @@
             });
         }
 
-        function toggleFollow(targetUid) {
+        /* -------------------------------------------------------------
+           フォロー / フォロワー機能 (即時反映・通知連動)
+        ------------------------------------------------------------- */
+        async function toggleFollow(targetUid) {
             if (!currentUser) return;
+            const myUid = currentUser.uid;
+            if (myUid === targetUid) return;
+
             const isFollowing = (myProfile.following || []).includes(targetUid);
-            const myRef = db.collection('users').doc(currentUser.uid);
+            const myRef = db.collection('users').doc(myUid);
             const targetRef = db.collection('users').doc(targetUid);
 
-            if (isFollowing) {
-                myProfile.following = myProfile.following.filter(id => id !== targetUid);
-                myRef.set({ following: firebase.firestore.FieldValue.arrayRemove(targetUid) }, { merge: true }).catch(()=>{});
-                targetRef.set({ followers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) }, { merge: true }).catch(()=>{});
-            } else {
-                if (!myProfile.following) myProfile.following = [];
-                myProfile.following.push(targetUid);
-                myRef.set({ following: firebase.firestore.FieldValue.arrayUnion(targetUid) }, { merge: true }).catch(()=>{});
-                targetRef.set({ followers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) }, { merge: true }).catch(()=>{});
-                sendNotification(targetUid, 'follow', 'があなたをフォローしました。');
-            }
-            saveProfileToLocalCache(currentUser.uid, myProfile);
-
-            showNotification(isFollowing ? 'フォロー解除しました' : 'フォローしました', 'FOLLOW');
             const btn = document.getElementById('follow-toggle-btn');
-            if (btn) {
-                btn.className = `btn-action-small ${!isFollowing ? 'following' : ''}`;
-                btn.innerText = !isFollowing ? 'フォロー中' : 'フォローする';
+            const countEl = document.getElementById('target-followers-count');
+
+            if (btn) btn.disabled = true;
+
+            try {
+                let currentFollowersCount = countEl ? parseInt(countEl.innerText) || 0 : 0;
+
+                if (isFollowing) {
+                    myProfile.following = (myProfile.following || []).filter(id => id !== targetUid);
+                    await myRef.set({ following: firebase.firestore.FieldValue.arrayRemove(targetUid) }, { merge: true });
+                    await targetRef.set({ followers: firebase.firestore.FieldValue.arrayRemove(myUid) }, { merge: true });
+                    
+                    if (countEl) countEl.innerText = Math.max(0, currentFollowersCount - 1);
+                    if (btn) {
+                        btn.className = 'btn-action-small';
+                        btn.innerText = 'フォローする';
+                    }
+                    showNotification('フォローを解除しました', 'FOLLOW');
+                } else {
+                    if (!myProfile.following) myProfile.following = [];
+                    myProfile.following.push(targetUid);
+                    await myRef.set({ following: firebase.firestore.FieldValue.arrayUnion(targetUid) }, { merge: true });
+                    await targetRef.set({ followers: firebase.firestore.FieldValue.arrayUnion(myUid) }, { merge: true });
+                    
+                    if (countEl) countEl.innerText = currentFollowersCount + 1;
+                    if (btn) {
+                        btn.className = 'btn-action-small following';
+                        btn.innerText = 'フォロー中';
+                    }
+                    showNotification('フォローしました！', 'FOLLOW');
+                    sendNotification(targetUid, 'follow', 'があなたをフォローしました。');
+                }
+
+                saveProfileToLocalCache(myUid, myProfile);
+            } catch (e) {
+                alert('フォロー処理に失敗しました: ' + e.message);
+            } finally {
+                if (btn) btn.disabled = false;
             }
         }
 

@@ -23,7 +23,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* デフォルト：ダークモード */
         :root {
             --bg-main: #000000;
             --surface-card: #0d0d0d;
@@ -34,10 +33,18 @@
             --text-secondary: #8e8e93;
             --text-tertiary: #48484a;
             --accent-red: #ff2d55;
-            --nav-bg: rgba(0, 0, 0, 0.92);
+            --nav-bg: rgba(0, 0, 0, 0.95);
+
+            --rank-platinum: #e5f7ff;
+            --rank-platinum-glow: rgba(162, 226, 255, 0.45);
+            --rank-gold: #ffd700;
+            --rank-gold-glow: rgba(255, 215, 0, 0.35);
+            --rank-silver: #c0c0c0;
+            --rank-silver-glow: rgba(192, 192, 192, 0.35);
+            --rank-bronze: #cd7f32;
+            --rank-bronze-glow: rgba(205, 127, 50, 0.35);
         }
 
-        /* ライトモード用変数 */
         body.light-mode {
             --bg-main: #f2f2f7;
             --surface-card: #ffffff;
@@ -48,15 +55,18 @@
             --text-secondary: #3a3a3c;
             --text-tertiary: #8e8e93;
             --accent-red: #ff3b30;
-            --nav-bg: rgba(255, 255, 255, 0.92);
+            --nav-bg: rgba(255, 255, 255, 0.95);
+
+            --rank-platinum: #0099cc;
+            --rank-gold: #d4af37;
+            --rank-silver: #7a7a80;
+            --rank-bronze: #b86b23;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -65,17 +75,16 @@
             color: var(--text-primary);
             font-family: 'Inter', 'Noto Sans JP', -apple-system, sans-serif;
             min-height: 100vh;
-            padding-bottom: 80px;
+            padding-bottom: 100px;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Header */
         header {
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 50;
             background: var(--nav-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -126,12 +135,14 @@
             font-size: 1.1rem;
             cursor: pointer;
             position: relative;
+            padding: 6px;
+            pointer-events: auto !important;
         }
 
         .notif-badge-dot {
             position: absolute;
-            top: -2px;
-            right: -2px;
+            top: 2px;
+            right: 2px;
             width: 8px;
             height: 8px;
             background: var(--accent-red);
@@ -151,7 +162,6 @@
             font-size: 1rem;
         }
 
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -171,20 +181,23 @@
             font-size: 0.55rem;
             font-weight: 800;
             letter-spacing: 1px;
-            color: var(--text-secondary);
             display: block;
             margin-bottom: 2px;
         }
 
+        .stat-badge.plat-stat .rank-label { color: var(--rank-platinum); }
+        .stat-badge.gold-stat .rank-label { color: var(--rank-gold); }
+        .stat-badge.silver-stat .rank-label { color: var(--rank-silver); }
+        .stat-badge.bronze-stat .rank-label { color: var(--rank-bronze); }
+
         .stat-badge .rank-val { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
 
-        /* Bottom Navigation Bar */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 60px;
+            height: 65px;
             background: var(--nav-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -192,7 +205,7 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            z-index: 1000;
+            z-index: 100;
             padding-bottom: env(safe-area-inset-bottom);
         }
 
@@ -202,7 +215,7 @@
             align-items: center;
             justify-content: center;
             color: var(--text-secondary);
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             font-weight: 600;
             gap: 3px;
             cursor: pointer;
@@ -210,23 +223,35 @@
             height: 100%;
             background: transparent;
             border: none;
-            transition: color 0.2s;
+            outline: none;
+            pointer-events: auto !important;
         }
 
         .nav-item.active { color: var(--text-primary); }
-        .nav-item i { font-size: 1.2rem; }
+        .nav-item i { font-size: 1.2rem; pointer-events: none; }
 
         .container {
             padding: 16px 20px;
             max-width: 600px;
             margin: 0 auto;
+            pointer-events: auto !important;
         }
 
-        /* Board Category Switcher */
         .category-tabs {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            margin-bottom: 14px;
+            background: var(--surface-card);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .category-tabs-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
             margin-bottom: 14px;
             background: var(--surface-card);
             padding: 4px;
@@ -235,15 +260,19 @@
         }
 
         .category-tab-btn {
-            padding: 10px;
+            padding: 8px 2px;
             border: none;
             border-radius: 8px;
             background: transparent;
             color: var(--text-secondary);
-            font-size: 0.8rem;
+            font-size: 0.65rem;
             font-weight: 800;
             cursor: pointer;
-            transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            pointer-events: auto !important;
         }
 
         .category-tab-btn.active {
@@ -251,7 +280,6 @@
             color: var(--bg-main);
         }
 
-        /* Profile Banner Box */
         .profile-card-header {
             background: var(--surface-card);
             border: 1px solid var(--border-color);
@@ -291,7 +319,7 @@
             color: var(--text-secondary);
             margin-bottom: 8px;
         }
-        .follow-stats-row div { cursor: pointer; }
+        .follow-stats-row div { cursor: pointer; pointer-events: auto !important; }
         .follow-stats-row span { font-weight: 700; color: var(--text-primary); }
 
         .btn-action-small {
@@ -303,6 +331,7 @@
             font-size: 0.7rem;
             font-weight: 700;
             cursor: pointer;
+            pointer-events: auto !important;
         }
 
         .btn-action-small.following {
@@ -310,7 +339,18 @@
             border-color: transparent;
         }
 
-        /* Trophy Card */
+        .btn-primary-small {
+            background: var(--text-primary);
+            border: 1px solid var(--text-primary);
+            color: var(--bg-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            cursor: pointer;
+            pointer-events: auto !important;
+        }
+
         .trophy-card {
             background: var(--surface-card);
             border: 1px solid var(--border-color);
@@ -320,7 +360,6 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            transition: all 0.2s ease;
             position: relative;
         }
 
@@ -330,8 +369,8 @@
         }
 
         .trophy-card.ultimate {
-            border: 1px solid var(--text-primary);
-            box-shadow: inset 0 0 15px rgba(128, 128, 128, 0.05);
+            border: 1px solid var(--rank-platinum);
+            box-shadow: inset 0 0 15px rgba(229, 247, 255, 0.08);
         }
 
         .icon-box {
@@ -343,10 +382,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             color: var(--text-tertiary);
             flex-shrink: 0;
             overflow: hidden;
+            transition: all 0.2s;
         }
 
         .icon-box img {
@@ -355,11 +395,15 @@
             object-fit: cover;
         }
 
-        .unlocked .icon-box {
-            color: var(--text-primary);
-            background: var(--surface-hover);
-            border-color: var(--border-light);
-        }
+        .icon-box.rank-platinum { color: var(--rank-platinum); opacity: 0.55; }
+        .icon-box.rank-gold { color: var(--rank-gold); opacity: 0.55; }
+        .icon-box.rank-silver { color: var(--rank-silver); opacity: 0.55; }
+        .icon-box.rank-bronze { color: var(--rank-bronze); opacity: 0.55; }
+
+        .unlocked .icon-box.rank-platinum { opacity: 1; border-color: var(--rank-platinum); box-shadow: 0 0 12px var(--rank-platinum-glow); }
+        .unlocked .icon-box.rank-gold { opacity: 1; border-color: rgba(255, 215, 0, 0.5); box-shadow: 0 0 10px var(--rank-gold-glow); }
+        .unlocked .icon-box.rank-silver { opacity: 1; border-color: rgba(192, 192, 192, 0.5); box-shadow: 0 0 10px var(--rank-silver-glow); }
+        .unlocked .icon-box.rank-bronze { opacity: 1; border-color: rgba(205, 127, 50, 0.5); box-shadow: 0 0 10px var(--rank-bronze-glow); }
 
         .trophy-info { flex-grow: 1; min-width: 0; }
         .trophy-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 3px; color: var(--text-primary); word-break: break-word; }
@@ -376,7 +420,13 @@
             background: var(--surface-hover);
             color: var(--text-secondary);
             text-transform: uppercase;
+            border: 1px solid transparent;
         }
+
+        .rank-tag.rank-platinum { color: var(--rank-platinum); border-color: rgba(229, 247, 255, 0.3); background: rgba(229, 247, 255, 0.08); }
+        .rank-tag.rank-gold { color: var(--rank-gold); border-color: rgba(255, 215, 0, 0.3); background: rgba(255, 215, 0, 0.08); }
+        .rank-tag.rank-silver { color: var(--rank-silver); border-color: rgba(192, 192, 192, 0.3); background: rgba(192, 192, 192, 0.08); }
+        .rank-tag.rank-bronze { color: var(--rank-bronze); border-color: rgba(205, 127, 50, 0.3); background: rgba(205, 127, 50, 0.08); }
 
         .unlocked-tag {
             font-size: 0.62rem;
@@ -397,6 +447,7 @@
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
+            pointer-events: auto !important;
         }
 
         .delete-btn {
@@ -409,6 +460,7 @@
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
+            pointer-events: auto !important;
         }
 
         .card-actions-group {
@@ -418,7 +470,6 @@
             flex-shrink: 0;
         }
 
-        /* Feed Card */
         .feed-card {
             background: var(--surface-card);
             border: 1px solid var(--border-color);
@@ -439,6 +490,7 @@
             align-items: center;
             gap: 12px;
             cursor: pointer;
+            pointer-events: auto !important;
         }
 
         .feed-avatar {
@@ -472,6 +524,7 @@
             border-radius: 10px;
             margin-bottom: 12px;
             cursor: pointer;
+            pointer-events: auto !important;
         }
 
         .feed-comment-box {
@@ -504,6 +557,7 @@
             align-items: center;
             gap: 6px;
             cursor: pointer;
+            pointer-events: auto !important;
         }
         .feed-action-btn.liked { color: var(--accent-red); }
 
@@ -521,7 +575,79 @@
             margin-top: 8px;
         }
 
-        /* 1列3枚のギャラリー */
+        .chat-box-container {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            height: 52vh;
+            min-height: 320px;
+        }
+
+        .chat-messages-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 4px;
+            margin-bottom: 12px;
+        }
+
+        .chat-bubble-row {
+            display: flex;
+            flex-direction: column;
+            max-width: 82%;
+        }
+
+        .chat-bubble-row.me {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .chat-bubble-row.other {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .chat-sender-name {
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+            margin-bottom: 3px;
+            padding: 0 4px;
+        }
+
+        .chat-bubble {
+            padding: 9px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .chat-bubble-row.me .chat-bubble {
+            background: var(--text-primary);
+            color: var(--bg-main);
+            border-bottom-right-radius: 2px;
+            font-weight: 500;
+        }
+
+        .chat-bubble-row.other .chat-bubble {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 2px;
+        }
+
+        .chat-time {
+            font-size: 0.55rem;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+            padding: 0 4px;
+        }
+
         .gallery-grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -535,6 +661,7 @@
             border-radius: 6px;
             background: var(--surface-card);
             cursor: pointer;
+            pointer-events: auto !important;
         }
 
         .gallery-item img {
@@ -556,7 +683,6 @@
             color: #fff;
         }
 
-        /* 解除済み実績管理カード */
         .unlocked-manage-card {
             background: var(--surface-hover);
             border: 1px solid var(--border-color);
@@ -578,7 +704,6 @@
             flex-shrink: 0;
         }
 
-        /* Notification Toast */
         #notification {
             position: fixed;
             top: calc(16px + env(safe-area-inset-top));
@@ -600,9 +725,8 @@
         }
 
         #notification.show { transform: translateX(-50%) translateY(0); }
-        .notif-icon { width: 36px; height: 36px; background: var(--bg-main); color: var(--text-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .notif-icon { width: 36px; height: 36px; background: var(--bg-main); color: var(--rank-gold); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-        /* Modals */
         .modal {
             display: none;
             position: fixed;
@@ -610,23 +734,21 @@
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(10px);
             z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
         }
 
-        .modal.active { display: flex; }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
 
         .modal-content {
             background: var(--surface-card);
             border: 1px solid var(--border-light);
             border-radius: 16px;
-            width: 100%;
+            width: 90%;
             max-width: 400px;
             padding: 24px;
             color: var(--text-primary);
             max-height: 85vh;
             overflow-y: auto;
+            pointer-events: auto !important;
         }
 
         .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; text-align: center; letter-spacing: 0.5px; }
@@ -643,6 +765,7 @@
             outline: none;
             user-select: text;
             -webkit-user-select: text;
+            pointer-events: auto !important;
         }
 
         .form-input:focus { border-color: var(--text-primary); }
@@ -662,6 +785,7 @@
             font-family: inherit;
             user-select: text;
             -webkit-user-select: text;
+            pointer-events: auto !important;
         }
 
         .form-textarea:focus { border-color: var(--text-primary); }
@@ -676,6 +800,7 @@
             font-size: 0.9rem;
             margin-bottom: 12px;
             outline: none;
+            pointer-events: auto !important;
         }
 
         .modal-btn {
@@ -689,6 +814,7 @@
             background: var(--text-primary);
             color: var(--bg-main);
             margin-top: 6px;
+            pointer-events: auto !important;
         }
 
         .modal-btn:disabled {
@@ -705,6 +831,7 @@
             margin-bottom: 16px;
             background: var(--surface-hover);
             transition: border-color 0.2s;
+            pointer-events: auto !important;
         }
 
         .photo-upload-zone.required-highlight {
@@ -713,7 +840,7 @@
 
         .photo-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
+        .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); pointer-events: auto !important; }
     </style>
 </head>
 <body>
@@ -732,13 +859,13 @@
     </div>
 
     <!-- Initial Profile Setup Modal -->
-    <div class="modal" id="username-modal" style="z-index: 2500;">
+    <div class="modal" id="username-modal">
         <div class="modal-content">
             <div class="modal-title">✨ プロフィール初期設定</div>
             <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 14px; text-align: center; line-height: 1.4;">
                 アカウント作成ありがとうございます！<br>検索やタイムラインで使用する<b>表示名</b>と<b>ユーザーID</b>を設定してください。
             </div>
-            <div id="setup-email-display" style="font-size: 0.7rem; color: var(--text-secondary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; text-align: center; word-break: break-all;"></div>
+            <div id="setup-email-display" style="font-size: 0.70rem; color: var(--text-secondary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; text-align: center; word-break: break-all;"></div>
             <input type="text" id="displayname-input" class="form-input" placeholder="表示名 (例: てるあき)">
             <input type="text" id="username-input" class="form-input" placeholder="ユーザーID・半角英数 (例: HR_40)">
             <input type="text" id="bio-input" class="form-input" placeholder="ステータスメッセージ (例: 人生の実績解除中！)">
@@ -858,14 +985,46 @@
             <input type="text" id="custom-title" class="form-input" placeholder="実績タイトル (例: 無限の彼方へ)">
             <input type="text" id="custom-condition" class="form-input" placeholder="達成条件 (例: 空を飛ぶ)">
             <select id="custom-rank" class="form-select">
-                <option value="bronze">BRONZE</option>
-                <option value="silver">SILVER</option>
-                <option value="gold">GOLD</option>
-                <option value="platinum">PLATINUM</option>
+                <option value="bronze">BRONZE (銅)</option>
+                <option value="silver">SILVER (銀)</option>
+                <option value="gold">GOLD (金)</option>
+                <option value="platinum">PLATINUM (白金)</option>
             </select>
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" onclick="closeModal('custom-trophy-modal')">キャンセル</button>
                 <button class="modal-btn" onclick="addCustomTrophy()">作成する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Circle Modal (サークル立ち上げ) -->
+    <div class="modal" id="create-circle-modal">
+        <div class="modal-content">
+            <div class="modal-title">⭕ サークルを立ち上げる</div>
+            <input type="text" id="circle-name-input" class="form-input" placeholder="サークル名 (例: 週末エンジニア部)">
+            <textarea id="circle-bio-input" class="form-textarea" placeholder="サークル自己紹介 (例: 一緒に新しいサービスを作ろう！)"></textarea>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeModal('create-circle-modal')">キャンセル</button>
+                <button class="modal-btn" onclick="createCircle()">立ち上げる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Circle Trophy Modal (サークル実績作成) -->
+    <div class="modal" id="circle-trophy-modal">
+        <div class="modal-content">
+            <div class="modal-title">⭕ サークル実績を作成</div>
+            <input type="text" id="circle-trophy-title" class="form-input" placeholder="実績タイトル (例: 初プルリク達成)">
+            <input type="text" id="circle-trophy-condition" class="form-input" placeholder="達成条件 (例: GitHubにPRを送る)">
+            <select id="circle-trophy-rank" class="form-select">
+                <option value="bronze">BRONZE (銅)</option>
+                <option value="silver">SILVER (銀)</option>
+                <option value="gold">GOLD (金)</option>
+                <option value="platinum">PLATINUM (白金)</option>
+            </select>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeModal('circle-trophy-modal')">キャンセル</button>
+                <button class="modal-btn" onclick="addCircleTrophy()">作成する</button>
             </div>
         </div>
     </div>
@@ -895,7 +1054,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v3.5</span>
+                Life Trophies <span class="version-badge">v1.0</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -907,16 +1066,16 @@
         </div>
 
         <div class="stats-grid" id="stats-grid-box">
-            <div class="stat-badge"><span class="rank-label">PLATINUM</span><span class="rank-val" id="count-plat">0</span></div>
-            <div class="stat-badge"><span class="rank-label">GOLD</span><span class="rank-val" id="count-gold">0</span></div>
-            <div class="stat-badge"><span class="rank-label">SILVER</span><span class="rank-val" id="count-silver">0</span></div>
-            <div class="stat-badge"><span class="rank-label">BRONZE</span><span class="rank-val" id="count-bronze">0</span></div>
+            <div class="stat-badge plat-stat"><span class="rank-label"><i class="fa-solid fa-trophy"></i> PLATINUM</span><span class="rank-val" id="count-plat">0</span></div>
+            <div class="stat-badge gold-stat"><span class="rank-label"><i class="fa-solid fa-trophy"></i> GOLD</span><span class="rank-val" id="count-gold">0</span></div>
+            <div class="stat-badge silver-stat"><span class="rank-label"><i class="fa-solid fa-trophy"></i> SILVER</span><span class="rank-val" id="count-silver">0</span></div>
+            <div class="stat-badge bronze-stat"><span class="rank-label"><i class="fa-solid fa-trophy"></i> BRONZE</span><span class="rank-val" id="count-bronze">0</span></div>
         </div>
     </header>
 
     <div class="container" id="main-container"></div>
 
-    <!-- Bottom Navigation Bar -->
+    <!-- 5タブ構成のボトムナビゲーションバー -->
     <nav class="bottom-nav">
         <button class="nav-item" id="nav-btn-feed" onclick="switchMainTab('feed')">
             <i class="fa-solid fa-house"></i>
@@ -925,6 +1084,10 @@
         <button class="nav-item active" id="nav-btn-trophies" onclick="switchMainTab('trophies')">
             <i class="fa-solid fa-trophy"></i>
             <span>実績</span>
+        </button>
+        <button class="nav-item" id="nav-btn-circle" onclick="switchMainTab('circle')">
+            <i class="fa-solid fa-circle-nodes"></i>
+            <span>サークル</span>
         </button>
         <button class="nav-item" id="nav-btn-search" onclick="switchMainTab('search')">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -956,14 +1119,21 @@
             measurementId: "G-YCH8JM2YCW"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         let currentUser = null;
         let userState = {};
-        let myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
+        let myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [], joinedCircles: [] };
         let customTrophies = [];
+        let circleTrophies = [];
+        let activeCircles = [];
+        let currentActiveCircleId = null;
+        let circleRoomSubTab = 'trophies';
+        let lastCircleSearchQuery = "";
         let revertedIds = [];
         let isSignUpMode = false;
         let isAuthProcessing = false;
@@ -1017,6 +1187,11 @@
             { id: 39, name: 'この日のために', condition: '大勢の前でダンスを披露する', rank: 'silver' },
             { id: 40, name: '拡散よろしく！', condition: 'イベントでコスプレをする', rank: 'silver' },
             { id: 41, name: 'のんびりスローライフ', condition: '無人島に上陸する', rank: 'silver' },
+            { id: 79, name: '重力への叛逆', condition: '懸垂を20回連続で行う', rank: 'silver' },
+            { id: 80, name: 'マイナスイオンが段違い', condition: '日本三大名瀑のうちいずれかを訪れる', rank: 'silver' },
+            { id: 81, name: '時空を超えた読書家', condition: '国立国会図書館に足を運び、資料を閲覧する', rank: 'silver' },
+            { id: 82, name: 'まだ見ぬ秘湯を求めて', condition: '日本三大古湯または日本三大名泉のいずれかに入浴する', rank: 'silver' },
+            { id: 83, name: 'ここで一句', condition: '日本三景のうちいずれかを見る', rank: 'silver' },
             { id: 42, name: 'あの夏の思い出', condition: 'カブト虫を捕まえる', rank: 'bronze' },
             { id: 43, name: '秘密のストライク', condition: 'ボウリングでストライクを取る', rank: 'bronze' },
             { id: 44, name: 'ブルズアイ', condition: 'ダーツでブルに入れる', rank: 'bronze' },
@@ -1050,11 +1225,35 @@
             { id: 72, name: '形勢逆転', condition: '麻雀で役満を上がる', rank: 'bronze' },
             { id: 73, name: 'なんのその', condition: '1人でファミリーレストランへ入店して食事する', rank: 'bronze' },
             { id: 74, name: 'いざラスベガスへ', condition: 'ポーカーでロイヤルフラッシュを完成させる', rank: 'bronze' },
-            { id: 75, name: '魂を賭けよう', condition: 'カードゲームエジプトで手札を見ずにエジプトを完成させる', rank: 'bronze' },
             { id: 76, name: '寿司屋へ行こう', condition: '釣りを6時間以上試み、一匹も釣り上げない', rank: 'bronze' },
             { id: 77, name: 'ゲーマー', condition: '1本のゲームタイトルを1000時間以上遊ぶ', rank: 'bronze' },
-            { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze' }
+            { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze' },
+            { id: 84, name: '抱えきれないほどの幸せ', condition: '駄菓子を2000円分購入する', rank: 'bronze' },
+            { id: 85, name: 'これで安心', condition: 'ライターや着火剤を使わず、火起こしを成功させる', rank: 'bronze' },
+            { id: 86, name: '知識の証明', condition: 'なんらかの国家資格または検定試験に合格する', rank: 'bronze' },
+            { id: 87, name: '文字通り', condition: 'セブンイレブンにて税込711円ピッタリ買い物をする', rank: 'bronze' },
+            { id: 88, name: 'スプリント！', condition: '全力疾走して自分の50m走のタイムを計測する', rank: 'bronze' },
+            { id: 89, name: '夜のピクニック', condition: '天体観測に行く', rank: 'bronze' },
+            { id: 90, name: 'ルーティンブレイカー', condition: 'よく行く飲食店で一度も頼んだことのないメニューを注文する', rank: 'bronze' }
         ];
+
+        const limitedTrophies202611 = [
+            { id: 'ym_2026_11_01', name: '黄金の絨毯2026', condition: 'イチョウ並木を歩き、黄色く染まった風景を撮影する', rank: 'gold', year: 2026, month: 11, isLimited: true },
+            { id: 'ym_2026_11_02', name: '錦秋の候2026', condition: 'ライトアップされた夜間の紅葉スポットを訪れる', rank: 'gold', year: 2026, month: 11, isLimited: true },
+            { id: 'ym_2026_11_03', name: '酉の市と秋の宵', condition: '秋祭り、酉の市、マルシェなどのイベントに訪れる', rank: 'silver', year: 2026, month: 11, isLimited: true },
+            { id: 'ym_2026_11_04', name: 'ゾロ目フィーバー！', condition: '11月11日11時11分に棒状のものを食べる', rank: 'silver', year: 2026, month: 11, isLimited: true },
+            { id: 'ym_2026_11_05', name: '冬支度の始まり', condition: '今年初めてコートやダウン、マフラーを着用して出かける', rank: 'bronze', year: 2026, month: 11, isLimited: true },
+            { id: 'ym_2026_11_06', name: 'ほかほかの誘惑', condition: '焼き芋を買って湯気が出ているうちに食べる', rank: 'bronze', year: 2026, month: 11, isLimited: true }
+        ];
+
+        function isCurrentMonthActive(year, month) {
+            const now = new Date();
+            return now.getFullYear() === year && (now.getMonth() + 1) === month;
+        }
+
+        function getActiveLimitedTrophies() {
+            return limitedTrophies202611.filter(t => isCurrentMonthActive(t.year, t.month) || userState[t.id]);
+        }
 
         function withTimeout(promise, ms = 2000) {
             return Promise.race([
@@ -1128,6 +1327,7 @@
                     bio: profileData.bio || "人生の実績解除中！",
                     userAvatar: profileData.avatar || "",
                     customTrophies: customTrophies || [],
+                    joinedCircles: myProfile.joinedCircles || [],
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true }).catch(() => {});
             } catch (e) {}
@@ -1208,19 +1408,25 @@
         }
 
         auth.onAuthStateChanged(async user => {
-            if (user) {
-                currentUser = user;
-                closeModal('auth-modal');
-                await checkProfileAndLoad();
-                checkUnreadNotifications();
-            } else {
-                currentUser = null;
-                userState = {};
-                customTrophies = [];
-                myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
-                setTheme("dark", false);
-                closeModal('username-modal');
-                openModal('auth-modal');
+            try {
+                if (user) {
+                    currentUser = user;
+                    closeModal('auth-modal');
+                    await checkProfileAndLoad();
+                    checkUnreadNotifications();
+                } else {
+                    currentUser = null;
+                    userState = {};
+                    customTrophies = [];
+                    circleTrophies = [];
+                    activeCircles = [];
+                    myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [], joinedCircles: [] };
+                    setTheme("dark", false);
+                    closeModal('username-modal');
+                    openModal('auth-modal');
+                    switchMainTab('trophies');
+                }
+            } catch (err) {
                 switchMainTab('trophies');
             }
         });
@@ -1255,7 +1461,8 @@
                             username: d.username,
                             bio: d.bio,
                             avatar: d.userAvatar,
-                            customTrophies: d.customTrophies || []
+                            customTrophies: d.customTrophies || [],
+                            joinedCircles: d.joinedCircles || []
                         });
                     }
                 } catch (e) {}
@@ -1277,7 +1484,8 @@
                     theme: source.theme || "dark",
                     privacy: source.privacy || "public",
                     following: Array.isArray(source.following) ? source.following : [],
-                    followers: Array.isArray(source.followers) ? source.followers : []
+                    followers: Array.isArray(source.followers) ? source.followers : [],
+                    joinedCircles: Array.isArray(source.joinedCircles) ? source.joinedCircles : []
                 };
 
                 saveProfileToLocalCache(uid, myProfile);
@@ -1300,9 +1508,12 @@
             if (emailDisp) {
                 emailDisp.innerText = `登録メールアドレス: ${currentUser.email || '確認済'}`;
             }
-            document.getElementById('displayname-input').value = myProfile.displayName || '';
-            document.getElementById('username-input').value = myProfile.username || '';
-            document.getElementById('bio-input').value = myProfile.bio || '';
+            const dInput = document.getElementById('displayname-input');
+            const uInput = document.getElementById('username-input');
+            const bInput = document.getElementById('bio-input');
+            if (dInput) dInput.value = myProfile.displayName || '';
+            if (uInput) uInput.value = myProfile.username || '';
+            if (bInput) bInput.value = myProfile.bio || '';
             openModal('username-modal');
         }
 
@@ -1337,6 +1548,7 @@
                 following: myProfile.following || [],
                 followers: myProfile.followers || [],
                 customTrophies: customTrophies || [],
+                joinedCircles: myProfile.joinedCircles || [],
                 updatedAt: new Date().toISOString()
             };
 
@@ -1478,6 +1690,9 @@
                 if (Array.isArray(userDocData.customTrophies) && userDocData.customTrophies.length > mergedCustom.length) {
                     mergedCustom = userDocData.customTrophies;
                 }
+                if (Array.isArray(userDocData.joinedCircles)) {
+                    myProfile.joinedCircles = userDocData.joinedCircles;
+                }
             }
 
             userState = mergedStatus;
@@ -1516,11 +1731,11 @@
                 const postsSnap = await withTimeout(db.collection('posts').where('uid', '==', uid).get(), 2500);
                 postsSnap.forEach(doc => {
                     const post = doc.data();
-                    if (post.isProfileIndex) return;
+                    if (post.isProfileIndex || post.isCircleDoc) return;
                     let tId = post.trophyId;
 
                     if (!tId && post.trophyName) {
-                        const matched = [...defaultTrophies, ...customTrophies].find(t => t.name === post.trophyName);
+                        const matched = [...defaultTrophies, ...customTrophies, ...limitedTrophies202611].find(t => t.name === post.trophyName);
                         if (matched) tId = matched.id;
                     }
 
@@ -1531,7 +1746,8 @@
                                 date: post.date || '復元済',
                                 photo: post.photo || null,
                                 comment: post.comment || '',
-                                condition: post.condition || ''
+                                condition: post.condition || '',
+                                trophyName: post.trophyName || ''
                             };
                             recoveredCount++;
                         }
@@ -1568,25 +1784,30 @@
         function switchMainTab(tab) {
             activeTab = tab;
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            if (document.getElementById(`nav-btn-${tab}`)) {
-                document.getElementById(`nav-btn-${tab}`).classList.add('active');
-            }
+            const activeBtn = document.getElementById(`nav-btn-${tab}`);
+            if (activeBtn) activeBtn.classList.add('active');
 
             const statsBox = document.getElementById('stats-grid-box');
-            if (tab === 'trophies' || tab === 'other-profile') {
-                statsBox.style.display = 'grid';
-            } else {
-                statsBox.style.display = 'none';
+            if (statsBox) {
+                if (tab === 'trophies' || tab === 'other-profile') {
+                    statsBox.style.display = 'grid';
+                } else {
+                    statsBox.style.display = 'none';
+                }
             }
 
             if (tab === 'trophies') renderTrophiesView();
             else if (tab === 'feed') renderFeedView();
+            else if (tab === 'circle') {
+                currentActiveCircleId = null;
+                renderCircleView();
+            }
             else if (tab === 'search') renderSearchView();
             else if (tab === 'profile') renderMyProfileView();
         }
 
         function getAllTrophies() {
-            return [...defaultTrophies, ...customTrophies];
+            return [...defaultTrophies, ...customTrophies, ...circleTrophies, ...getActiveLimitedTrophies()];
         }
 
         function setTheme(themeName, shouldSaveToDb = false) {
@@ -1613,10 +1834,151 @@
         }
 
         /* -------------------------------------------------------------
+           サークルデータのクラウド＆ローカルハイブリッド同期ヘルパー
+        ------------------------------------------------------------- */
+        function getDeletedCircleIds() {
+            try {
+                const s = localStorage.getItem('lt_deleted_circles');
+                return s ? JSON.parse(s) : [];
+            } catch (e) { return []; }
+        }
+
+        async function fetchAllCirclesSafe() {
+            const deletedIds = getDeletedCircleIds();
+            const circleMap = {};
+            try {
+                const localStr = localStorage.getItem('lt_circles_cache');
+                if (localStr) {
+                    JSON.parse(localStr).forEach(c => {
+                        if (c && c.id && !deletedIds.includes(c.id) && !c.isDeleted) {
+                            circleMap[c.id] = c;
+                        }
+                    });
+                }
+            } catch (e) {}
+
+            try {
+                const snap = await withTimeout(db.collection('posts').where('isCircleDoc', '==', true).get(), 2000);
+                if (snap) {
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        const cid = d.circleId || doc.id;
+                        if (!deletedIds.includes(cid) && !d.isDeleted) {
+                            circleMap[cid] = Object.assign({ id: cid }, d);
+                        }
+                    });
+                }
+            } catch (e) {}
+
+            try {
+                const snap2 = await withTimeout(db.collection('circles').get(), 1500);
+                if (snap2) {
+                    snap2.forEach(doc => {
+                        const d = doc.data();
+                        if (!deletedIds.includes(doc.id) && !d.isDeleted) {
+                            circleMap[doc.id] = Object.assign({ id: doc.id }, d);
+                        }
+                    });
+                }
+            } catch (e) {}
+
+            const list = Object.values(circleMap);
+            try {
+                localStorage.setItem('lt_circles_cache', JSON.stringify(list));
+            } catch (e) {}
+            return list;
+        }
+
+        async function saveCircleSafe(circleId, circleData) {
+            const payload = Object.assign({}, circleData, {
+                id: circleId,
+                circleId: circleId,
+                isCircleDoc: true
+            });
+
+            try {
+                const localStr = localStorage.getItem('lt_circles_cache');
+                let list = localStr ? JSON.parse(localStr) : [];
+                const idx = list.findIndex(c => c.id === circleId);
+                if (idx >= 0) list[idx] = Object.assign(list[idx], payload);
+                else list.unshift(payload);
+                localStorage.setItem('lt_circles_cache', JSON.stringify(list));
+            } catch (e) {}
+
+            try {
+                await db.collection('posts').doc(circleId).set(payload, { merge: true });
+            } catch (e) {}
+            try {
+                await db.collection('circles').doc(circleId).set(payload, { merge: true });
+            } catch (e) {}
+        }
+
+        async function deleteCircleCompletely(circleId) {
+            try {
+                const delList = getDeletedCircleIds();
+                if (!delList.includes(circleId)) delList.push(circleId);
+                localStorage.setItem('lt_deleted_circles', JSON.stringify(delList));
+            } catch (e) {}
+
+            try {
+                const localStr = localStorage.getItem('lt_circles_cache');
+                if (localStr) {
+                    const list = JSON.parse(localStr).filter(c => c.id !== circleId);
+                    localStorage.setItem('lt_circles_cache', JSON.stringify(list));
+                }
+            } catch (e) {}
+
+            activeCircles = activeCircles.filter(c => c.id !== circleId);
+            myProfile.joinedCircles = (myProfile.joinedCircles || []).filter(id => id !== circleId);
+            if (currentUser) {
+                saveProfileToLocalCache(currentUser.uid, myProfile);
+                syncProfileToCloudBackground(currentUser.uid, myProfile);
+            }
+
+            try {
+                await db.collection('posts').doc(circleId).delete();
+            } catch (e) {
+                try { await db.collection('posts').doc(circleId).set({ isDeleted: true }, { merge: true }); } catch (err) {}
+            }
+            try {
+                await db.collection('circles').doc(circleId).delete();
+            } catch (e) {
+                try { await db.collection('circles').doc(circleId).set({ isDeleted: true }, { merge: true }); } catch (err) {}
+            }
+        }
+
+        async function loadCircleTrophiesForBoard() {
+            circleTrophies = [];
+            try {
+                const allCircles = await fetchAllCirclesSafe();
+                activeCircles = allCircles;
+                allCircles.forEach(cData => {
+                    const members = Array.isArray(cData.members) ? cData.members : [];
+                    const isJoined = (currentUser && members.includes(currentUser.uid)) || (myProfile.joinedCircles || []).includes(cData.id);
+                    if (isJoined && Array.isArray(cData.circleTrophies)) {
+                        cData.circleTrophies.forEach(ct => {
+                            circleTrophies.push({
+                                id: ct.id,
+                                name: `⭕ ${cData.circleName}: ${ct.name}`,
+                                condition: ct.condition,
+                                rank: ct.rank || 'gold',
+                                isCircleTrophy: true,
+                                circleId: cData.id
+                            });
+                        });
+                    }
+                });
+            } catch (e) {}
+        }
+
+        /* -------------------------------------------------------------
            実績一覧 View
         ------------------------------------------------------------- */
-        function renderTrophiesView() {
+        async function renderTrophiesView() {
             const container = document.getElementById('main-container');
+            if (!container) return;
+
+            await loadCircleTrophiesForBoard();
             container.innerHTML = '';
 
             if (currentUser && !myProfile.username) {
@@ -1629,25 +1991,37 @@
                 container.appendChild(warnBanner);
             }
 
+            const activeLimited = getActiveLimitedTrophies();
+
             const categorySwitcher = document.createElement('div');
             categorySwitcher.className = 'category-tabs';
             categorySwitcher.innerHTML = `
                 <button class="category-tab-btn ${boardCategory === 'default' ? 'active' : ''}" onclick="boardCategory='default'; renderTrophiesView();">
-                    🏆 通常実績 (${defaultTrophies.length})
+                    🏆 通常 (${defaultTrophies.length})
+                </button>
+                <button class="category-tab-btn ${boardCategory === 'limited' ? 'active' : ''}" onclick="boardCategory='limited'; renderTrophiesView();">
+                    ⏳ 11月 (${activeLimited.length})
                 </button>
                 <button class="category-tab-btn ${boardCategory === 'custom' ? 'active' : ''}" onclick="boardCategory='custom'; renderTrophiesView();">
-                    ✨ カスタム実績 (${customTrophies.length})
+                    ✨ カスタム (${customTrophies.length})
+                </button>
+                <button class="category-tab-btn ${boardCategory === 'circle' ? 'active' : ''}" onclick="boardCategory='circle'; renderTrophiesView();">
+                    ⭕ サークル (${circleTrophies.length})
                 </button>
             `;
             container.appendChild(categorySwitcher);
 
             const actionRow = document.createElement('div');
             actionRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;';
+            
+            let boardTitle = '🏆 トロフィーボード';
+            if (boardCategory === 'limited') boardTitle = '⏳ 2026年11月限定実績';
+            if (boardCategory === 'custom') boardTitle = '✨ マイ・カスタム実績';
+            if (boardCategory === 'circle') boardTitle = '⭕ 参加サークルの実績';
+
             actionRow.innerHTML = `
-                <div style="font-size:0.85rem; font-weight:800; color:var(--text-primary);">
-                    ${boardCategory === 'default' ? '🏆 トロフィーボード' : '✨ マイ・カスタム実績'}
-                </div>
-                <button class="btn-action-small" onclick="openModal('custom-trophy-modal')">+ カスタム実績を作成</button>
+                <div style="font-size:0.85rem; font-weight:800; color:var(--text-primary);">${boardTitle}</div>
+                ${boardCategory === 'custom' ? '<button class="btn-action-small" onclick="openModal(\'custom-trophy-modal\')">+ カスタム作成</button>' : ''}
             `;
             container.appendChild(actionRow);
 
@@ -1657,6 +2031,10 @@
                 const btn = document.createElement('button');
                 btn.className = `btn-action-small ${trophyFilter === f ? 'following' : ''}`;
                 btn.style.cssText += 'border-radius:20px; padding:6px 12px; font-size:0.7rem; flex-shrink:0;';
+                if (f === 'platinum') btn.style.color = 'var(--rank-platinum)';
+                if (f === 'gold') btn.style.color = 'var(--rank-gold)';
+                if (f === 'silver') btn.style.color = 'var(--rank-silver)';
+                if (f === 'bronze') btn.style.color = 'var(--rank-bronze)';
                 btn.innerText = f.toUpperCase();
                 btn.onclick = () => { trophyFilter = f; renderTrophiesView(); };
                 filterRow.appendChild(btn);
@@ -1674,21 +2052,50 @@
                 }
             });
 
-            document.getElementById('count-plat').innerText = count.platinum;
-            document.getElementById('count-gold').innerText = count.gold;
-            document.getElementById('count-silver').innerText = count.silver;
-            document.getElementById('count-bronze').innerText = count.bronze;
+            const cp = document.getElementById('count-plat');
+            const cg = document.getElementById('count-gold');
+            const cs = document.getElementById('count-silver');
+            const cb = document.getElementById('count-bronze');
+            if (cp) cp.innerText = count.platinum;
+            if (cg) cg.innerText = count.gold;
+            if (cs) cs.innerText = count.silver;
+            if (cb) cb.innerText = count.bronze;
 
             const percent = allTrophiesList.length > 0 ? Math.round((totalUnlocked / allTrophiesList.length) * 100) : 0;
-            document.getElementById('progress-percent').innerText = `${percent}%`;
+            const pp = document.getElementById('progress-percent');
+            if (pp) pp.innerText = `${percent}%`;
 
-            const targetList = boardCategory === 'default' ? defaultTrophies : customTrophies;
+            let targetList = defaultTrophies;
+            if (boardCategory === 'limited') targetList = activeLimited;
+            if (boardCategory === 'custom') targetList = customTrophies;
+            if (boardCategory === 'circle') targetList = circleTrophies;
+
             const trophyListEl = document.createElement('div');
+
+            if (boardCategory === 'limited' && activeLimited.length === 0) {
+                trophyListEl.innerHTML = `
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
+                        現在オープンしている期間限定実績はありません。<br>（期間中に解除した実績はマイページに残ります）
+                    </div>
+                `;
+                container.appendChild(trophyListEl);
+                return;
+            }
 
             if (boardCategory === 'custom' && customTrophies.length === 0) {
                 trophyListEl.innerHTML = `
                     <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
-                        まだカスタム実績がありません。<br>右上の「+ カスタム実績を作成」から自分だけの目標を追加しましょう！
+                        まだカスタム実績がありません。<br>上の「+ カスタム作成」から目標を追加しましょう！
+                    </div>
+                `;
+                container.appendChild(trophyListEl);
+                return;
+            }
+
+            if (boardCategory === 'circle' && circleTrophies.length === 0) {
+                trophyListEl.innerHTML = `
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
+                        参加しているサークルにまだサークル実績がありません。<br>「サークルタブ」からサークルに参加・作成して実績を作ろう！
                     </div>
                 `;
                 container.appendChild(trophyListEl);
@@ -1698,6 +2105,7 @@
             let visibleCount = 0;
             targetList.forEach(t => {
                 const isUnlocked = !!userState[t.id];
+                const rankClass = `rank-${t.rank || 'bronze'}`;
 
                 if (trophyFilter !== 'all') {
                     if (trophyFilter === 'unlocked' && !isUnlocked) return;
@@ -1712,7 +2120,11 @@
                     ? `<img src="${userState[t.id].photo}" alt="Trophy Photo">`
                     : `<i class="fa-solid fa-trophy"></i>`;
 
-                const displayNameStr = t.isCustom ? `✨ ${t.name}` : (t.isUltimate ? `★ ${t.name}` : t.name);
+                let displayNameStr = t.name;
+                if (t.isLimited) displayNameStr = `⏳ ${t.name}`;
+                else if (t.isCustom) displayNameStr = `✨ ${t.name}`;
+                else if (t.isCircleTrophy) displayNameStr = `${t.name}`;
+                else if (t.isUltimate) displayNameStr = `★ ${t.name}`;
 
                 const infoBox = document.createElement('div');
                 infoBox.className = 'trophy-info';
@@ -1720,13 +2132,13 @@
                     <div class="trophy-name">${displayNameStr}</div>
                     <div class="trophy-condition">${t.condition}</div>
                     <div class="trophy-meta">
-                        <span class="rank-tag">${t.rank}</span>
+                        <span class="rank-tag ${rankClass}">${t.rank}</span>
                         ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date} 解除済</span>` : ''}
                     </div>
                 `;
 
                 const iconBox = document.createElement('div');
-                iconBox.className = 'icon-box';
+                iconBox.className = `icon-box ${rankClass}`;
                 iconBox.innerHTML = iconContent;
 
                 const actionsGroup = document.createElement('div');
@@ -1815,9 +2227,495 @@
             saveCustomTrophiesToStorage();
         }
 
-        function openUnlockModal(id) {
+        /* -------------------------------------------------------------
+           ⭕ サークル機能 View & ロジック
+        ------------------------------------------------------------- */
+        async function renderCircleView() {
+            const container = document.getElementById('main-container');
+            if (!container) return;
+            container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">サークル情報を読み込み中...</div>';
+
+            activeCircles = await fetchAllCirclesSafe();
+
+            if (currentActiveCircleId) {
+                const targetCircle = activeCircles.find(c => c.id === currentActiveCircleId);
+                if (targetCircle) {
+                    renderCircleRoomView(targetCircle);
+                    return;
+                } else {
+                    currentActiveCircleId = null;
+                }
+            }
+
+            container.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <div style="font-size:0.95rem; font-weight:900;">⭕ サークル</div>
+                    <button class="btn-action-small" onclick="openModal('create-circle-modal')">+ サークルを立ち上げる</button>
+                </div>
+
+                <div style="font-size:0.8rem; font-weight:800; color:var(--text-secondary); margin-bottom:8px;">📌 参加中のサークル</div>
+                <div id="joined-circles-container" style="margin-bottom:22px;"></div>
+
+                <div style="font-size:0.8rem; font-weight:800; color:var(--text-secondary); margin-bottom:8px;">🔍 サークル検索</div>
+                <div style="display:flex; gap:10px; margin-bottom:14px;">
+                    <input type="text" id="circle-search-query" class="form-input" placeholder="サークル名やキーワードを入力..." style="margin-bottom:0;" oninput="searchCircles()">
+                    <button class="modal-btn" style="width: 85px; margin-top:0;" onclick="searchCircles()">検索</button>
+                </div>
+                <div id="circle-search-results">
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:24px 16px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">
+                        検索したいサークル名やキーワードを入力してください
+                    </div>
+                </div>
+            `;
+
+            renderJoinedCirclesList();
+
+            if (lastCircleSearchQuery) {
+                const qInput = document.getElementById('circle-search-query');
+                if (qInput) {
+                    qInput.value = lastCircleSearchQuery;
+                    searchCircles();
+                }
+            }
+        }
+
+        function renderJoinedCirclesList() {
+            const listEl = document.getElementById('joined-circles-container');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            const joinedList = activeCircles.filter(circle => {
+                const members = Array.isArray(circle.members) ? circle.members : [];
+                return (currentUser && members.includes(currentUser.uid)) || (myProfile.joinedCircles || []).includes(circle.id);
+            });
+
+            if (joinedList.length === 0) {
+                listEl.innerHTML = `
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:22px 16px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
+                        まだ参加しているサークルがありません。<br>下の検索窓から探すか、「+ サークルを立ち上げる」から作成しよう！
+                    </div>
+                `;
+                return;
+            }
+
+            joinedList.forEach(circle => {
+                const members = Array.isArray(circle.members) ? circle.members : [];
+                const trophies = Array.isArray(circle.circleTrophies) ? circle.circleTrophies : [];
+                const chats = Array.isArray(circle.chatMessages) ? circle.chatMessages : [];
+                const isHost = currentUser && circle.hostUid === currentUser.uid;
+
+                const card = document.createElement('div');
+                card.className = 'feed-card';
+                card.style.cssText = 'margin-bottom:10px; padding:14px 16px; cursor:pointer;';
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <div style="font-size:0.95rem; font-weight:900; color:var(--text-primary);">
+                            ⭕ ${circle.circleName}
+                            ${isHost ? '<span style="font-size:0.6rem; background:var(--surface-hover); border:1px solid var(--border-light); padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle;">👑 ホスト</span>' : ''}
+                        </div>
+                        <button class="btn-primary-small">メニューへ <i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></button>
+                    </div>
+                    <div style="font-size:0.74rem; color:var(--text-secondary); margin-bottom:8px; line-height:1.3;">${circle.circleBio || '自己紹介なし'}</div>
+                    <div style="font-size:0.65rem; color:var(--text-tertiary);">
+                        👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 メンバー: <b>${members.length}人</b> ・ 🏆 実績: <b>${trophies.length}件</b> ・ 💬 チャット: <b>${chats.length}件</b>
+                    </div>
+                `;
+                card.onclick = () => openCircleMenu(circle.id);
+                listEl.appendChild(card);
+            });
+        }
+
+        function searchCircles() {
+            const qInput = document.getElementById('circle-search-query');
+            const resultsEl = document.getElementById('circle-search-results');
+            if (!qInput || !resultsEl) return;
+
+            const rawQ = qInput.value.trim().toLowerCase();
+            lastCircleSearchQuery = qInput.value.trim();
+
+            if (!rawQ) {
+                resultsEl.innerHTML = `
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:24px 16px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">
+                        検索したいサークル名やキーワードを入力してください
+                    </div>
+                `;
+                return;
+            }
+
+            const matched = activeCircles.filter(c => {
+                const cName = String(c.circleName || '').toLowerCase();
+                const cBio = String(c.circleBio || '').toLowerCase();
+                const hName = String(c.hostName || '').toLowerCase();
+                return cName.includes(rawQ) || cBio.includes(rawQ) || hName.includes(rawQ);
+            });
+
+            resultsEl.innerHTML = '';
+
+            const headerLabel = document.createElement('div');
+            headerLabel.style.cssText = 'font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:10px;';
+            headerLabel.innerText = `「${lastCircleSearchQuery}」のサークル検索結果 (${matched.length}件)`;
+            resultsEl.appendChild(headerLabel);
+
+            if (matched.length === 0) {
+                resultsEl.innerHTML += `
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:24px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">
+                        一致するサークルが見つかりませんでした
+                    </div>
+                `;
+                return;
+            }
+
+            matched.forEach(circle => {
+                const members = Array.isArray(circle.members) ? circle.members : [];
+                const isJoined = (currentUser && members.includes(currentUser.uid)) || (myProfile.joinedCircles || []).includes(circle.id);
+                const trophies = Array.isArray(circle.circleTrophies) ? circle.circleTrophies : [];
+
+                const card = document.createElement('div');
+                card.className = 'feed-card';
+                card.style.cssText = 'margin-bottom:10px; padding:14px 16px;';
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">
+                        <div style="font-size:0.95rem; font-weight:900; color:var(--text-primary);">⭕ ${circle.circleName}</div>
+                        <div style="display:flex; gap:6px; flex-shrink:0;">
+                            ${isJoined
+                                ? `<button class="btn-primary-small" onclick="openCircleMenu('${circle.id}')">メニューを開く</button>`
+                                : `<button class="btn-action-small" onclick="joinCircleAndOpenMenu('${circle.id}')">参加して開く</button>`
+                            }
+                        </div>
+                    </div>
+                    <div style="font-size:0.74rem; color:var(--text-secondary); margin-bottom:8px; line-height:1.3;">${circle.circleBio || '自己紹介なし'}</div>
+                    <div style="font-size:0.65rem; color:var(--text-tertiary);">
+                        👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 メンバー: <b>${members.length}人</b> ・ 🏆 サークル実績: <b>${trophies.length}件</b>
+                    </div>
+                `;
+                resultsEl.appendChild(card);
+            });
+        }
+
+        function openCircleMenu(circleId) {
+            currentActiveCircleId = circleId;
+            circleRoomSubTab = 'trophies';
+            renderCircleView();
+        }
+
+        async function joinCircleAndOpenMenu(circleId) {
+            if (!currentUser) return;
+            const uid = currentUser.uid;
+            const targetCircle = activeCircles.find(c => c.id === circleId);
+            if (!targetCircle) return;
+
+            let members = Array.isArray(targetCircle.members) ? [...targetCircle.members] : [];
+            if (!members.includes(uid)) members.push(uid);
+            targetCircle.members = members;
+
+            if (!myProfile.joinedCircles) myProfile.joinedCircles = [];
+            if (!myProfile.joinedCircles.includes(circleId)) myProfile.joinedCircles.push(circleId);
+
+            await saveCircleSafe(circleId, targetCircle);
+            saveProfileToLocalCache(uid, myProfile);
+            syncProfileToCloudBackground(uid, myProfile);
+
+            showNotification(`「${targetCircle.circleName}」に参加しました！`, 'CIRCLE JOINED');
+            openCircleMenu(circleId);
+        }
+
+        /* -------------------------------------------------------------
+           ⭕ サークル専用メニュー（ルーム画面：実績 ＆ チャット ＆ 解散）
+        ------------------------------------------------------------- */
+        function renderCircleRoomView(circle) {
+            const container = document.getElementById('main-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const members = Array.isArray(circle.members) ? circle.members : [];
+            const isHost = currentUser && circle.hostUid === currentUser.uid;
+            const trophies = Array.isArray(circle.circleTrophies) ? circle.circleTrophies : [];
+            const chats = Array.isArray(circle.chatMessages) ? circle.chatMessages : [];
+
+            const topBar = document.createElement('div');
+            topBar.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;';
+            topBar.innerHTML = `
+                <button class="btn-action-small" onclick="currentActiveCircleId=null; renderCircleView();">
+                    <i class="fa-solid fa-arrow-left"></i> サークル一覧・検索へ戻る
+                </button>
+                <div style="display:flex; gap:6px;">
+                    ${isHost
+                        ? `<button class="delete-btn" onclick="disbandCircle('${circle.id}')"><i class="fa-solid fa-trash"></i> サークルを解散</button>`
+                        : `<button class="btn-action-small" onclick="leaveCircleFromRoom('${circle.id}')">退会する</button>`
+                    }
+                </div>
+            `;
+            container.appendChild(topBar);
+
+            const banner = document.createElement('div');
+            banner.className = 'feed-card';
+            banner.style.cssText = 'margin-bottom:14px; padding:16px;';
+            banner.innerHTML = `
+                <div style="font-size:1.1rem; font-weight:900; color:var(--text-primary); margin-bottom:4px;">
+                    ⭕ ${circle.circleName}
+                </div>
+                <div style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:10px; line-height:1.4;">
+                    ${circle.circleBio || '自己紹介なし'}
+                </div>
+                <div style="font-size:0.68rem; color:var(--text-tertiary);">
+                    👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 メンバー: <b>${members.length}人</b>
+                </div>
+            `;
+            container.appendChild(banner);
+
+            const subTabs = document.createElement('div');
+            subTabs.className = 'category-tabs-2';
+            subTabs.innerHTML = `
+                <button class="category-tab-btn ${circleRoomSubTab === 'trophies' ? 'active' : ''}" onclick="circleRoomSubTab='trophies'; renderCircleView();">
+                    🏆 サークル実績 (${trophies.length})
+                </button>
+                <button class="category-tab-btn ${circleRoomSubTab === 'chat' ? 'active' : ''}" onclick="circleRoomSubTab='chat'; renderCircleView();">
+                    💬 メンバーチャット (${chats.length})
+                </button>
+            `;
+            container.appendChild(subTabs);
+
+            if (circleRoomSubTab === 'trophies') {
+                const actionHeader = document.createElement('div');
+                actionHeader.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;';
+                actionHeader.innerHTML = `
+                    <div style="font-size:0.85rem; font-weight:800;">🏆 サークル専用実績</div>
+                    <button class="btn-action-small" onclick="openCircleTrophyModal('${circle.id}')">+ サークル実績を作成</button>
+                `;
+                container.appendChild(actionHeader);
+
+                const tListEl = document.createElement('div');
+                if (trophies.length === 0) {
+                    tListEl.innerHTML = `
+                        <div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:32px 16px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
+                            まだサークル実績がありません。<br>右上の「+ サークル実績を作成」からメンバーみんなで目標を追加しよう！
+                        </div>
+                    `;
+                } else {
+                    trophies.forEach(ct => {
+                        const isUnlocked = !!userState[ct.id];
+                        const rankClass = `rank-${ct.rank || 'gold'}`;
+                        const card = document.createElement('div');
+                        card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''}`;
+                        const iconContent = (isUnlocked && userState[ct.id].photo)
+                            ? `<img src="${userState[ct.id].photo}" alt="Photo">`
+                            : `<i class="fa-solid fa-trophy"></i>`;
+
+                        card.innerHTML = `
+                            <div class="icon-box ${rankClass}">${iconContent}</div>
+                            <div class="trophy-info">
+                                <div class="trophy-name">✨ ${ct.name}</div>
+                                <div class="trophy-condition">${ct.condition}</div>
+                                <div class="trophy-meta">
+                                    <span class="rank-tag ${rankClass}">${ct.rank || 'gold'}</span>
+                                    ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[ct.id].date} 解除済</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="card-actions-group">
+                                ${!isUnlocked ? `<button class="unlock-btn" onclick="openUnlockModal('${ct.id}')">解除</button>` : ''}
+                            </div>
+                        `;
+                        tListEl.appendChild(card);
+                    });
+                }
+                container.appendChild(tListEl);
+
+            } else {
+                const chatBox = document.createElement('div');
+                chatBox.className = 'chat-box-container';
+                chatBox.innerHTML = `
+                    <div class="chat-messages-area" id="circle-chat-messages"></div>
+                    <form onsubmit="event.preventDefault(); sendCircleChatMessage('${circle.id}');" style="display:flex; gap:8px;">
+                        <input type="text" id="circle-chat-input" class="form-input" placeholder="メンバーにメッセージを送る..." style="margin-bottom:0; font-size:0.82rem; padding:10px 12px;">
+                        <button type="submit" class="modal-btn" style="width:75px; margin-top:0; padding:10px;">送信</button>
+                    </form>
+                `;
+                container.appendChild(chatBox);
+
+                const msgArea = document.getElementById('circle-chat-messages');
+                if (msgArea) {
+                    if (chats.length === 0) {
+                        msgArea.innerHTML = `
+                            <div style="text-align:center; color:var(--text-secondary); font-size:0.75rem; margin:auto;">
+                                💬 まだメッセージがありません。<br>最初のメッセージを送ってみよう！
+                            </div>
+                        `;
+                    } else {
+                        chats.forEach(m => {
+                            const isMe = currentUser && m.uid === currentUser.uid;
+                            const row = document.createElement('div');
+                            row.className = `chat-bubble-row ${isMe ? 'me' : 'other'}`;
+                            row.innerHTML = `
+                                <div class="chat-sender-name">${isMe ? 'あなた' : (m.senderName || 'メンバー')}</div>
+                                <div class="chat-bubble">${m.text}</div>
+                                <div class="chat-time">${m.time || ''}</div>
+                            `;
+                            msgArea.appendChild(row);
+                        });
+                        msgArea.scrollTop = msgArea.scrollHeight;
+                    }
+                }
+            }
+        }
+
+        async function sendCircleChatMessage(circleId) {
+            if (!currentUser) return;
+            const input = document.getElementById('circle-chat-input');
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+
+            const targetCircle = activeCircles.find(c => c.id === circleId);
+            if (!targetCircle) return;
+
+            const now = new Date();
+            const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const newMsg = {
+                id: 'msg_' + Date.now(),
+                uid: currentUser.uid,
+                senderName: myProfile.displayName || myProfile.username || 'メンバー',
+                text: text,
+                time: timeStr
+            };
+
+            if (!Array.isArray(targetCircle.chatMessages)) targetCircle.chatMessages = [];
+            targetCircle.chatMessages.push(newMsg);
+
+            input.value = '';
+            renderCircleRoomView(targetCircle);
+
+            await saveCircleSafe(circleId, targetCircle);
+        }
+
+        async function disbandCircle(circleId) {
+            if (!currentUser) return;
+            const targetCircle = activeCircles.find(c => c.id === circleId);
+            if (!targetCircle) return;
+
+            if (targetCircle.hostUid !== currentUser.uid) {
+                return alert('サークルの解散はホスト（作成者）のみ実行できます。');
+            }
+
+            if (!confirm(`本当にサークル「${targetCircle.circleName}」を解散（完全削除）しますか？\n※サークル内のチャットやサークル実績もすべて削除され、元に戻せません。`)) return;
+
+            await deleteCircleCompletely(circleId);
+            currentActiveCircleId = null;
+            await loadCircleTrophiesForBoard();
+            showNotification(`サークル「${targetCircle.circleName}」を解散しました`, 'CIRCLE DISBANDED');
+            renderCircleView();
+        }
+
+        async function leaveCircleFromRoom(circleId) {
+            if (!currentUser) return;
+            const targetCircle = activeCircles.find(c => c.id === circleId);
+            if (!targetCircle) return;
+
+            if (!confirm(`サークル「${targetCircle.circleName}」から退会しますか？`)) return;
+
+            const uid = currentUser.uid;
+            targetCircle.members = (targetCircle.members || []).filter(id => id !== uid);
+            myProfile.joinedCircles = (myProfile.joinedCircles || []).filter(id => id !== circleId);
+
+            await saveCircleSafe(circleId, targetCircle);
+            saveProfileToLocalCache(uid, myProfile);
+            syncProfileToCloudBackground(uid, myProfile);
+
+            currentActiveCircleId = null;
+            showNotification('サークルを退会しました', 'CIRCLE LEFT');
+            renderCircleView();
+        }
+
+        async function createCircle() {
+            if (!currentUser) return;
+            const nameInput = document.getElementById('circle-name-input');
+            const bioInput = document.getElementById('circle-bio-input');
+            const cName = nameInput.value.trim();
+            const cBio = bioInput.value.trim();
+
+            if (!cName) return alert('サークル名を入力してください');
+
+            const circleId = 'circle_' + Date.now();
+            const newCircleData = {
+                id: circleId,
+                circleId: circleId,
+                isCircleDoc: true,
+                circleName: cName,
+                circleBio: cBio,
+                hostUid: currentUser.uid,
+                hostName: myProfile.displayName || myProfile.username || 'ユーザー',
+                members: [currentUser.uid],
+                circleTrophies: [],
+                chatMessages: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            await saveCircleSafe(circleId, newCircleData);
+
+            if (!myProfile.joinedCircles) myProfile.joinedCircles = [];
+            if (!myProfile.joinedCircles.includes(circleId)) myProfile.joinedCircles.push(circleId);
+            saveProfileToLocalCache(currentUser.uid, myProfile);
+            syncProfileToCloudBackground(currentUser.uid, myProfile);
+
+            nameInput.value = '';
+            bioInput.value = '';
+            closeModal('create-circle-modal');
+            showNotification(`サークル「${cName}」を立ち上げました！`, 'CIRCLE CREATED');
+            
+            openCircleMenu(circleId);
+        }
+
+        function openCircleTrophyModal(circleId) {
+            currentActiveCircleId = circleId;
+            document.getElementById('circle-trophy-title').value = '';
+            document.getElementById('circle-trophy-condition').value = '';
+            openModal('circle-trophy-modal');
+        }
+
+        async function addCircleTrophy() {
+            if (!currentActiveCircleId || !currentUser) return;
+            const titleInput = document.getElementById('circle-trophy-title');
+            const conditionInput = document.getElementById('circle-trophy-condition');
+            const rankSelect = document.getElementById('circle-trophy-rank');
+
+            const title = titleInput.value.trim();
+            const condition = conditionInput.value.trim();
+            const rank = rankSelect.value;
+
+            if (!title || !condition) return alert('タイトルと達成条件を入力してください');
+
+            const targetCircle = activeCircles.find(c => c.id === currentActiveCircleId);
+            if (!targetCircle) return;
+
+            const newTrophyId = 'ctrophy_' + Date.now();
+            const newTrophyObj = {
+                id: newTrophyId,
+                name: title,
+                condition: condition,
+                rank: rank,
+                creatorUid: currentUser.uid,
+                isCircleTrophy: true,
+                circleId: currentActiveCircleId
+            };
+
+            if (!Array.isArray(targetCircle.circleTrophies)) targetCircle.circleTrophies = [];
+            targetCircle.circleTrophies.push(newTrophyObj);
+
+            await saveCircleSafe(currentActiveCircleId, targetCircle);
+            await loadCircleTrophiesForBoard();
+
+            closeModal('circle-trophy-modal');
+            showNotification(`サークル実績「${title}」を作成しました！`, 'CIRCLE TROPHY CREATED');
+            renderCircleView();
+        }
+
+        /* -------------------------------------------------------------
+           実績解除関連
+        ------------------------------------------------------------- */
+        async function openUnlockModal(id) {
             selectedTrophyId = id;
             tempUnlockPhotoBase64 = "";
+            await loadCircleTrophiesForBoard();
             const trophy = getAllTrophies().find(t => String(t.id) === String(id));
             document.getElementById('modal-trophy-title').innerText = `🏆 「${trophy ? trophy.name : '実績'}」を解除`;
             
@@ -1862,6 +2760,7 @@
             const trophy = getAllTrophies().find(t => String(t.id) === String(selectedTrophyId));
             const trophyName = trophy ? trophy.name : '実績';
             const trophyCondition = trophy ? trophy.condition : '';
+            const trophyRank = trophy ? (trophy.rank || 'gold') : 'gold';
             const commentText = document.getElementById('unlock-comment-input').value.trim();
             
             const now = new Date();
@@ -1881,13 +2780,15 @@
                 photo: photoToSave,
                 comment: commentText,
                 condition: trophyCondition,
-                trophyName: trophyName
+                trophyName: trophyName,
+                rank: trophyRank
             };
 
             userState[unlockedId] = unlockEntry;
 
             closeModal('unlock-modal');
-            switchMainTab('trophies');
+            if (activeTab === 'circle') renderCircleView();
+            else switchMainTab(activeTab);
             showNotification(`実績を解除しました！「${trophyName}」`, 'TROPHY UNLOCKED!');
 
             saveSingleUnlockToStorage(unlockedId, unlockEntry);
@@ -1900,6 +2801,7 @@
                     userAvatar: myProfile.avatar,
                     trophyId: unlockedId,
                     trophyName: trophyName,
+                    trophyRank: trophyRank,
                     condition: trophyCondition,
                     photo: photoToSave,
                     comment: commentText,
@@ -1912,10 +2814,323 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View (カスタム実績名保持対応)
+           ホーム（タイムライン）View
         ------------------------------------------------------------- */
-        function renderMyProfileView() {
+        async function renderFeedView() {
             const container = document.getElementById('main-container');
+            if (!container) return;
+            container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">タイムライン読み込み中...</div>';
+
+            try {
+                const snapshot = await withTimeout(db.collection('posts').orderBy('createdAt', 'desc').limit(40).get(), 3000);
+                container.innerHTML = '<div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">📡 タイムライン</div>';
+
+                const allTrophiesList = getAllTrophies();
+                let realPostCount = 0;
+
+                if (snapshot && !snapshot.empty) {
+                    snapshot.forEach(doc => {
+                        const post = doc.data();
+                        if (post.isProfileIndex || post.isCircleDoc) return;
+                        realPostCount++;
+
+                        const postId = doc.id;
+                        const isLiked = currentUser && (post.likes || []).includes(currentUser.uid);
+
+                        const matchedTrophy = allTrophiesList.find(t => String(t.id) === String(post.trophyId) || t.name === post.trophyName);
+                        const rank = post.trophyRank || (matchedTrophy ? matchedTrophy.rank : 'gold');
+                        let rankColorVar = 'var(--rank-gold)';
+                        if (rank === 'platinum') rankColorVar = 'var(--rank-platinum)';
+                        else if (rank === 'silver') rankColorVar = 'var(--rank-silver)';
+                        else if (rank === 'bronze') rankColorVar = 'var(--rank-bronze)';
+
+                        const avatarHTML = post.userAvatar 
+                            ? `<img src="${post.userAvatar}" class="feed-avatar">` 
+                            : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
+
+                        const commentHTML = post.comment && post.comment.trim() !== '' 
+                            ? `<div class="feed-comment-box">${post.comment}</div>` 
+                            : '';
+
+                        const card = document.createElement('div');
+                        card.className = 'feed-card';
+                        card.innerHTML = `
+                            <div class="feed-header">
+                                <div class="feed-user-info" id="feed-user-${postId}">
+                                    ${avatarHTML}
+                                    <div>
+                                        <div class="feed-display-name">${post.displayName || post.username || 'ユーザー'}</div>
+                                        <div class="feed-user-name">@${post.username || 'user'}</div>
+                                    </div>
+                                </div>
+                                <div class="feed-time">${post.date || ''}</div>
+                            </div>
+
+                            <div class="feed-trophy-banner">
+                                <div style="font-size:0.65rem; color:${rankColorVar}; font-weight:800; letter-spacing:1px; margin-bottom:2px;">
+                                    ${rank.toUpperCase()} TROPHY UNLOCKED
+                                </div>
+                                <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">
+                                    <i class="fa-solid fa-trophy" style="color:${rankColorVar}; margin-right:4px;"></i>${post.trophyName || '実績'}
+                                </div>
+                            </div>
+
+                            ${post.photo ? `<img src="${post.photo}" class="feed-photo" id="feed-img-${postId}">` : ''}
+                            ${commentHTML}
+
+                            <div class="feed-actions">
+                                <div class="feed-actions-left">
+                                    <div class="feed-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${postId}', ${isLiked}, '${post.uid}')">
+                                        <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                        <span>${(post.likes || []).length}</span>
+                                    </div>
+                                    <div class="feed-action-btn">
+                                        <i class="fa-regular fa-comment"></i>
+                                        <span>${(post.comments || []).length}</span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    ${currentUser && post.uid === currentUser.uid ? `<div class="feed-action-btn" style="color:var(--accent-red);" onclick="deletePostByPostId('${postId}', '${post.trophyId || ''}')" title="投稿を削除"><i class="fa-solid fa-trash"></i></div>` : ''}
+                                    <div class="feed-action-btn" id="feed-share-${postId}">
+                                        <i class="fa-solid fa-share-nodes"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="feed-comments-section">
+                                <div id="comments-list-${postId}">
+                                    ${(post.comments || []).map(c => `<div class="comment-item"><b>${c.displayName || c.username}:</b> ${c.text}</div>`).join('')}
+                                </div>
+                                <div class="comment-input-box">
+                                    <input type="text" id="comment-input-${postId}" class="form-input" placeholder="お祝いコメントを入力..." style="margin-bottom:0; font-size:0.75rem; padding:8px 12px;">
+                                    <button class="btn-action-small" onclick="addComment('${postId}', '${post.uid}')">送信</button>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(card);
+
+                        const userBtn = document.getElementById(`feed-user-${postId}`);
+                        if (userBtn) userBtn.onclick = () => openUserFromFeed(post.uid);
+
+                        const imgBtn = document.getElementById(`feed-img-${postId}`);
+                        if (imgBtn) {
+                            imgBtn.onclick = () => openPhotoLightbox(post.photo, post.trophyName || '実績', post.condition || '', post.date || '', post.comment || '', postId, post.uid);
+                        }
+
+                        const shareBtn = document.getElementById(`feed-share-${postId}`);
+                        if (shareBtn) {
+                            shareBtn.onclick = () => sharePost(post.trophyName || '実績', post.displayName || post.username || 'ユーザー');
+                        }
+                    });
+                }
+
+                if (realPostCount === 0) {
+                    container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">まだ投稿がありません。実績を解除してタイムラインに流そう！</div>';
+                }
+            } catch (e) {
+                container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">タイムラインの読み込みに失敗しました</div>';
+            }
+        }
+
+        async function openUserFromFeed(targetUid) {
+            if (!targetUid) return;
+            if (currentUser && targetUid === currentUser.uid) {
+                switchMainTab('profile');
+                return;
+            }
+            try {
+                const doc = await withTimeout(db.collection('users').doc(targetUid).get(), 2000);
+                if (doc && doc.exists) {
+                    viewUserProfile(targetUid, doc.data());
+                    return;
+                }
+            } catch (e) {}
+            try {
+                const idxDoc = await withTimeout(db.collection('posts').doc('profile_' + targetUid).get(), 2000);
+                if (idxDoc && idxDoc.exists) {
+                    const d = idxDoc.data();
+                    viewUserProfile(targetUid, {
+                        uid: targetUid,
+                        displayName: d.displayName,
+                        username: d.username,
+                        bio: d.bio,
+                        avatar: d.userAvatar
+                    });
+                }
+            } catch (e) {}
+        }
+
+        async function toggleLike(postId, currentLiked, postOwnerUid) {
+            if (!currentUser) return;
+            const postRef = db.collection('posts').doc(postId);
+            if (currentLiked) {
+                await postRef.update({ likes: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) }).catch(()=>{});
+            } else {
+                await postRef.update({ likes: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) }).catch(()=>{});
+                sendNotification(postOwnerUid, 'like', 'があなたの投稿に「いいね！」しました。');
+            }
+            renderFeedView();
+        }
+
+        async function addComment(postId, postOwnerUid) {
+            if (!currentUser) return;
+            const input = document.getElementById(`comment-input-${postId}`);
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+
+            const postRef = db.collection('posts').doc(postId);
+            await postRef.update({
+                comments: firebase.firestore.FieldValue.arrayUnion({
+                    uid: currentUser.uid,
+                    displayName: myProfile.displayName || myProfile.username,
+                    username: myProfile.username,
+                    text: text,
+                    createdAt: new Date().toISOString()
+                })
+            }).catch(()=>{});
+
+            sendNotification(postOwnerUid, 'comment', `があなたの投稿にコメントしました: "${text}"`);
+            input.value = '';
+            renderFeedView();
+        }
+
+        /* -------------------------------------------------------------
+           ユーザー検索 View
+        ------------------------------------------------------------- */
+        function renderSearchView() {
+            const container = document.getElementById('main-container');
+            if (!container) return;
+            container.innerHTML = `
+                <div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">🔍 ユーザー検索</div>
+                <div style="display:flex; gap:10px; margin-bottom:16px;">
+                    <input type="text" id="search-query" class="form-input" placeholder="ユーザーID (@なしでもOK) や表示名を入力..." style="margin-bottom:0;" oninput="searchUsers()">
+                    <button class="modal-btn" style="width: 90px; margin-top:0;" onclick="searchUsers()">検索</button>
+                </div>
+                <div id="search-results">
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">
+                        検索したいユーザーのIDまたは名前を入力してください
+                    </div>
+                </div>
+            `;
+        }
+
+        async function searchUsers() {
+            const qInput = document.getElementById('search-query');
+            if (!qInput) return;
+            const rawQ = qInput.value.trim().replace(/^@/, '').toLowerCase();
+            const resultsEl = document.getElementById('search-results');
+            if (!resultsEl) return;
+
+            if (!rawQ) {
+                resultsEl.innerHTML = `
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">
+                        検索したいユーザーのIDまたは名前を入力してください
+                    </div>
+                `;
+                return;
+            }
+
+            resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:16px;">ユーザーを検索中...</div>';
+
+            const userMap = {};
+
+            try {
+                const snapshot = await withTimeout(db.collection('users').get(), 2000);
+                if (snapshot) {
+                    snapshot.forEach(doc => {
+                        if (currentUser && doc.id === currentUser.uid) return;
+                        const data = doc.data() || {};
+                        if (data.username || data.displayName) {
+                            userMap[doc.id] = {
+                                uid: doc.id,
+                                username: data.username || 'user',
+                                displayName: data.displayName || data.username || 'ユーザー',
+                                bio: data.bio || '人生の実績解除中！',
+                                avatar: data.avatar || '',
+                                following: data.following || [],
+                                followers: data.followers || [],
+                                privacy: data.privacy || 'public',
+                                trophyStatus: data.trophyStatus || {}
+                            };
+                        }
+                    });
+                }
+            } catch (e) {}
+
+            try {
+                const postsSnap = await withTimeout(db.collection('posts').limit(100).get(), 2000);
+                if (postsSnap) {
+                    postsSnap.forEach(doc => {
+                        const p = doc.data() || {};
+                        if (p.isCircleDoc) return;
+                        if (p.uid && (!currentUser || p.uid !== currentUser.uid) && (p.username || p.displayName)) {
+                            if (!userMap[p.uid] || p.isProfileIndex) {
+                                userMap[p.uid] = Object.assign(userMap[p.uid] || {}, {
+                                    uid: p.uid,
+                                    username: p.username || (userMap[p.uid] && userMap[p.uid].username) || 'user',
+                                    displayName: p.displayName || p.username || 'ユーザー',
+                                    bio: p.bio || (userMap[p.uid] && userMap[p.uid].bio) || '人生の実績解除中！',
+                                    avatar: p.userAvatar || (userMap[p.uid] && userMap[p.uid].avatar) || '',
+                                    following: (userMap[p.uid] && userMap[p.uid].following) || [],
+                                    followers: (userMap[p.uid] && userMap[p.uid].followers) || [],
+                                    privacy: 'public'
+                                });
+                            }
+                        }
+                    });
+                }
+            } catch (e) {}
+
+            resultsEl.innerHTML = '';
+            const allUsers = Object.values(userMap);
+
+            const matchedUsers = allUsers.filter(u => {
+                const uName = String(u.username || '').toLowerCase();
+                const dName = String(u.displayName || '').toLowerCase();
+                return uName.includes(rawQ) || dName.includes(rawQ);
+            });
+
+            const headerLabel = document.createElement('div');
+            headerLabel.style.cssText = 'font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:10px;';
+            headerLabel.innerText = `「${rawQ}」の検索結果 (${matchedUsers.length}件)`;
+            resultsEl.appendChild(headerLabel);
+
+            if (matchedUsers.length === 0) {
+                resultsEl.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:24px; background:var(--surface-card); border-radius:12px;">一致するユーザーが見つかりませんでした</div>';
+                return;
+            }
+
+            matchedUsers.forEach(data => {
+                const avatarHTML = data.avatar 
+                    ? `<img src="${data.avatar}" class="feed-avatar">` 
+                    : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
+
+                const card = document.createElement('div');
+                card.className = 'feed-card';
+                card.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding:12px 16px; cursor:pointer;';
+                card.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        ${avatarHTML}
+                        <div>
+                            <div style="font-size:0.9rem; font-weight:700;">${data.displayName}</div>
+                            <div style="font-size:0.7rem; color:var(--text-secondary);">@${data.username} ・ ${data.bio}</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary);"></i>
+                `;
+                card.onclick = () => viewUserProfile(data.uid, data);
+                resultsEl.appendChild(card);
+            });
+        }
+
+        /* -------------------------------------------------------------
+           マイページ View
+        ------------------------------------------------------------- */
+        async function renderMyProfileView() {
+            const container = document.getElementById('main-container');
+            if (!container) return;
+            await loadCircleTrophiesForBoard();
             container.innerHTML = '';
 
             const headerBox = document.createElement('div');
@@ -2026,6 +3241,7 @@
 
         function openUnlockedManageModal() {
             const listContainer = document.getElementById('unlocked-manage-list-container');
+            if (!listContainer) return;
             listContainer.innerHTML = '';
 
             let unlockedCount = 0;
@@ -2038,10 +3254,15 @@
                     const manageCard = document.createElement('div');
                     manageCard.className = 'unlocked-manage-card';
 
+                    let rankColor = 'var(--rank-gold)';
+                    if (t.rank === 'platinum') rankColor = 'var(--rank-platinum)';
+                    else if (t.rank === 'silver') rankColor = 'var(--rank-silver)';
+                    else if (t.rank === 'bronze') rankColor = 'var(--rank-bronze)';
+
                     const leftInfo = document.createElement('div');
                     leftInfo.style.cssText = 'display:flex; align-items:center; gap:10px; overflow:hidden;';
                     leftInfo.innerHTML = `
-                        ${itemData.photo ? `<img src="${itemData.photo}" class="unlocked-manage-thumb">` : `<div class="unlocked-manage-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--text-secondary);"><i class="fa-solid fa-trophy"></i></div>`}
+                        ${itemData.photo ? `<img src="${itemData.photo}" class="unlocked-manage-thumb">` : `<div class="unlocked-manage-thumb" style="display:flex;align-items:center;justify-content:center;color:${rankColor};"><i class="fa-solid fa-trophy"></i></div>`}
                         <div style="overflow:hidden;">
                             <div style="font-size:0.8rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.name}</div>
                             <div style="font-size:0.62rem; color:var(--text-secondary);">解除日時: ${itemData.date}</div>
@@ -2067,7 +3288,7 @@
         }
 
         /* -------------------------------------------------------------
-           他人のプロフィール画面 View (実績名の完全一致解決)
+           他人のプロフィール画面 View
         ------------------------------------------------------------- */
         async function viewUserProfile(uid, profileData) {
             if (profileData.privacy === 'followers' && !profileData.followers?.includes(currentUser.uid)) {
@@ -2104,6 +3325,7 @@
                 if (userPosts) {
                     userPosts.forEach(doc => {
                         const p = doc.data();
+                        if (p.isCircleDoc) return;
                         if (p.isProfileIndex) {
                             if (Array.isArray(p.customTrophies)) targetCustomTrophies = p.customTrophies;
                         } else if (p.trophyId) {
@@ -2125,7 +3347,7 @@
                                     id: p.trophyId,
                                     name: p.trophyName || 'カスタム実績',
                                     condition: p.condition || 'タイムラインから検出',
-                                    rank: 'gold',
+                                    rank: p.trophyRank || 'gold',
                                     isCustom: true
                                 });
                             }
@@ -2135,12 +3357,13 @@
             } catch (e) {}
 
             freshTargetData.uid = uid;
-            const allTargetTrophies = [...defaultTrophies, ...targetCustomTrophies];
+            const allTargetTrophies = [...defaultTrophies, ...targetCustomTrophies, ...limitedTrophies202611];
             
             const statsBox = document.getElementById('stats-grid-box');
-            statsBox.style.display = 'grid';
+            if (statsBox) statsBox.style.display = 'grid';
             
             const container = document.getElementById('main-container');
+            if (!container) return;
             container.innerHTML = '';
 
             const backRow = document.createElement('div');
@@ -2214,6 +3437,7 @@
 
             allTargetTrophies.forEach(t => {
                 const isUnlocked = !!targetState[t.id];
+                const rankClass = `rank-${t.rank || 'bronze'}`;
                 if (isUnlocked) {
                     if (count[t.rank] !== undefined) count[t.rank]++;
                     totalUnlocked++;
@@ -2229,12 +3453,12 @@
                 const displayNameStr = t.isCustom ? `✨ ${t.name}` : (t.isUltimate ? `★ ${t.name}` : t.name);
 
                 card.innerHTML = `
-                    <div class="icon-box">${iconContent}</div>
+                    <div class="icon-box ${rankClass}">${iconContent}</div>
                     <div class="trophy-info">
                         <div class="trophy-name">${displayNameStr}</div>
                         <div class="trophy-condition">${t.condition}</div>
                         <div class="trophy-meta">
-                            <span class="rank-tag">${t.rank}</span>
+                            <span class="rank-tag ${rankClass}">${t.rank}</span>
                             ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${targetState[t.id].date}</span>` : ''}
                         </div>
                     </div>
@@ -2244,13 +3468,18 @@
 
             container.appendChild(trophyListEl);
 
-            document.getElementById('count-plat').innerText = count.platinum;
-            document.getElementById('count-gold').innerText = count.gold;
-            document.getElementById('count-silver').innerText = count.silver;
-            document.getElementById('count-bronze').innerText = count.bronze;
+            const cp = document.getElementById('count-plat');
+            const cg = document.getElementById('count-gold');
+            const cs = document.getElementById('count-silver');
+            const cb = document.getElementById('count-bronze');
+            if (cp) cp.innerText = count.platinum;
+            if (cg) cg.innerText = count.gold;
+            if (cs) cs.innerText = count.silver;
+            if (cb) cb.innerText = count.bronze;
 
             const percent = allTargetTrophies.length > 0 ? Math.round((totalUnlocked / allTargetTrophies.length) * 100) : 0;
-            document.getElementById('progress-percent').innerText = `${percent}%`;
+            const pp = document.getElementById('progress-percent');
+            if (pp) pp.innerText = `${percent}%`;
         }
 
         async function revertUnlock(id) {
@@ -2317,12 +3546,13 @@
             try {
                 const snapshot = await withTimeout(db.collection('users').doc(currentUser.uid).collection('notifications').where('read', '==', false).get(), 2000);
                 const dot = document.getElementById('notif-badge-dot');
-                dot.style.display = (snapshot && !snapshot.empty) ? 'block' : 'none';
+                if (dot) dot.style.display = (snapshot && !snapshot.empty) ? 'block' : 'none';
             } catch (e) {}
         }
 
         async function openNotificationsModal() {
             const container = document.getElementById('notifications-container');
+            if (!container) return;
             container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">読み込み中...</div>';
             openModal('notifications-modal');
 
@@ -2346,7 +3576,8 @@
                     container.appendChild(card);
                 });
                 batch.commit().catch(()=>{});
-                document.getElementById('notif-badge-dot').style.display = 'none';
+                const dot = document.getElementById('notif-badge-dot');
+                if (dot) dot.style.display = 'none';
             } catch (e) {
                 container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">通知はありません</div>';
             }
@@ -2355,6 +3586,8 @@
         async function openFollowListModal(type) {
             const titleEl = document.getElementById('follow-list-title');
             const listContainer = document.getElementById('follow-list-container');
+            if (!titleEl || !listContainer) return;
+
             titleEl.innerText = type === 'following' ? 'フォロー中リスト' : 'フォロワーリスト';
             listContainer.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">読み込み中...</div>';
             openModal('follow-list-modal');
@@ -2400,284 +3633,6 @@
             }
         }
 
-        async function renderFeedView() {
-            const container = document.getElementById('main-container');
-            container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">タイムライン読み込み中...</div>';
-
-            try {
-                const snapshot = await withTimeout(db.collection('posts').orderBy('createdAt', 'desc').limit(30).get(), 3000);
-                container.innerHTML = '<div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">📡 タイムライン</div>';
-
-                let realPostCount = 0;
-                if (snapshot && !snapshot.empty) {
-                    snapshot.forEach(doc => {
-                        const post = doc.data();
-                        if (post.isProfileIndex) return;
-                        realPostCount++;
-
-                        const postId = doc.id;
-                        const isLiked = (post.likes || []).includes(currentUser.uid);
-
-                        const avatarHTML = post.userAvatar 
-                            ? `<img src="${post.userAvatar}" class="feed-avatar">` 
-                            : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
-
-                        const commentHTML = post.comment && post.comment.trim() !== '' 
-                            ? `<div class="feed-comment-box">${post.comment}</div>` 
-                            : '';
-
-                        const card = document.createElement('div');
-                        card.className = 'feed-card';
-                        card.innerHTML = `
-                            <div class="feed-header">
-                                <div class="feed-user-info" onclick="openUserFromFeed('${post.uid}')">
-                                    ${avatarHTML}
-                                    <div>
-                                        <div class="feed-display-name">${post.displayName || post.username || 'ユーザー'}</div>
-                                        <div class="feed-user-name">@${post.username || 'user'}</div>
-                                    </div>
-                                </div>
-                                <div class="feed-time">${post.date || ''}</div>
-                            </div>
-
-                            <div class="feed-trophy-banner">
-                                <div style="font-size:0.65rem; color:var(--text-secondary); font-weight:800; letter-spacing:1px; margin-bottom:2px;">TROPHY UNLOCKED</div>
-                                <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">🏆 ${post.trophyName}</div>
-                            </div>
-
-                            ${post.photo ? `<img src="${post.photo}" class="feed-photo" onclick="openPhotoLightbox('${post.photo}', '${post.trophyName}', '${post.condition || ''}', '${post.date || ''}', '${(post.comment || '').replace(/'/g, "\\'")}', '${postId}', '${post.uid}')">` : ''}
-                            ${commentHTML}
-
-                            <div class="feed-actions">
-                                <div class="feed-actions-left">
-                                    <div class="feed-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${postId}', ${isLiked}, '${post.uid}')">
-                                        <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                                        <span>${(post.likes || []).length}</span>
-                                    </div>
-                                    <div class="feed-action-btn">
-                                        <i class="fa-regular fa-comment"></i>
-                                        <span>${(post.comments || []).length}</span>
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: 10px; align-items: center;">
-                                    ${currentUser && post.uid === currentUser.uid ? `<div class="feed-action-btn" style="color:var(--accent-red);" onclick="deletePostByPostId('${postId}', '${post.trophyId || ''}')" title="投稿を削除"><i class="fa-solid fa-trash"></i></div>` : ''}
-                                    <div class="feed-action-btn" onclick="sharePost('${post.trophyName}', '${post.displayName || post.username}')">
-                                        <i class="fa-solid fa-share-nodes"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="feed-comments-section">
-                                <div id="comments-list-${postId}">
-                                    ${(post.comments || []).map(c => `<div class="comment-item"><b>${c.displayName || c.username}:</b> ${c.text}</div>`).join('')}
-                                </div>
-                                <div class="comment-input-box">
-                                    <input type="text" id="comment-input-${postId}" class="form-input" placeholder="お祝いコメントを入力..." style="margin-bottom:0; font-size:0.75rem; padding:8px 12px;">
-                                    <button class="btn-action-small" onclick="addComment('${postId}', '${post.uid}')">送信</button>
-                                </div>
-                            </div>
-                        `;
-                        container.appendChild(card);
-                    });
-                }
-
-                if (realPostCount === 0) {
-                    container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">まだ投稿がありません。実績を解除してタイムラインに流そう！</div>';
-                }
-            } catch (e) {
-                container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">フィードの読み込みに失敗しました</div>';
-            }
-        }
-
-        async function openUserFromFeed(targetUid) {
-            if (!targetUid) return;
-            if (currentUser && targetUid === currentUser.uid) {
-                switchMainTab('profile');
-                return;
-            }
-            try {
-                const doc = await withTimeout(db.collection('users').doc(targetUid).get(), 2000);
-                if (doc && doc.exists) {
-                    viewUserProfile(targetUid, doc.data());
-                    return;
-                }
-            } catch (e) {}
-            try {
-                const idxDoc = await withTimeout(db.collection('posts').doc('profile_' + targetUid).get(), 2000);
-                if (idxDoc && idxDoc.exists) {
-                    const d = idxDoc.data();
-                    viewUserProfile(targetUid, {
-                        uid: targetUid,
-                        displayName: d.displayName,
-                        username: d.username,
-                        bio: d.bio,
-                        avatar: d.userAvatar
-                    });
-                }
-            } catch (e) {}
-        }
-
-        async function toggleLike(postId, currentLiked, postOwnerUid) {
-            const postRef = db.collection('posts').doc(postId);
-            if (currentLiked) {
-                await postRef.update({ likes: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) }).catch(()=>{});
-            } else {
-                await postRef.update({ likes: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) }).catch(()=>{});
-                sendNotification(postOwnerUid, 'like', 'があなたの投稿に「いいね！」しました。');
-            }
-            renderFeedView();
-        }
-
-        async function addComment(postId, postOwnerUid) {
-            const input = document.getElementById(`comment-input-${postId}`);
-            const text = input.value.trim();
-            if (!text) return;
-
-            const postRef = db.collection('posts').doc(postId);
-            await postRef.update({
-                comments: firebase.firestore.FieldValue.arrayUnion({
-                    uid: currentUser.uid,
-                    displayName: myProfile.displayName || myProfile.username,
-                    username: myProfile.username,
-                    text: text,
-                    createdAt: new Date().toISOString()
-                })
-            }).catch(()=>{});
-
-            sendNotification(postOwnerUid, 'comment', `があなたの投稿にコメントしました: "${text}"`);
-            input.value = '';
-            renderFeedView();
-        }
-
-        /* -------------------------------------------------------------
-           ユーザー検索 View
-        ------------------------------------------------------------- */
-        function renderSearchView() {
-            const container = document.getElementById('main-container');
-            container.innerHTML = `
-                <div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">🔍 ユーザー検索</div>
-                <div style="display:flex; gap:10px; margin-bottom:16px;">
-                    <input type="text" id="search-query" class="form-input" placeholder="ユーザーID (@なしでもOK) や表示名を入力..." style="margin-bottom:0;" oninput="searchUsers()">
-                    <button class="modal-btn" style="width: 90px; margin-top:0;" onclick="searchUsers()">検索</button>
-                </div>
-                <div id="search-results">
-                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">
-                        検索したいユーザーのIDまたは名前を入力してください
-                    </div>
-                </div>
-            `;
-        }
-
-        async function searchUsers() {
-            const qInput = document.getElementById('search-query');
-            if (!qInput) return;
-            const rawQ = qInput.value.trim().replace(/^@/, '').toLowerCase();
-            const resultsEl = document.getElementById('search-results');
-
-            if (!rawQ) {
-                resultsEl.innerHTML = `
-                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">
-                        検索したいユーザーのIDまたは名前を入力してください
-                    </div>
-                `;
-                return;
-            }
-
-            resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:16px;">ユーザーを検索中...</div>';
-
-            const userMap = {};
-
-            try {
-                const snapshot = await withTimeout(db.collection('users').get(), 2000);
-                if (snapshot) {
-                    snapshot.forEach(doc => {
-                        if (currentUser && doc.id === currentUser.uid) return;
-                        const data = doc.data() || {};
-                        if (data.username || data.displayName) {
-                            userMap[doc.id] = {
-                                uid: doc.id,
-                                username: data.username || 'user',
-                                displayName: data.displayName || data.username || 'ユーザー',
-                                bio: data.bio || '人生の実績解除中！',
-                                avatar: data.avatar || '',
-                                following: data.following || [],
-                                followers: data.followers || [],
-                                privacy: data.privacy || 'public',
-                                trophyStatus: data.trophyStatus || {}
-                            };
-                        }
-                    });
-                }
-            } catch (e) {}
-
-            try {
-                const postsSnap = await withTimeout(db.collection('posts').limit(100).get(), 2000);
-                if (postsSnap) {
-                    postsSnap.forEach(doc => {
-                        const p = doc.data() || {};
-                        if (p.uid && (!currentUser || p.uid !== currentUser.uid) && (p.username || p.displayName)) {
-                            if (!userMap[p.uid] || p.isProfileIndex) {
-                                userMap[p.uid] = Object.assign(userMap[p.uid] || {}, {
-                                    uid: p.uid,
-                                    username: p.username || (userMap[p.uid] && userMap[p.uid].username) || 'user',
-                                    displayName: p.displayName || p.username || 'ユーザー',
-                                    bio: p.bio || (userMap[p.uid] && userMap[p.uid].bio) || '人生の実績解除中！',
-                                    avatar: p.userAvatar || (userMap[p.uid] && userMap[p.uid].avatar) || '',
-                                    following: (userMap[p.uid] && userMap[p.uid].following) || [],
-                                    followers: (userMap[p.uid] && userMap[p.uid].followers) || [],
-                                    privacy: 'public'
-                                });
-                            }
-                        }
-                    });
-                }
-            } catch (e) {}
-
-            resultsEl.innerHTML = '';
-            const allUsers = Object.values(userMap);
-
-            const matchedUsers = allUsers.filter(u => {
-                const uName = String(u.username || '').toLowerCase();
-                const dName = String(u.displayName || '').toLowerCase();
-                return uName.includes(rawQ) || dName.includes(rawQ);
-            });
-
-            const headerLabel = document.createElement('div');
-            headerLabel.style.cssText = 'font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:10px;';
-            headerLabel.innerText = `「${rawQ}」の検索結果 (${matchedUsers.length}件)`;
-            resultsEl.appendChild(headerLabel);
-
-            if (matchedUsers.length === 0) {
-                resultsEl.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:24px; background:var(--surface-card); border-radius:12px;">一致するユーザーが見つかりませんでした</div>';
-                return;
-            }
-
-            matchedUsers.forEach(data => {
-                const avatarHTML = data.avatar 
-                    ? `<img src="${data.avatar}" class="feed-avatar">` 
-                    : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
-
-                const card = document.createElement('div');
-                card.className = 'feed-card';
-                card.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding:12px 16px; cursor:pointer;';
-                card.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        ${avatarHTML}
-                        <div>
-                            <div style="font-size:0.9rem; font-weight:700;">${data.displayName}</div>
-                            <div style="font-size:0.7rem; color:var(--text-secondary);">@${data.username} ・ ${data.bio}</div>
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary);"></i>
-                `;
-                card.onclick = () => viewUserProfile(data.uid, data);
-                resultsEl.appendChild(card);
-            });
-        }
-
-        /* -------------------------------------------------------------
-           フォロー / フォロワー機能
-        ------------------------------------------------------------- */
         async function toggleFollow(targetUid) {
             if (!currentUser) return;
             const myUid = currentUser.uid;
@@ -2783,11 +3738,18 @@
             syncProfileToCloudBackground(user.uid, myProfile);
         }
 
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.add('active');
+        }
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.remove('active');
+        }
 
         function showNotification(title, subtitle = 'Trophy Unlocked') {
             const notif = document.getElementById('notification');
+            if (!notif) return;
             document.getElementById('notif-subtitle').innerText = subtitle;
             document.getElementById('notif-title').innerText = title;
             notif.classList.add('show');

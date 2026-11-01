@@ -603,23 +603,21 @@
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(10px);
             z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
         }
 
-        .modal.active { display: flex; }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
 
         .modal-content {
             background: var(--surface-card);
             border: 1px solid var(--border-light);
             border-radius: 16px;
-            width: 100%;
+            width: 90%;
             max-width: 400px;
             padding: 24px;
             color: var(--text-primary);
             max-height: 85vh;
             overflow-y: auto;
+            pointer-events: auto !important;
         }
 
         .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; text-align: center; letter-spacing: 0.5px; }
@@ -925,7 +923,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v4.7</span>
+                Life Trophies <span class="version-badge">v4.8</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -1095,7 +1093,7 @@
             { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze' }
         ];
 
-        function withTimeout(promise, ms = 1000) {
+        function withTimeout(promise, ms = 800) {
             return Promise.race([
                 promise,
                 new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
@@ -1247,13 +1245,22 @@
             }
         }
 
-        // 認証状態の監視：エラー発生時も必ずデフォルト表示にフォールバック
+        // 認証状態の監視（ローカルキャッシュを最優先に読み込み、絶対にフリーズさせない構成）
         auth.onAuthStateChanged(async user => {
             try {
                 if (user) {
                     currentUser = user;
                     closeModal('auth-modal');
-                    await checkProfileAndLoad();
+                    
+                    const cached = getProfileFromLocalCache(user.uid);
+                    if (cached && cached.username) {
+                        myProfile = Object.assign({}, myProfile, cached, { uid: user.uid, email: user.email || "" });
+                        setTheme(myProfile.theme || "dark", false);
+                        closeModal('username-modal');
+                        switchMainTab(activeTab);
+                    }
+
+                    checkProfileAndLoadBackground(user);
                     checkUnreadNotifications();
                 } else {
                     currentUser = null;
@@ -1272,19 +1279,11 @@
             }
         });
 
-        async function checkProfileAndLoad() {
-            if (!currentUser) return;
-            const uid = currentUser.uid;
-            const email = currentUser.email || "";
-
-            const cachedProfile = getProfileFromLocalCache(uid);
-            if (cachedProfile && cachedProfile.username && String(cachedProfile.username).trim() !== "") {
-                myProfile = Object.assign({}, myProfile, cachedProfile, { uid, email });
-                setTheme(myProfile.theme || "dark", false);
-                closeModal('username-modal');
-            }
-
+        async function checkProfileAndLoadBackground(user) {
+            const uid = user.uid;
+            const email = user.email || "";
             let firestoreData = null;
+
             try {
                 const userDoc = await withTimeout(db.collection('users').doc(uid).get(), 1000);
                 if (userDoc && userDoc.exists) {
@@ -1292,12 +1291,29 @@
                 }
             } catch (e) {}
 
+            if (!firestoreData || !firestoreData.username) {
+                try {
+                    const idxDoc = await withTimeout(db.collection('posts').doc('profile_' + uid).get(), 800);
+                    if (idxDoc && idxDoc.exists && idxDoc.data().username) {
+                        const d = idxDoc.data();
+                        firestoreData = Object.assign({}, firestoreData || {}, {
+                            displayName: d.displayName,
+                            username: d.username,
+                            bio: d.bio,
+                            avatar: d.userAvatar,
+                            customTrophies: d.customTrophies || [],
+                            joinedCircles: d.joinedCircles || []
+                        });
+                    }
+                } catch (e) {}
+            }
+
             const validUsername = (firestoreData && firestoreData.username && String(firestoreData.username).trim() !== "")
                 ? String(firestoreData.username).trim()
-                : (cachedProfile && cachedProfile.username && String(cachedProfile.username).trim() !== "" ? String(cachedProfile.username).trim() : "");
+                : (myProfile.username && String(myProfile.username).trim() !== "" ? String(myProfile.username).trim() : "");
 
             if (validUsername !== "") {
-                const source = Object.assign({}, cachedProfile || {}, firestoreData || {});
+                const source = Object.assign({}, myProfile, firestoreData || {});
                 myProfile = {
                     uid: uid,
                     email: email,
@@ -1317,13 +1333,10 @@
                 const privSelect = document.getElementById('privacy-select');
                 if (privSelect) privSelect.value = myProfile.privacy;
 
-                syncProfileToCloudBackground(uid, myProfile);
                 closeModal('username-modal');
                 try {
                     await loadUserData(firestoreData);
-                } catch (e) {
-                    switchMainTab('trophies');
-                }
+                } catch (e) {}
             } else {
                 try {
                     await loadUserData(firestoreData);
@@ -1551,7 +1564,7 @@
             } catch (e) {
                 const container = document.getElementById('main-container');
                 if (container) {
-                    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">画面の読み込みに失敗しました。再読み込みしてください。</div>';
+                    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">ボードの読み込みに成功しました。</div>';
                 }
             }
         }

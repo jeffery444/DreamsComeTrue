@@ -731,7 +731,7 @@
         </div>
     </div>
 
-    <!-- Initial Profile Setup Modal -->
+    <!-- Initial Profile Setup Modal (ご指定の例文に更新) -->
     <div class="modal" id="username-modal" style="z-index: 2500;">
         <div class="modal-content">
             <div class="modal-title">✨ プロフィール初期設定</div>
@@ -739,8 +739,8 @@
                 アカウント作成ありがとうございます！<br>検索やタイムラインで使用する<b>表示名</b>と<b>ユーザーID</b>を設定してください。
             </div>
             <div id="setup-email-display" style="font-size: 0.7rem; color: var(--text-secondary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; text-align: center; word-break: break-all;"></div>
-            <input type="text" id="displayname-input" class="form-input" placeholder="表示名 (例: 翔太)">
-            <input type="text" id="username-input" class="form-input" placeholder="ユーザーID・半角英数 (例: shota_01)">
+            <input type="text" id="displayname-input" class="form-input" placeholder="表示名 (例: てるあき)">
+            <input type="text" id="username-input" class="form-input" placeholder="ユーザーID・半角英数 (例: HR_40)">
             <input type="text" id="bio-input" class="form-input" placeholder="ステータスメッセージ (例: 人生の実績解除中！)">
             <button type="button" class="modal-btn" id="save-initial-profile-btn" onclick="saveInitialProfile()">設定を完了して始める</button>
             <button type="button" class="modal-btn btn-cancel" style="margin-top: 10px; font-size: 0.75rem;" onclick="logout()">別のアカウントでログインし直す</button>
@@ -889,7 +889,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v3.1</span>
+                Life Trophies <span class="version-badge">v3.2</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -1162,6 +1162,14 @@
                     [key]: firebase.firestore.FieldValue.delete()
                 }).catch(()=>{});
             } catch (e) {}
+
+            // 実績を未解除に戻した際、対応するタイムラインの投稿（posts）も自動削除する
+            try {
+                const postsSnap = await db.collection('posts').where('uid', '==', uid).where('trophyId', '==', key).get();
+                postsSnap.forEach(doc => {
+                    doc.ref.delete().catch(()=>{});
+                });
+            } catch (e) {}
         }
 
         auth.onAuthStateChanged(async user => {
@@ -1211,7 +1219,8 @@
                             displayName: d.displayName,
                             username: d.username,
                             bio: d.bio,
-                            avatar: d.userAvatar
+                            avatar: d.userAvatar,
+                            customTrophies: d.customTrophies || []
                         });
                     }
                 } catch (e) {}
@@ -1292,6 +1301,7 @@
                 privacy: myProfile.privacy || "public",
                 following: myProfile.following || [],
                 followers: myProfile.followers || [],
+                customTrophies: customTrophies || [],
                 updatedAt: new Date().toISOString()
             };
 
@@ -1983,7 +1993,7 @@
         }
 
         /* -------------------------------------------------------------
-           他人のプロフィール画面 View (フォロー・フォロワー連動強化)
+           他人のプロフィール画面 View (カスタム実績名修正対応)
         ------------------------------------------------------------- */
         async function viewUserProfile(uid, profileData) {
             if (profileData.privacy === 'followers' && !profileData.followers?.includes(currentUser.uid)) {
@@ -1993,14 +2003,24 @@
 
             let targetState = profileData.trophyStatus || {};
             let freshTargetData = Object.assign({}, profileData);
+            let targetCustomTrophies = [];
 
             try {
                 const doc = await withTimeout(db.collection('users').doc(uid).get(), 2000);
                 if (doc && doc.exists) {
                     freshTargetData = Object.assign(freshTargetData, doc.data());
+                    if (Array.isArray(doc.data().customTrophies)) {
+                        targetCustomTrophies = doc.data().customTrophies;
+                    }
                 }
                 const statusDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('status').get(), 2000);
                 if (statusDoc && statusDoc.exists) targetState = Object.assign({}, targetState, statusDoc.data());
+                
+                const customDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('custom').get(), 2000);
+                if (customDoc && customDoc.exists && Array.isArray(customDoc.data().items)) {
+                    targetCustomTrophies = customDoc.data().items;
+                }
+
                 const unlockedSnap = await withTimeout(db.collection('users').doc(uid).collection('unlocked_items').get(), 2000);
                 if (unlockedSnap) unlockedSnap.forEach(d => { targetState[d.id] = d.data(); });
             } catch (e) {}
@@ -2010,18 +2030,33 @@
                 if (userPosts) {
                     userPosts.forEach(doc => {
                         const p = doc.data();
-                        if (!p.isProfileIndex && p.trophyId && !targetState[p.trophyId]) {
-                            targetState[p.trophyId] = {
-                                date: p.date || '',
-                                photo: p.photo || null,
-                                comment: p.comment || ''
-                            };
+                        if (p.isProfileIndex) {
+                            if (Array.isArray(p.customTrophies)) targetCustomTrophies = p.customTrophies;
+                        } else if (p.trophyId) {
+                            if (!targetState[p.trophyId]) {
+                                targetState[p.trophyId] = {
+                                    date: p.date || '',
+                                    photo: p.photo || null,
+                                    comment: p.comment || ''
+                                };
+                            }
+                            // タイムライン投稿からカスタム実績の名称や情報を補完
+                            if (String(p.trophyId).startsWith('custom_') && !targetCustomTrophies.find(t => String(t.id) === String(p.trophyId))) {
+                                targetCustomTrophies.push({
+                                    id: p.trophyId,
+                                    name: p.trophyName || 'カスタム実績',
+                                    condition: 'タイムラインから検出',
+                                    rank: 'gold',
+                                    isCustom: true
+                                });
+                            }
                         }
                     });
                 }
             } catch (e) {}
 
             freshTargetData.uid = uid;
+            const allTargetTrophies = [...defaultTrophies, ...targetCustomTrophies];
             
             const statsBox = document.getElementById('stats-grid-box');
             statsBox.style.display = 'grid';
@@ -2074,7 +2109,7 @@
                 const item = targetState[id];
                 if (item && item.photo) {
                     photoCount++;
-                    const trophy = defaultTrophies.find(t => String(t.id) === String(id));
+                    const trophy = allTargetTrophies.find(t => String(t.id) === String(id));
                     const tName = trophy ? trophy.name : '実績';
                     const el = document.createElement('div');
                     el.className = 'gallery-item';
@@ -2097,7 +2132,7 @@
             let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
             let totalUnlocked = 0;
 
-            defaultTrophies.forEach(t => {
+            allTargetTrophies.forEach(t => {
                 const isUnlocked = !!targetState[t.id];
                 if (isUnlocked) {
                     if (count[t.rank] !== undefined) count[t.rank]++;
@@ -2132,7 +2167,7 @@
             document.getElementById('count-silver').innerText = count.silver;
             document.getElementById('count-bronze').innerText = count.bronze;
 
-            const percent = Math.round((totalUnlocked / defaultTrophies.length) * 100);
+            const percent = allTargetTrophies.length > 0 ? Math.round((totalUnlocked / allTargetTrophies.length) * 100) : 0;
             document.getElementById('progress-percent').innerText = `${percent}%`;
         }
 
@@ -2430,7 +2465,7 @@
         }
 
         /* -------------------------------------------------------------
-           ユーザー検索 View (文字入力時のみ絞り込み表示する仕様)
+           ユーザー検索 View (入力時のみ絞り込み)
         ------------------------------------------------------------- */
         function renderSearchView() {
             const container = document.getElementById('main-container');
@@ -2454,7 +2489,6 @@
             const rawQ = qInput.value.trim().replace(/^@/, '').toLowerCase();
             const resultsEl = document.getElementById('search-results');
 
-            // 文字が何も入力されていない場合は検索結果を出さない（非表示）
             if (!rawQ) {
                 resultsEl.innerHTML = `
                     <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">
@@ -2557,7 +2591,7 @@
         }
 
         /* -------------------------------------------------------------
-           フォロー / フォロワー機能 (即時反映・通知連動)
+           フォロー / フォロワー機能
         ------------------------------------------------------------- */
         async function toggleFollow(targetUid) {
             if (!currentUser) return;

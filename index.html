@@ -55,8 +55,6 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -65,8 +63,7 @@
             color: var(--text-primary);
             font-family: 'Inter', 'Noto Sans JP', -apple-system, sans-serif;
             min-height: 100vh;
-            /* 下部ナビゲーションに隠れないよう十分な余白を確保 */
-            padding-bottom: calc(90px + env(safe-area-inset-bottom));
+            padding-bottom: 90px;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             transition: background-color 0.3s, color 0.3s;
@@ -127,13 +124,14 @@
             font-size: 1.1rem;
             cursor: pointer;
             position: relative;
-            padding: 4px;
+            padding: 6px;
+            z-index: 101;
         }
 
         .notif-badge-dot {
             position: absolute;
-            top: -2px;
-            right: -2px;
+            top: 2px;
+            right: 2px;
             width: 8px;
             height: 8px;
             background: var(--accent-red);
@@ -180,7 +178,7 @@
 
         .stat-badge .rank-val { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
 
-        /* 5タブ構成のボトムナビゲーションバー（タッチ不具合修正版） */
+        /* ボトムナビゲーションバー（タッチ不具合の完全防止） */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -194,9 +192,8 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            z-index: 9999; /* 最前面に配置して確実にタッチできるようにする */
+            z-index: 9999;
             padding-bottom: env(safe-area-inset-bottom);
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
         }
 
         .nav-item {
@@ -213,8 +210,7 @@
             height: 100%;
             background: transparent;
             border: none;
-            transition: color 0.2s;
-            pointer-events: auto; /* タッチイベントを確実に拾う */
+            outline: none;
         }
 
         .nav-item.active { color: var(--text-primary); }
@@ -224,8 +220,6 @@
             padding: 16px 20px;
             max-width: 600px;
             margin: 0 auto;
-            position: relative;
-            z-index: 10;
         }
 
         /* Board Category Switcher */
@@ -249,7 +243,6 @@
             font-size: 0.72rem;
             font-weight: 800;
             cursor: pointer;
-            transition: all 0.2s;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -329,7 +322,6 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            transition: all 0.2s ease;
             position: relative;
         }
 
@@ -611,7 +603,7 @@
         #notification.show { transform: translateX(-50%) translateY(0); }
         .notif-icon { width: 36px; height: 36px; background: var(--bg-main); color: var(--text-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-        /* Modals (確実に最前面＆操作可能に修正) */
+        /* Modals */
         .modal {
             display: none;
             position: fixed;
@@ -622,7 +614,6 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            pointer-events: auto;
         }
 
         .modal.active { display: flex; }
@@ -701,7 +692,6 @@
             background: var(--text-primary);
             color: var(--bg-main);
             margin-top: 6px;
-            pointer-events: auto;
         }
 
         .modal-btn:disabled {
@@ -940,7 +930,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v4.1</span>
+                Life Trophies <span class="version-badge">v4.2</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -961,7 +951,7 @@
 
     <div class="container" id="main-container"></div>
 
-    <!-- 5タブ構成のボトムナビゲーションバー（タッチ不具合修正版） -->
+    <!-- 5タブ構成のボトムナビゲーションバー（v4.2修復版） -->
     <nav class="bottom-nav">
         <button class="nav-item" id="nav-btn-feed" onclick="switchMainTab('feed')">
             <i class="fa-solid fa-house"></i>

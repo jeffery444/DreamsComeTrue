@@ -781,7 +781,7 @@
         </div>
     </div>
 
-    <!-- Photo Lightbox / Detail Zoom Modal (サムネイル拡大表示用) -->
+    <!-- Photo Lightbox / Detail Zoom Modal -->
     <div class="modal" id="photo-lightbox-modal" onclick="closeModal('photo-lightbox-modal')">
         <div class="modal-content" onclick="event.stopPropagation()" style="text-align: center; max-width: 440px;">
             <div class="modal-title" id="lightbox-title" style="margin-bottom: 10px; font-size: 0.95rem;">実績詳細</div>
@@ -829,7 +829,7 @@
         </div>
     </div>
 
-    <!-- Unlock Modal (コメント欄付き) -->
+    <!-- Unlock Modal -->
     <div class="modal" id="unlock-modal">
         <div class="modal-content">
             <div class="modal-title" id="modal-trophy-title">実績を解除</div>
@@ -1148,27 +1148,31 @@
                 return alert('このユーザーIDはすでに使われています。別のIDにしてください。');
             }
 
-            await db.collection('users').doc(currentUser.uid).set({
-                displayName: displayName,
-                username: username,
-                bio: bio,
-                avatar: "",
-                theme: "dark",
-                privacy: "public",
-                following: [],
-                followers: [],
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
+            try {
+                await db.collection('users').doc(currentUser.uid).set({
+                    displayName: displayName,
+                    username: username,
+                    bio: bio,
+                    avatar: "",
+                    theme: "dark",
+                    privacy: "public",
+                    following: [],
+                    followers: [],
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
 
-            myProfile.uid = currentUser.uid;
-            myProfile.displayName = displayName;
-            myProfile.username = username;
-            myProfile.bio = bio;
-            myProfile.theme = "dark";
-            myProfile.privacy = "public";
-            setTheme("dark");
-            document.getElementById('username-modal').classList.remove('active');
-            await loadUserData(null);
+                myProfile.uid = currentUser.uid;
+                myProfile.displayName = displayName;
+                myProfile.username = username;
+                myProfile.bio = bio;
+                myProfile.theme = "dark";
+                myProfile.privacy = "public";
+                setTheme("dark");
+                document.getElementById('username-modal').classList.remove('active');
+                await loadUserData(null);
+            } catch (err) {
+                alert('プロフィールの保存に失敗しました: ' + err.message);
+            }
         }
 
         function toggleAuthMode() {
@@ -1179,7 +1183,7 @@
         }
 
         async function handleAuth() {
-            const email = document.getElementById('auth-email').value;
+            const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value;
             if (!email || !password) return alert('メールアドレスとパスワードを入力してください');
 
@@ -1190,7 +1194,15 @@
                     await auth.signInWithEmailAndPassword(email, password);
                 }
             } catch (error) {
-                alert('エラー: ' + error.message);
+                let msg = error.message;
+                if (error.code === 'auth/email-already-in-use') {
+                    msg = 'このメールアドレスはすでに登録されています。「すでにアカウントをお持ちの方はログイン」からログインするか、別のメールアドレスをお使いください。';
+                } else if (error.code === 'auth/weak-password') {
+                    msg = 'パスワードは6文字以上で入力してください。';
+                } else if (error.code === 'auth/invalid-email') {
+                    msg = '有効なメールアドレスを入力してください。';
+                }
+                alert('エラー: ' + msg);
             }
         }
 
@@ -1605,7 +1617,6 @@
             const trophyName = trophy ? trophy.name : '実績';
             const commentText = document.getElementById('unlock-comment-input').value.trim();
             
-            // 年月日・時分秒数まで精密に記録するタイムスタンプ生成
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1651,7 +1662,7 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View (サムネイル拡大表示対応)
+           マイページ View
         ------------------------------------------------------------- */
         function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -1709,7 +1720,6 @@
                         <img src="${item.photo}" alt="${trophyName}">
                         <div class="gallery-item-title">${trophyName}</div>
                     `;
-                    // タップした際に詳細付きで拡大表示するモーダルを開く
                     el.onclick = () => openPhotoLightbox(item.photo, trophyName, date, comment);
                     grid.appendChild(el);
                 }
@@ -1722,9 +1732,6 @@
             }
         }
 
-        /* -------------------------------------------------------------
-           写真拡大表示 (ライトボックス) モーダル機能
-        ------------------------------------------------------------- */
         function openPhotoLightbox(photoSrc, trophyName, dateStr, commentText) {
             document.getElementById('lightbox-title').innerText = `🏆 ${trophyName}`;
             document.getElementById('lightbox-image').src = photoSrc;
@@ -2132,6 +2139,9 @@
             renderFeedView();
         }
 
+        /* -------------------------------------------------------------
+           ユーザー検索 View (強化版：大文字小文字・空白耐性つき)
+        ------------------------------------------------------------- */
         function renderSearchView() {
             const container = document.getElementById('main-container');
             container.innerHTML = `
@@ -2158,6 +2168,8 @@
                     const data = doc.data();
                     const uName = (data.username || '').toLowerCase();
                     const dName = (data.displayName || '').toLowerCase();
+                    
+                    // 検索クエリが含まれているかを判定
                     if (uName && (uName.includes(q) || dName.includes(q)) && doc.id !== currentUser.uid) {
                         found = true;
                         const avatarHTML = data.avatar 

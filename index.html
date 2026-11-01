@@ -925,7 +925,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v4.5</span>
+                Life Trophies <span class="version-badge">v4.7</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -1095,7 +1095,7 @@
             { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze' }
         ];
 
-        function withTimeout(promise, ms = 2000) {
+        function withTimeout(promise, ms = 1000) {
             return Promise.race([
                 promise,
                 new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
@@ -1247,6 +1247,7 @@
             }
         }
 
+        // 認証状態の監視：エラー発生時も必ずデフォルト表示にフォールバック
         auth.onAuthStateChanged(async user => {
             try {
                 if (user) {
@@ -1267,7 +1268,6 @@
                     switchMainTab('trophies');
                 }
             } catch (err) {
-                // 万が一予期せぬエラーが起きた場合も最低限の画面表示を保障
                 switchMainTab('trophies');
             }
         });
@@ -1286,28 +1286,11 @@
 
             let firestoreData = null;
             try {
-                const userDoc = await withTimeout(db.collection('users').doc(uid).get(), 2000);
+                const userDoc = await withTimeout(db.collection('users').doc(uid).get(), 1000);
                 if (userDoc && userDoc.exists) {
                     firestoreData = userDoc.data();
                 }
             } catch (e) {}
-
-            if (!firestoreData || !firestoreData.username) {
-                try {
-                    const idxDoc = await withTimeout(db.collection('posts').doc('profile_' + uid).get(), 1500);
-                    if (idxDoc && idxDoc.exists && idxDoc.data().username) {
-                        const d = idxDoc.data();
-                        firestoreData = Object.assign({}, firestoreData || {}, {
-                            displayName: d.displayName,
-                            username: d.username,
-                            bio: d.bio,
-                            avatar: d.userAvatar,
-                            customTrophies: d.customTrophies || [],
-                            joinedCircles: d.joinedCircles || []
-                        });
-                    }
-                } catch (e) {}
-            }
 
             const validUsername = (firestoreData && firestoreData.username && String(firestoreData.username).trim() !== "")
                 ? String(firestoreData.username).trim()
@@ -1336,9 +1319,15 @@
 
                 syncProfileToCloudBackground(uid, myProfile);
                 closeModal('username-modal');
-                await loadUserData(firestoreData);
+                try {
+                    await loadUserData(firestoreData);
+                } catch (e) {
+                    switchMainTab('trophies');
+                }
             } else {
-                await loadUserData(firestoreData);
+                try {
+                    await loadUserData(firestoreData);
+                } catch (e) {}
                 openInitialProfileSetupModal();
             }
         }
@@ -1536,87 +1525,6 @@
             userState = mergedStatus;
             customTrophies = mergedCustom;
             switchMainTab(activeTab);
-
-            try {
-                const statusDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('status').get(), 2000);
-                if (statusDoc && statusDoc.exists && statusDoc.data()) Object.assign(userState, statusDoc.data());
-            } catch (e) {}
-
-            try {
-                const customDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('custom').get(), 2000);
-                if (customDoc && customDoc.exists && customDoc.data() && Array.isArray(customDoc.data().items)) {
-                    if (customDoc.data().items.length > customTrophies.length) customTrophies = customDoc.data().items;
-                }
-            } catch (e) {}
-
-            try {
-                const unlockedSnap = await withTimeout(db.collection('users').doc(uid).collection('unlocked_items').get(), 2000);
-                if (unlockedSnap) {
-                    unlockedSnap.forEach(doc => { userState[doc.id] = doc.data(); });
-                }
-            } catch (e) {}
-
-            recoverFromPosts(false);
-            switchMainTab(activeTab);
-        }
-
-        async function recoverFromPosts(isManualClick = false) {
-            if (!currentUser) return;
-            const uid = currentUser.uid;
-            let recoveredCount = 0;
-
-            try {
-                const postsSnap = await withTimeout(db.collection('posts').where('uid', '==', uid).get(), 2500);
-                postsSnap.forEach(doc => {
-                    const post = doc.data();
-                    if (post.isProfileIndex) return;
-                    let tId = post.trophyId;
-
-                    if (!tId && post.trophyName) {
-                        const matched = [...defaultTrophies, ...customTrophies].find(t => t.name === post.trophyName);
-                        if (matched) tId = matched.id;
-                    }
-
-                    if (tId !== undefined && tId !== null) {
-                        const key = String(tId);
-                        if (!userState[key] && !revertedIds.includes(key)) {
-                            userState[key] = {
-                                date: post.date || '復元済',
-                                photo: post.photo || null,
-                                comment: post.comment || '',
-                                condition: post.condition || '',
-                                trophyName: post.trophyName || ''
-                            };
-                            recoveredCount++;
-                        }
-
-                        if (key.startsWith('custom_') && !customTrophies.find(t => String(t.id) === key)) {
-                            customTrophies.push({
-                                id: key,
-                                name: post.trophyName || 'カスタム実績',
-                                condition: post.condition || 'タイムライン履歴から復元',
-                                rank: 'gold',
-                                isCustom: true
-                            });
-                        }
-                    }
-                });
-
-                if (recoveredCount > 0) {
-                    localStorage.setItem(`lt_status_${uid}`, JSON.stringify(userState));
-                    localStorage.setItem(`lt_custom_${uid}`, JSON.stringify(customTrophies));
-                    for (const [k, v] of Object.entries(userState)) {
-                        db.collection('users').doc(uid).collection('unlocked_items').doc(String(k)).set(v).catch(()=>{});
-                    }
-                    saveCustomTrophiesToStorage();
-                    switchMainTab(activeTab);
-                    showNotification(`${recoveredCount}件の実績データをタイムライン履歴から復元しました！`, 'DATA RECOVERED');
-                } else if (isManualClick) {
-                    alert('タイムライン履歴を確認しましたが、追加で復元できる過去の実績データはありませんでした。');
-                }
-            } catch (e) {
-                if (isManualClick) alert('復元スキャン中にエラーが発生しました: ' + e.message);
-            }
         }
 
         function switchMainTab(tab) {
@@ -1626,10 +1534,12 @@
             if (activeBtn) activeBtn.classList.add('active');
 
             const statsBox = document.getElementById('stats-grid-box');
-            if (tab === 'trophies' || tab === 'other-profile') {
-                statsBox.style.display = 'grid';
-            } else {
-                statsBox.style.display = 'none';
+            if (statsBox) {
+                if (tab === 'trophies' || tab === 'other-profile') {
+                    statsBox.style.display = 'grid';
+                } else {
+                    statsBox.style.display = 'none';
+                }
             }
 
             try {
@@ -1639,7 +1549,10 @@
                 else if (tab === 'search') renderSearchView();
                 else if (tab === 'profile') renderMyProfileView();
             } catch (e) {
-                document.getElementById('main-container').innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">画面の読み込みに失敗しました。再読み込みしてください。</div>';
+                const container = document.getElementById('main-container');
+                if (container) {
+                    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">画面の読み込みに失敗しました。再読み込みしてください。</div>';
+                }
             }
         }
 
@@ -1766,13 +1679,18 @@
                 }
             });
 
-            document.getElementById('count-plat').innerText = count.platinum;
-            document.getElementById('count-gold').innerText = count.gold;
-            document.getElementById('count-silver').innerText = count.silver;
-            document.getElementById('count-bronze').innerText = count.bronze;
+            const cp = document.getElementById('count-plat');
+            const cg = document.getElementById('count-gold');
+            const cs = document.getElementById('count-silver');
+            const cb = document.getElementById('count-bronze');
+            if (cp) cp.innerText = count.platinum;
+            if (cg) cg.innerText = count.gold;
+            if (cs) cs.innerText = count.silver;
+            if (cb) cb.innerText = count.bronze;
 
             const percent = allTrophiesList.length > 0 ? Math.round((totalUnlocked / allTrophiesList.length) * 100) : 0;
-            document.getElementById('progress-percent').innerText = `${percent}%`;
+            const pp = document.getElementById('progress-percent');
+            if (pp) pp.innerText = `${percent}%`;
 
             let targetList = defaultTrophies;
             if (boardCategory === 'custom') targetList = customTrophies;
@@ -2343,6 +2261,7 @@
 
         function openUnlockedManageModal() {
             const listContainer = document.getElementById('unlocked-manage-list-container');
+            if (!listContainer) return;
             listContainer.innerHTML = '';
 
             let unlockedCount = 0;
@@ -2455,7 +2374,7 @@
             const allTargetTrophies = [...defaultTrophies, ...targetCustomTrophies];
             
             const statsBox = document.getElementById('stats-grid-box');
-            statsBox.style.display = 'grid';
+            if (statsBox) statsBox.style.display = 'grid';
             
             const container = document.getElementById('main-container');
             if (!container) return;
@@ -2562,13 +2481,18 @@
 
             container.appendChild(trophyListEl);
 
-            document.getElementById('count-plat').innerText = count.platinum;
-            document.getElementById('count-gold').innerText = count.gold;
-            document.getElementById('count-silver').innerText = count.silver;
-            document.getElementById('count-bronze').innerText = count.bronze;
+            const cp = document.getElementById('count-plat');
+            const cg = document.getElementById('count-gold');
+            const cs = document.getElementById('count-silver');
+            const cb = document.getElementById('count-bronze');
+            if (cp) cp.innerText = count.platinum;
+            if (cg) cg.innerText = count.gold;
+            if (cs) cs.innerText = count.silver;
+            if (cb) cb.innerText = count.bronze;
 
             const percent = allTargetTrophies.length > 0 ? Math.round((totalUnlocked / allTargetTrophies.length) * 100) : 0;
-            document.getElementById('progress-percent').innerText = `${percent}%`;
+            const pp = document.getElementById('progress-percent');
+            if (pp) pp.innerText = `${percent}%`;
         }
 
         async function revertUnlock(id) {
@@ -2635,7 +2559,7 @@
             try {
                 const snapshot = await withTimeout(db.collection('users').doc(currentUser.uid).collection('notifications').where('read', '==', false).get(), 2000);
                 const dot = document.getElementById('notif-badge-dot');
-                dot.style.display = (snapshot && !snapshot.empty) ? 'block' : 'none';
+                if (dot) dot.style.display = (snapshot && !snapshot.empty) ? 'block' : 'none';
             } catch (e) {}
         }
 
@@ -2665,7 +2589,8 @@
                     container.appendChild(card);
                 });
                 batch.commit().catch(()=>{});
-                document.getElementById('notif-badge-dot').style.display = 'none';
+                const dot = document.getElementById('notif-badge-dot');
+                if (dot) dot.style.display = 'none';
             } catch (e) {
                 container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">通知はありません</div>';
             }
@@ -2719,406 +2644,6 @@
             } catch (e) {
                 listContainer.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">読み込みに失敗しました</div>';
             }
-        }
-
-        async function renderFeedView() {
-            const container = document.getElementById('main-container');
-            if (!container) return;
-            container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">タイムライン読み込み中...</div>';
-
-            try {
-                const snapshot = await withTimeout(db.collection('posts').orderBy('createdAt', 'desc').limit(30).get(), 3000);
-                container.innerHTML = '<div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">📡 タイムライン</div>';
-
-                let realPostCount = 0;
-                if (snapshot && !snapshot.empty) {
-                    snapshot.forEach(doc => {
-                        const post = doc.data();
-                        if (post.isProfileIndex) return;
-                        realPostCount++;
-
-                        const postId = doc.id;
-                        const isLiked = (post.likes || []).includes(currentUser.uid);
-
-                        const avatarHTML = post.userAvatar 
-                            ? `<img src="${post.userAvatar}" class="feed-avatar">` 
-                            : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
-
-                        const commentHTML = post.comment && post.comment.trim() !== '' 
-                            ? `<div class="feed-comment-box">${post.comment}</div>` 
-                            : '';
-
-                        const card = document.createElement('div');
-                        card.className = 'feed-card';
-                        card.innerHTML = `
-                            <div class="feed-header">
-                                <div class="feed-user-info" onclick="openUserFromFeed('${post.uid}')">
-                                    ${avatarHTML}
-                                    <div>
-                                        <div class="feed-display-name">${post.displayName || post.username || 'ユーザー'}</div>
-                                        <div class="feed-user-name">@${post.username || 'user'}</div>
-                                    </div>
-                                </div>
-                                <div class="feed-time">${post.date || ''}</div>
-                            </div>
-
-                            <div class="feed-trophy-banner">
-                                <div style="font-size:0.65rem; color:var(--text-secondary); font-weight:800; letter-spacing:1px; margin-bottom:2px;">TROPHY UNLOCKED</div>
-                                <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">🏆 ${post.trophyName}</div>
-                            </div>
-
-                            ${post.photo ? `<img src="${post.photo}" class="feed-photo" onclick="openPhotoLightbox('${post.photo}', '${post.trophyName}', '${post.condition || ''}', '${post.date || ''}', '${(post.comment || '').replace(/'/g, "\\'')}', '${postId}', '${post.uid}')">` : ''}
-                            ${commentHTML}
-
-                            <div class="feed-actions">
-                                <div class="feed-actions-left">
-                                    <div class="feed-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${postId}', ${isLiked}, '${post.uid}')">
-                                        <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                                        <span>${(post.likes || []).length}</span>
-                                    </div>
-                                    <div class="feed-action-btn">
-                                        <i class="fa-regular fa-comment"></i>
-                                        <span>${(post.comments || []).length}</span>
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: 10px; align-items: center;">
-                                    ${currentUser && post.uid === currentUser.uid ? `<div class="feed-action-btn" style="color:var(--accent-red);" onclick="deletePostByPostId('${postId}', '${post.trophyId || ''}')" title="投稿を削除"><i class="fa-solid fa-trash"></i></div>` : ''}
-                                    <div class="feed-action-btn" onclick="sharePost('${post.trophyName}', '${post.displayName || post.username}')">
-                                        <i class="fa-solid fa-share-nodes"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="feed-comments-section">
-                                <div id="comments-list-${postId}">
-                                    ${(post.comments || []).map(c => `<div class="comment-item"><b>${c.displayName || c.username}:</b> ${c.text}</div>`).join('')}
-                                </div>
-                                <div class="comment-input-box">
-                                    <input type="text" id="comment-input-${postId}" class="form-input" placeholder="お祝いコメントを入力..." style="margin-bottom:0; font-size:0.75rem; padding:8px 12px;">
-                                    <button class="btn-action-small" onclick="addComment('${postId}', '${post.uid}')">送信</button>
-                                </div>
-                            </div>
-                        `;
-                        container.appendChild(card);
-                    });
-                }
-
-                if (realPostCount === 0) {
-                    container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">まだ投稿がありません。実績を解除してタイムラインに流そう！</div>';
-                }
-            } catch (e) {
-                container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">フィードの読み込みに失敗しました</div>';
-            }
-        }
-
-        async function openUserFromFeed(targetUid) {
-            if (!targetUid) return;
-            if (currentUser && targetUid === currentUser.uid) {
-                switchMainTab('profile');
-                return;
-            }
-            try {
-                const doc = await withTimeout(db.collection('users').doc(targetUid).get(), 2000);
-                if (doc && doc.exists) {
-                    viewUserProfile(targetUid, doc.data());
-                    return;
-                }
-            } catch (e) {}
-            try {
-                const idxDoc = await withTimeout(db.collection('posts').doc('profile_' + targetUid).get(), 2000);
-                if (idxDoc && idxDoc.exists) {
-                    const d = idxDoc.data();
-                    viewUserProfile(targetUid, {
-                        uid: targetUid,
-                        displayName: d.displayName,
-                        username: d.username,
-                        bio: d.bio,
-                        avatar: d.userAvatar
-                    });
-                }
-            } catch (e) {}
-        }
-
-        async function toggleLike(postId, currentLiked, postOwnerUid) {
-            const postRef = db.collection('posts').doc(postId);
-            if (currentLiked) {
-                await postRef.update({ likes: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) }).catch(()=>{});
-            } else {
-                await postRef.update({ likes: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) }).catch(()=>{});
-                sendNotification(postOwnerUid, 'like', 'があなたの投稿に「いいね！」しました。');
-            }
-            renderFeedView();
-        }
-
-        async function addComment(postId, postOwnerUid) {
-            const input = document.getElementById(`comment-input-${postId}`);
-            if (!input) return;
-            const text = input.value.trim();
-            if (!text) return;
-
-            const postRef = db.collection('posts').doc(postId);
-            await postRef.update({
-                comments: firebase.firestore.FieldValue.arrayUnion({
-                    uid: currentUser.uid,
-                    displayName: myProfile.displayName || myProfile.username,
-                    username: myProfile.username,
-                    text: text,
-                    createdAt: new Date().toISOString()
-                })
-            }).catch(()=>{});
-
-            sendNotification(postOwnerUid, 'comment', `があなたにコメントしました: "${text}"`);
-            input.value = '';
-            renderFeedView();
-        }
-
-        function renderSearchView() {
-            const container = document.getElementById('main-container');
-            if (!container) return;
-            container.innerHTML = `
-                <div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">🔍 ユーザー検索</div>
-                <div style="display:flex; gap:10px; margin-bottom:16px;">
-                    <input type="text" id="search-query" class="form-input" placeholder="ユーザーID (@なしでもOK) や表示名を入力..." style="margin-bottom:0;" oninput="searchUsers()">
-                    <button class="modal-btn" style="width: 90px; margin-top:0;" onclick="searchUsers()">検索</button>
-                </div>
-                <div id="search-results">
-                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">
-                        検索したいユーザーのIDまたは名前を入力してください
-                    </div>
-                </div>
-            `;
-        }
-
-        async function searchUsers() {
-            const qInput = document.getElementById('search-query');
-            if (!qInput) return;
-            const rawQ = qInput.value.trim().replace(/^@/, '').toLowerCase();
-            const resultsEl = document.getElementById('search-results');
-            if (!resultsEl) return;
-
-            if (!rawQ) {
-                resultsEl.innerHTML = `
-                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">
-                        検索したいユーザーのIDまたは名前を入力してください
-                    </div>
-                `;
-                return;
-            }
-
-            resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:16px;">ユーザーを検索中...</div>';
-
-            const userMap = {};
-
-            try {
-                const snapshot = await withTimeout(db.collection('users').get(), 2000);
-                if (snapshot) {
-                    snapshot.forEach(doc => {
-                        if (currentUser && doc.id === currentUser.uid) return;
-                        const data = doc.data() || {};
-                        if (data.username || data.displayName) {
-                            userMap[doc.id] = {
-                                uid: doc.id,
-                                username: data.username || 'user',
-                                displayName: data.displayName || data.username || 'ユーザー',
-                                bio: data.bio || '人生の実績解除中！',
-                                avatar: data.avatar || '',
-                                following: data.following || [],
-                                followers: data.followers || [],
-                                privacy: data.privacy || 'public',
-                                trophyStatus: data.trophyStatus || {}
-                            };
-                        }
-                    });
-                }
-            } catch (e) {}
-
-            try {
-                const postsSnap = await withTimeout(db.collection('posts').limit(100).get(), 2000);
-                if (postsSnap) {
-                    postsSnap.forEach(doc => {
-                        const p = doc.data() || {};
-                        if (p.uid && (!currentUser || p.uid !== currentUser.uid) && (p.username || p.displayName)) {
-                            if (!userMap[p.uid] || p.isProfileIndex) {
-                                userMap[p.uid] = Object.assign(userMap[p.uid] || {}, {
-                                    uid: p.uid,
-                                    username: p.username || (userMap[p.uid] && userMap[p.uid].username) || 'user',
-                                    displayName: p.displayName || p.username || 'ユーザー',
-                                    bio: p.bio || (userMap[p.uid] && userMap[p.uid].bio) || '人生の実績解除中！',
-                                    avatar: p.userAvatar || (userMap[p.uid] && userMap[p.uid].avatar) || '',
-                                    following: (userMap[p.uid] && userMap[p.uid].following) || [],
-                                    followers: (userMap[p.uid] && userMap[p.uid].followers) || [],
-                                    privacy: 'public'
-                                });
-                            }
-                        }
-                    });
-                }
-            } catch (e) {}
-
-            resultsEl.innerHTML = '';
-            const allUsers = Object.values(userMap);
-
-            const matchedUsers = allUsers.filter(u => {
-                const uName = String(u.username || '').toLowerCase();
-                const dName = String(u.displayName || '').toLowerCase();
-                return uName.includes(rawQ) || dName.includes(rawQ);
-            });
-
-            const headerLabel = document.createElement('div');
-            headerLabel.style.cssText = 'font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:10px;';
-            headerLabel.innerText = `「${rawQ}」の検索結果 (${matchedUsers.length}件)`;
-            resultsEl.appendChild(headerLabel);
-
-            if (matchedUsers.length === 0) {
-                resultsEl.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:24px; background:var(--surface-card); border-radius:12px;">一致するユーザーが見つかりませんでした</div>';
-                return;
-            }
-
-            matchedUsers.forEach(data => {
-                const avatarHTML = data.avatar 
-                    ? `<img src="${data.avatar}" class="feed-avatar">` 
-                    : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
-
-                const card = document.createElement('div');
-                card.className = 'feed-card';
-                card.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding:12px 16px; cursor:pointer;';
-                card.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        ${avatarHTML}
-                        <div>
-                            <div style="font-size:0.9rem; font-weight:700;">${data.displayName}</div>
-                            <div style="font-size:0.7rem; color:var(--text-secondary);">@${data.username} ・ ${data.bio}</div>
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary);"></i>
-                `;
-                card.onclick = () => viewUserProfile(data.uid, data);
-                resultsEl.appendChild(card);
-            });
-        }
-
-        async function toggleFollow(targetUid) {
-            if (!currentUser) return;
-            const myUid = currentUser.uid;
-            if (myUid === targetUid) return;
-
-            const isFollowing = (myProfile.following || []).includes(targetUid);
-            const myRef = db.collection('users').doc(myUid);
-            const targetRef = db.collection('users').doc(targetUid);
-
-            const btn = document.getElementById('follow-toggle-btn');
-            const countEl = document.getElementById('target-followers-count');
-
-            if (btn) btn.disabled = true;
-
-            try {
-                let currentFollowersCount = countEl ? parseInt(countEl.innerText) || 0 : 0;
-
-                if (isFollowing) {
-                    myProfile.following = (myProfile.following || []).filter(id => id !== targetUid);
-                    await myRef.set({ following: firebase.firestore.FieldValue.arrayRemove(targetUid) }, { merge: true });
-                    await targetRef.set({ followers: firebase.firestore.FieldValue.arrayRemove(myUid) }, { merge: true });
-                    
-                    if (countEl) countEl.innerText = Math.max(0, currentFollowersCount - 1);
-                    if (btn) {
-                        btn.className = 'btn-action-small';
-                        btn.innerText = 'フォローする';
-                    }
-                    showNotification('フォローを解除しました', 'FOLLOW');
-                } else {
-                    if (!myProfile.following) myProfile.following = [];
-                    myProfile.following.push(targetUid);
-                    await myRef.set({ following: firebase.firestore.FieldValue.arrayUnion(targetUid) }, { merge: true });
-                    await targetRef.set({ followers: firebase.firestore.FieldValue.arrayUnion(myUid) }, { merge: true });
-                    
-                    if (countEl) countEl.innerText = currentFollowersCount + 1;
-                    if (btn) {
-                        btn.className = 'btn-action-small following';
-                        btn.innerText = 'フォロー中';
-                    }
-                    showNotification('フォローしました！', 'FOLLOW');
-                    sendNotification(targetUid, 'follow', 'があなたをフォローしました。');
-                }
-
-                saveProfileToLocalCache(myUid, myProfile);
-            } catch (e) {
-                alert('フォロー処理に失敗しました: ' + e.message);
-            } finally {
-                if (btn) btn.disabled = false;
-            }
-        }
-
-        function openEditProfileModal() {
-            document.getElementById('edit-displayname-input').value = myProfile.displayName || myProfile.username || '';
-            document.getElementById('edit-username-input').value = myProfile.username || '';
-            document.getElementById('edit-bio-input').value = myProfile.bio || '';
-            const img = document.getElementById('avatar-preview');
-            if (myProfile.avatar) {
-                img.src = myProfile.avatar;
-                img.style.display = 'block';
-            } else {
-                img.style.display = 'none';
-            }
-            tempAvatarBase64 = myProfile.avatar;
-            openModal('edit-profile-modal');
-        }
-
-        async function previewAvatar(e) {
-            const file = e.target.files[0];
-            if (file) {
-                try {
-                    tempAvatarBase64 = await compressImageFile(file, 300, 0.7);
-                    const img = document.getElementById('avatar-preview');
-                    img.src = tempAvatarBase64;
-                    img.style.display = 'block';
-                } catch (err) {
-                    alert('アイコン画像の処理に失敗しました');
-                }
-            }
-        }
-
-        function saveProfileChanges() {
-            const user = currentUser || auth.currentUser;
-            if (!user) return;
-            const newDisplayName = document.getElementById('edit-displayname-input').value.trim();
-            const newUsername = document.getElementById('edit-username-input').value.trim().replace(/^@/, '');
-            const newBio = document.getElementById('edit-bio-input').value.trim() || "人生の実績解除中！";
-            if (!newDisplayName) return alert('表示名を入力してください');
-            if (!newUsername) return alert('ユーザーIDを入力してください');
-
-            myProfile.uid = user.uid;
-            myProfile.email = user.email || myProfile.email || "";
-            myProfile.displayName = newDisplayName;
-            myProfile.username = newUsername;
-            myProfile.bio = newBio;
-            myProfile.avatar = tempAvatarBase64;
-
-            saveProfileToLocalCache(user.uid, myProfile);
-
-            closeModal('edit-profile-modal');
-            switchMainTab('profile');
-            showNotification('プロフィールを更新しました', 'PROFILE UPDATED');
-
-            syncProfileToCloudBackground(user.uid, myProfile);
-        }
-
-        function openModal(id) {
-            const m = document.getElementById(id);
-            if (m) m.classList.add('active');
-        }
-        function closeModal(id) {
-            const m = document.getElementById(id);
-            if (m) m.classList.remove('active');
-        }
-
-        function showNotification(title, subtitle = 'Trophy Unlocked') {
-            const notif = document.getElementById('notification');
-            if (!notif) return;
-            document.getElementById('notif-subtitle').innerText = subtitle;
-            document.getElementById('notif-title').innerText = title;
-            notif.classList.add('show');
-            if (notifTimer) clearTimeout(notifTimer);
-            notifTimer = setTimeout(() => notif.classList.remove('show'), 3500);
         }
     </script>
 </body>

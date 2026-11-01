@@ -262,9 +262,10 @@
             flex-shrink: 0;
         }
 
-        .profile-info { flex-grow: 1; }
-        .profile-displayname { font-size: 1rem; font-weight: 900; color: var(--text-primary); margin-bottom: 1px; }
-        .profile-username { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+        .profile-info { flex-grow: 1; min-width: 0; }
+        .profile-displayname { font-size: 1rem; font-weight: 900; color: var(--text-primary); margin-bottom: 2px; }
+        .profile-username { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .profile-email-tag { font-size: 0.65rem; color: var(--text-tertiary); margin-bottom: 6px; word-break: break-all; }
         .profile-bio { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.3; margin-bottom: 8px; }
 
         .follow-stats-row {
@@ -421,6 +422,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            cursor: pointer;
         }
 
         .feed-avatar {
@@ -453,6 +455,7 @@
             object-fit: cover;
             border-radius: 10px;
             margin-bottom: 12px;
+            cursor: pointer;
         }
 
         .feed-comment-box {
@@ -622,6 +625,8 @@
             font-size: 0.9rem;
             margin-bottom: 12px;
             outline: none;
+            user-select: text;
+            -webkit-user-select: text;
         }
 
         .form-input:focus { border-color: var(--text-primary); }
@@ -639,6 +644,8 @@
             resize: none;
             height: 80px;
             font-family: inherit;
+            user-select: text;
+            -webkit-user-select: text;
         }
 
         .form-textarea:focus { border-color: var(--text-primary); }
@@ -668,6 +675,11 @@
             margin-top: 6px;
         }
 
+        .modal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .photo-upload-zone {
             border: 2px dashed var(--border-light);
             border-radius: 10px;
@@ -694,21 +706,28 @@
     <div class="modal" id="auth-modal">
         <div class="modal-content">
             <div class="modal-title" id="auth-title">ログイン</div>
-            <input type="email" id="auth-email" class="form-input" placeholder="メールアドレス">
-            <input type="password" id="auth-password" class="form-input" placeholder="パスワード">
-            <button class="modal-btn" id="auth-submit-btn" onclick="handleAuth()">ログイン</button>
-            <div style="text-align:center; margin-top:14px; font-size:0.75rem; color:var(--text-secondary); cursor:pointer;" id="auth-switch-text" onclick="toggleAuthMode()">アカウントをお持ちでない方は新規登録</div>
+            <form onsubmit="event.preventDefault(); handleAuth();" autocomplete="off">
+                <input type="email" id="auth-email" class="form-input" placeholder="メールアドレス" autocomplete="off">
+                <input type="password" id="auth-password" class="form-input" placeholder="パスワード (6文字以上)" autocomplete="new-password">
+                <button type="submit" class="modal-btn" id="auth-submit-btn">ログイン</button>
+            </form>
+            <div style="text-align:center; margin-top:14px; font-size:0.75rem; color:var(--text-secondary); cursor:pointer; padding:6px;" id="auth-switch-text" onclick="toggleAuthMode()">アカウントをお持ちでない方は新規登録</div>
         </div>
     </div>
 
-    <!-- Initial Profile Setup Modal -->
-    <div class="modal" id="username-modal">
+    <!-- Initial Profile Setup Modal (スキップ不可・強制初期設定用) -->
+    <div class="modal" id="username-modal" style="z-index: 2500;">
         <div class="modal-content">
-            <div class="modal-title">プロフィール設定</div>
+            <div class="modal-title">✨ プロフィール初期設定</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 14px; text-align: center; line-height: 1.4;">
+                アカウント作成ありがとうございます！<br>検索やタイムラインで使用する<b>表示名</b>と<b>ユーザーID</b>を設定してください。
+            </div>
+            <div id="setup-email-display" style="font-size: 0.7rem; color: var(--text-secondary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; text-align: center; word-break: break-all;"></div>
             <input type="text" id="displayname-input" class="form-input" placeholder="表示名 (例: 翔太)">
-            <input type="text" id="username-input" class="form-input" placeholder="ユーザーID (例: shota_trophy)">
+            <input type="text" id="username-input" class="form-input" placeholder="ユーザーID・半角英数 (例: shota_01)">
             <input type="text" id="bio-input" class="form-input" placeholder="ステータスメッセージ (例: 人生の実績解除中！)">
-            <button class="modal-btn" onclick="saveInitialProfile()">決定する</button>
+            <button class="modal-btn" id="save-initial-profile-btn" onclick="saveInitialProfile()">設定を完了して始める</button>
+            <button class="modal-btn btn-cancel" style="margin-top: 10px; font-size: 0.75rem;" onclick="logout()">別のアカウントでログインし直す</button>
         </div>
     </div>
 
@@ -741,8 +760,8 @@
             <div style="margin-bottom: 16px;">
                 <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">外観テーマ</div>
                 <div style="display: flex; gap: 10px;">
-                    <button class="modal-btn" id="theme-dark-btn" onclick="setTheme('dark')" style="background: #222; color: #fff; border: 1px solid #444; margin-top:0;">ダーク</button>
-                    <button class="modal-btn" id="theme-light-btn" onclick="setTheme('light')" style="background: #f2f2f7; color: #000; border: 1px solid #ccc; margin-top:0;">ライト</button>
+                    <button class="modal-btn" id="theme-dark-btn" onclick="setTheme('dark', true)" style="background: #222; color: #fff; border: 1px solid #444; margin-top:0;">ダーク</button>
+                    <button class="modal-btn" id="theme-light-btn" onclick="setTheme('light', true)" style="background: #f2f2f7; color: #000; border: 1px solid #ccc; margin-top:0;">ライト</button>
                 </div>
             </div>
 
@@ -919,10 +938,11 @@
 
         let currentUser = null;
         let userState = {};
-        let myProfile = { displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
+        let myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
         let customTrophies = [];
         let revertedIds = [];
         let isSignUpMode = false;
+        let isAuthProcessing = false;
         let selectedTrophyId = null;
         let activeTab = 'trophies';
         let boardCategory = 'default';
@@ -1046,6 +1066,26 @@
             });
         }
 
+        /* -------------------------------------------------------------
+           プロフィールキャッシュ保存・復元ヘルパー (リロード時消失対策)
+        ------------------------------------------------------------- */
+        function saveProfileToLocalCache(uid, profileObj) {
+            if (!uid) return;
+            try {
+                localStorage.setItem(`lt_profile_${uid}`, JSON.stringify(profileObj));
+            } catch (e) {}
+        }
+
+        function getProfileFromLocalCache(uid) {
+            if (!uid) return null;
+            try {
+                const s = localStorage.getItem(`lt_profile_${uid}`);
+                return s ? JSON.parse(s) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
         async function saveCustomTrophiesToStorage() {
             if (!currentUser) return;
             const uid = currentUser.uid;
@@ -1084,94 +1124,189 @@
             } catch (e) {}
         }
 
+        /* -------------------------------------------------------------
+           認証状態監視と初期プロフィール強制確認
+        ------------------------------------------------------------- */
         auth.onAuthStateChanged(async user => {
             if (user) {
                 currentUser = user;
-                document.getElementById('auth-modal').classList.remove('active');
+                closeModal('auth-modal');
                 await checkProfileAndLoad();
                 checkUnreadNotifications();
             } else {
                 currentUser = null;
                 userState = {};
                 customTrophies = [];
-                myProfile = { displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
-                setTheme("dark");
-                document.getElementById('auth-modal').classList.add('active');
+                myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
+                // ログアウト時はDBへ書き込まず見た目のみダークに戻す
+                setTheme("dark", false);
+                closeModal('username-modal');
+                openModal('auth-modal');
                 switchMainTab('trophies');
             }
         });
 
         async function checkProfileAndLoad() {
+            if (!currentUser) return;
+            const uid = currentUser.uid;
+            const email = currentUser.email || "";
+
+            // 1. まずローカルキャッシュから即座に復元（リロード時のチラつき・消失防止）
+            const cachedProfile = getProfileFromLocalCache(uid);
+            if (cachedProfile && cachedProfile.username) {
+                myProfile = Object.assign({}, myProfile, cachedProfile, { uid, email });
+                setTheme(myProfile.theme || "dark", false);
+            }
+
+            let firestoreData = null;
             try {
-                const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                if (userDoc.exists && userDoc.data().username) {
-                    const data = userDoc.data();
-                    myProfile = {
-                        uid: currentUser.uid,
-                        displayName: data.displayName || data.username,
-                        username: data.username || "",
-                        bio: data.bio || "人生の実績解除中！",
-                        avatar: data.avatar || "",
-                        theme: data.theme || "dark",
-                        privacy: data.privacy || "public",
-                        following: data.following || [],
-                        followers: data.followers || []
-                    };
-                    setTheme(myProfile.theme);
-                    document.getElementById('privacy-select').value = myProfile.privacy;
-                    await loadUserData(data);
-                } else {
-                    document.getElementById('username-modal').classList.add('active');
+                const userDoc = await db.collection('users').doc(uid).get();
+                if (userDoc.exists) {
+                    firestoreData = userDoc.data();
                 }
             } catch (e) {
-                await loadUserData(null);
+                console.warn('Firestoreプロフィール取得エラー:', e);
             }
+
+            // 2. Firestoreまたはローカルキャッシュから有効なusernameを取得
+            const validUsername = (firestoreData && firestoreData.username && String(firestoreData.username).trim() !== "")
+                ? String(firestoreData.username).trim()
+                : (cachedProfile && cachedProfile.username && String(cachedProfile.username).trim() !== "" ? String(cachedProfile.username).trim() : "");
+
+            if (validUsername !== "") {
+                const source = firestoreData || cachedProfile || {};
+                myProfile = {
+                    uid: uid,
+                    email: email,
+                    displayName: source.displayName || validUsername,
+                    username: validUsername,
+                    bio: source.bio || "人生の実績解除中！",
+                    avatar: source.avatar || "",
+                    theme: source.theme || "dark",
+                    privacy: source.privacy || "public",
+                    following: Array.isArray(source.following) ? source.following : [],
+                    followers: Array.isArray(source.followers) ? source.followers : []
+                };
+
+                saveProfileToLocalCache(uid, myProfile);
+                setTheme(myProfile.theme, false);
+                const privSelect = document.getElementById('privacy-select');
+                if (privSelect) privSelect.value = myProfile.privacy;
+
+                // もしFirestore側にusernameやemailが未同期だった場合は裏で確実に同期して検索可能にする
+                if (!firestoreData || !firestoreData.username || !firestoreData.email) {
+                    try {
+                        await db.collection('users').doc(uid).set({
+                            uid: uid,
+                            email: email,
+                            displayName: myProfile.displayName,
+                            username: myProfile.username,
+                            searchUsername: myProfile.username.toLowerCase(),
+                            bio: myProfile.bio,
+                            avatar: myProfile.avatar,
+                            theme: myProfile.theme,
+                            privacy: myProfile.privacy,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+                    } catch (e) {}
+                }
+
+                closeModal('username-modal');
+                await loadUserData(firestoreData);
+            } else {
+                // ユーザーID（username）が未設定の場合は、必ず初期設定モーダルを強制表示する
+                await loadUserData(firestoreData);
+                openInitialProfileSetupModal();
+            }
+        }
+
+        function openInitialProfileSetupModal() {
+            if (!currentUser) return;
+            const emailDisp = document.getElementById('setup-email-display');
+            if (emailDisp) {
+                emailDisp.innerText = `登録メールアドレス: ${currentUser.email || '確認済'}`;
+            }
+            document.getElementById('displayname-input').value = myProfile.displayName || '';
+            document.getElementById('username-input').value = myProfile.username || '';
+            document.getElementById('bio-input').value = myProfile.bio || '';
+            openModal('username-modal');
         }
 
         async function isUsernameTaken(username) {
-            const snapshot = await db.collection('users').where('username', '==', username).get();
-            let taken = false;
-            snapshot.forEach(doc => {
-                if (doc.id !== currentUser.uid) taken = true;
-            });
-            return taken;
+            const targetLower = username.trim().toLowerCase();
+            try {
+                const snapshot = await db.collection('users').get();
+                let taken = false;
+                snapshot.forEach(doc => {
+                    if (doc.id !== currentUser.uid) {
+                        const data = doc.data();
+                        if (data && data.username && String(data.username).trim().toLowerCase() === targetLower) {
+                            taken = true;
+                        }
+                    }
+                });
+                return taken;
+            } catch (e) {
+                return false;
+            }
         }
 
         async function saveInitialProfile() {
+            if (!currentUser) return;
             const displayName = document.getElementById('displayname-input').value.trim();
-            const username = document.getElementById('username-input').value.trim();
+            const username = document.getElementById('username-input').value.trim().replace(/^@/, '');
             const bio = document.getElementById('bio-input').value.trim() || "人生の実績解除中！";
-            if (!username) return alert('ユーザーIDを入力してください');
-            if (!displayName) return alert('表示名を入力してください');
 
-            if (await isUsernameTaken(username)) {
-                return alert('このユーザーIDはすでに使われています。別のIDにしてください。');
+            if (!displayName) return alert('表示名を入力してください');
+            if (!username) return alert('ユーザーIDを入力してください');
+
+            const btn = document.getElementById('save-initial-profile-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = '登録中...';
             }
 
             try {
-                await db.collection('users').doc(currentUser.uid).set({
+                if (await isUsernameTaken(username)) {
+                    if (btn) { btn.disabled = false; btn.innerText = '設定を完了して始める'; }
+                    return alert('このユーザーIDはすでに別のユーザーに使われています。別のIDを入力してください。');
+                }
+
+                const uid = currentUser.uid;
+                const email = currentUser.email || "";
+
+                const profileData = {
+                    uid: uid,
+                    email: email,
                     displayName: displayName,
                     username: username,
+                    searchUsername: username.toLowerCase(),
                     bio: bio,
-                    avatar: "",
-                    theme: "dark",
-                    privacy: "public",
-                    following: [],
-                    followers: [],
+                    avatar: myProfile.avatar || "",
+                    theme: myProfile.theme || "dark",
+                    privacy: myProfile.privacy || "public",
+                    following: myProfile.following || [],
+                    followers: myProfile.followers || [],
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                };
 
-                myProfile.uid = currentUser.uid;
-                myProfile.displayName = displayName;
-                myProfile.username = username;
-                myProfile.bio = bio;
-                myProfile.theme = "dark";
-                myProfile.privacy = "public";
-                setTheme("dark");
-                document.getElementById('username-modal').classList.remove('active');
-                await loadUserData(null);
+                // Firestoreに確実に保存
+                await db.collection('users').doc(uid).set(profileData, { merge: true });
+
+                // メモリとローカルキャッシュにも即座に保存（リロードしても消えないようにする）
+                myProfile = Object.assign({}, profileData);
+                saveProfileToLocalCache(uid, myProfile);
+
+                closeModal('username-modal');
+                switchMainTab(activeTab);
+                showNotification(`ようこそ、${displayName} (@${username}) さん！`, 'PROFILE COMPLETED');
             } catch (err) {
-                alert('プロフィールの保存に失敗しました: ' + err.message);
+                alert('プロフィールの保存に失敗しました。通信環境を確認して再度お試しください: ' + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '設定を完了して始める';
+                }
             }
         }
 
@@ -1182,32 +1317,75 @@
             document.getElementById('auth-switch-text').innerText = isSignUpMode ? 'すでにアカウントをお持ちの方はログイン' : 'アカウントをお持ちでない方は新規登録';
         }
 
+        /* -------------------------------------------------------------
+           新規登録・ログイン処理 (二重送信防止 ＆ 自動引き継ぎ対応)
+        ------------------------------------------------------------- */
         async function handleAuth() {
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value;
-            if (!email || !password) return alert('メールアドレスとパスワードを入力してください');
+            if (isAuthProcessing) return;
+
+            const emailInput = document.getElementById('auth-email');
+            const passInput = document.getElementById('auth-password');
+            const submitBtn = document.getElementById('auth-submit-btn');
+
+            const email = emailInput.value.trim();
+            const password = passInput.value;
+
+            if (!email || !password) {
+                return alert('メールアドレスとパスワードを入力してください');
+            }
+            if (password.length < 6) {
+                return alert('パスワードは6文字以上で入力してください');
+            }
+
+            isAuthProcessing = true;
+            submitBtn.disabled = true;
+            const originalBtnText = submitBtn.innerText;
+            submitBtn.innerText = '通信中...';
 
             try {
                 if (isSignUpMode) {
-                    await auth.createUserWithEmailAndPassword(email, password);
+                    const cred = await auth.createUserWithEmailAndPassword(email, password);
+                    currentUser = cred.user;
+                    closeModal('auth-modal');
+                    // 新規登録成功直後に初期設定モーダルを即座に表示
+                    openInitialProfileSetupModal();
                 } else {
                     await auth.signInWithEmailAndPassword(email, password);
                 }
             } catch (error) {
-                let msg = error.message;
-                if (error.code === 'auth/email-already-in-use') {
-                    msg = 'このメールアドレスはすでに登録されています。「すでにアカウントをお持ちの方はログイン」からログインするか、別のメールアドレスをお使いください。';
-                } else if (error.code === 'auth/weak-password') {
-                    msg = 'パスワードは6文字以上で入力してください。';
-                } else if (error.code === 'auth/invalid-email') {
-                    msg = '有効なメールアドレスを入力してください。';
+                if (isSignUpMode && error.code === 'auth/email-already-in-use') {
+                    // もし前回の通信等で既にAuth作成済みだった場合、入力されたパスワードで自動ログインを試みる
+                    try {
+                        await auth.signInWithEmailAndPassword(email, password);
+                        return;
+                    } catch (signInErr) {
+                        alert(`メールアドレス「${email}」は既に登録されています。\nログイン画面に切り替えますので、設定したパスワードでログインしてください。`);
+                        isSignUpMode = false;
+                        document.getElementById('auth-title').innerText = 'ログイン';
+                        document.getElementById('auth-submit-btn').innerText = 'ログイン';
+                        document.getElementById('auth-switch-text').innerText = 'アカウントをお持ちでない方は新規登録';
+                    }
+                } else {
+                    let msg = error.message;
+                    if (error.code === 'auth/weak-password') {
+                        msg = 'パスワードは6文字以上で入力してください。';
+                    } else if (error.code === 'auth/invalid-email') {
+                        msg = 'メールアドレスの形式が正しくありません。';
+                    } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                        msg = 'メールアドレスまたはパスワードが間違っています。（未登録の場合は下のリンクから新規登録してください）';
+                    }
+                    alert('認証エラー: ' + msg);
                 }
-                alert('エラー: ' + msg);
+            } finally {
+                isAuthProcessing = false;
+                submitBtn.disabled = false;
+                submitBtn.innerText = isSignUpMode ? '登録する' : 'ログイン';
             }
         }
 
         async function logout() {
             closeModal('settings-modal');
+            closeModal('username-modal');
             await auth.signOut();
         }
 
@@ -1215,13 +1393,14 @@
             if (!confirm('本当にアカウントを削除しますか？この操作は元に戻せません。')) return;
             try {
                 const uid = currentUser.uid;
+                localStorage.removeItem(`lt_profile_${uid}`);
                 localStorage.removeItem(`lt_custom_${uid}`);
                 localStorage.removeItem(`lt_status_${uid}`);
                 await db.collection('users').doc(uid).delete();
                 await currentUser.delete();
                 alert('アカウントを削除しました');
             } catch (error) {
-                alert('エラー: 再ログインしてから再度お試しください (' + error.message + ')');
+                alert('エラー: セキュリティ保護のため、一度ログアウトして再ログインしてから削除を実行してください (' + error.message + ')');
             }
         }
 
@@ -1357,7 +1536,7 @@
             return [...defaultTrophies, ...customTrophies];
         }
 
-        async function setTheme(themeName) {
+        async function setTheme(themeName, shouldSaveToDb = false) {
             myProfile.theme = themeName;
             if (themeName === 'light') {
                 document.body.classList.add('light-mode');
@@ -1365,15 +1544,21 @@
                 document.body.classList.remove('light-mode');
             }
 
-            if (currentUser) {
-                await db.collection('users').doc(currentUser.uid).set({ theme: themeName }, { merge: true });
+            if (shouldSaveToDb && currentUser) {
+                saveProfileToLocalCache(currentUser.uid, myProfile);
+                try {
+                    await db.collection('users').doc(currentUser.uid).set({ theme: themeName }, { merge: true });
+                } catch (e) {}
             }
         }
 
         async function savePrivacySetting(privacyVal) {
             myProfile.privacy = privacyVal;
             if (currentUser) {
-                await db.collection('users').doc(currentUser.uid).set({ privacy: privacyVal }, { merge: true });
+                saveProfileToLocalCache(currentUser.uid, myProfile);
+                try {
+                    await db.collection('users').doc(currentUser.uid).set({ privacy: privacyVal }, { merge: true });
+                } catch (e) {}
             }
             showNotification('プライバシー設定を更新しました', 'SETTINGS');
         }
@@ -1384,6 +1569,17 @@
         function renderTrophiesView() {
             const container = document.getElementById('main-container');
             container.innerHTML = '';
+
+            // もしユーザーIDが未設定なら上部に注意バナーを表示
+            if (currentUser && !myProfile.username) {
+                const warnBanner = document.createElement('div');
+                warnBanner.style.cssText = 'background:rgba(255,45,85,0.15); border:1px solid var(--accent-red); padding:12px; border-radius:10px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;';
+                warnBanner.innerHTML = `
+                    <div style="font-size:0.75rem; font-weight:700; color:var(--text-primary);">⚠️ ユーザーIDが未設定です（検索に表示されません）</div>
+                    <button class="btn-action-small" style="border-color:var(--accent-red); flex-shrink:0;" onclick="openInitialProfileSetupModal()">今すぐ設定</button>
+                `;
+                container.appendChild(warnBanner);
+            }
 
             const categorySwitcher = document.createElement('div');
             categorySwitcher.className = 'category-tabs';
@@ -1646,8 +1842,8 @@
             try {
                 await db.collection('posts').add({
                     uid: currentUser.uid,
-                    displayName: myProfile.displayName || myProfile.username,
-                    username: myProfile.username,
+                    displayName: myProfile.displayName || myProfile.username || '名無しユーザー',
+                    username: myProfile.username || 'user',
                     userAvatar: myProfile.avatar,
                     trophyId: unlockedId,
                     trophyName: trophyName,
@@ -1662,7 +1858,7 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View
+           マイページ View (メールアドレス＆ID紐付け表示)
         ------------------------------------------------------------- */
         function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -1675,11 +1871,15 @@
                 ? `<img src="${myProfile.avatar}" class="profile-avatar-large">` 
                 : `<div class="profile-avatar-large"><i class="fa-solid fa-user"></i></div>`;
 
+            const displayId = myProfile.username ? `@${myProfile.username}` : '⚠️ ユーザーID未設定';
+            const displayEmail = (currentUser && currentUser.email) ? currentUser.email : (myProfile.email || '');
+
             headerBox.innerHTML = `
                 ${avatarHTML}
                 <div class="profile-info">
-                    <div class="profile-displayname">${myProfile.displayName || myProfile.username}</div>
-                    <div class="profile-username">@${myProfile.username}</div>
+                    <div class="profile-displayname">${myProfile.displayName || myProfile.username || '名前未設定'}</div>
+                    <div class="profile-username">${displayId}</div>
+                    ${displayEmail ? `<div class="profile-email-tag"><i class="fa-regular fa-envelope"></i> ${displayEmail}</div>` : ''}
                     <div class="profile-bio">${myProfile.bio || 'ステータス未設定'}</div>
                     <div class="follow-stats-row">
                         <div onclick="openFollowListModal('following')">フォロー <span>${(myProfile.following || []).length}</span></div>
@@ -1741,6 +1941,7 @@
             if (commentText && commentText.trim() !== '') {
                 commentEl.innerText = `「${commentText}」`;
                 commentEl.style.display = 'block';
+                commentEl.style.color = 'var(--text-primary)';
             } else {
                 commentEl.innerText = '（コメントなし）';
                 commentEl.style.display = 'block';
@@ -1792,6 +1993,9 @@
             openModal('unlocked-manage-modal');
         }
 
+        /* -------------------------------------------------------------
+           他人のプロフィール画面 View (閲覧専用・安全設計)
+        ------------------------------------------------------------- */
         async function viewUserProfile(uid, profileData) {
             if (profileData.privacy === 'followers' && !profileData.followers?.includes(currentUser.uid)) {
                 alert('このユーザーはフォロワーのみに実績を公開しています。');
@@ -1814,6 +2018,11 @@
             const container = document.getElementById('main-container');
             container.innerHTML = '';
 
+            const backRow = document.createElement('div');
+            backRow.style.cssText = 'margin-bottom: 10px;';
+            backRow.innerHTML = `<button class="btn-action-small" onclick="switchMainTab('search')"><i class="fa-solid fa-arrow-left"></i> 検索に戻る</button>`;
+            container.appendChild(backRow);
+
             const headerBox = document.createElement('div');
             headerBox.className = 'profile-card-header';
             
@@ -1821,23 +2030,58 @@
                 ? `<img src="${profileData.avatar}" class="profile-avatar-large">` 
                 : `<div class="profile-avatar-large"><i class="fa-solid fa-user"></i></div>`;
 
-            const isFollowing = myProfile.following.includes(uid);
+            const isFollowing = (myProfile.following || []).includes(uid);
 
             headerBox.innerHTML = `
                 ${avatarHTML}
                 <div class="profile-info">
-                    <div class="profile-displayname">${profileData.displayName || profileData.username}</div>
-                    <div class="profile-username">@${profileData.username}</div>
+                    <div class="profile-displayname">${profileData.displayName || profileData.username || 'ユーザー'}</div>
+                    <div class="profile-username">@${profileData.username || 'user'}</div>
                     <div class="profile-bio">${profileData.bio || 'ステータス未設定'}</div>
                     <div class="follow-stats-row">
                         <div>フォロー <span>${(profileData.following || []).length}</span></div>
                         <div>フォロワー <span>${(profileData.followers || []).length}</span></div>
                     </div>
-                    <button class="btn-action-small ${isFollowing ? 'following' : ''}" onclick="toggleFollow('${uid}')">${isFollowing ? 'フォロー中' : 'フォローする'}</button>
+                    <button class="btn-action-small ${isFollowing ? 'following' : ''}" id="follow-toggle-btn" onclick="toggleFollow('${uid}')">${isFollowing ? 'フォロー中' : 'フォローする'}</button>
                 </div>
             `;
             container.appendChild(headerBox);
 
+            // 他人のフォトギャラリー（タップで拡大対応）
+            const albumTitle = document.createElement('div');
+            albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
+            albumTitle.innerHTML = '📸 解除した実績ギャラリー';
+            container.appendChild(albumTitle);
+
+            const grid = document.createElement('div');
+            grid.className = 'gallery-grid-3';
+            grid.style.marginBottom = '20px';
+
+            let photoCount = 0;
+            Object.keys(targetState).forEach(id => {
+                const item = targetState[id];
+                if (item && item.photo) {
+                    photoCount++;
+                    const trophy = defaultTrophies.find(t => String(t.id) === String(id));
+                    const tName = trophy ? trophy.name : '実績';
+                    const el = document.createElement('div');
+                    el.className = 'gallery-item';
+                    el.innerHTML = `
+                        <img src="${item.photo}">
+                        <div class="gallery-item-title">${tName}</div>
+                    `;
+                    el.onclick = () => openPhotoLightbox(item.photo, tName, item.date || '', item.comment || '');
+                    grid.appendChild(el);
+                }
+            });
+
+            if (photoCount > 0) {
+                container.appendChild(grid);
+            } else {
+                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.75rem; padding:16px; background:var(--surface-card); border-radius:10px; margin-bottom:16px;">公開されている実績写真はまだありません</div>';
+            }
+
+            // 他人の実績リスト
             const trophyListEl = document.createElement('div');
             let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
             let totalUnlocked = 0;
@@ -1927,15 +2171,17 @@
         }
 
         async function sendNotification(targetUid, type, message) {
-            if (targetUid === currentUser.uid) return;
-            await db.collection('users').doc(targetUid).collection('notifications').add({
-                type: type,
-                senderUid: currentUser.uid,
-                senderName: myProfile.displayName || myProfile.username,
-                message: message,
-                read: false,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            if (!currentUser || targetUid === currentUser.uid) return;
+            try {
+                await db.collection('users').doc(targetUid).collection('notifications').add({
+                    type: type,
+                    senderUid: currentUser.uid,
+                    senderName: myProfile.displayName || myProfile.username || 'ユーザー',
+                    message: message,
+                    read: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (e) {}
         }
 
         async function checkUnreadNotifications() {
@@ -2056,11 +2302,11 @@
                     card.className = 'feed-card';
                     card.innerHTML = `
                         <div class="feed-header">
-                            <div class="feed-user-info">
+                            <div class="feed-user-info" onclick="openUserFromFeed('${post.uid}')">
                                 ${avatarHTML}
                                 <div>
-                                    <div class="feed-display-name">${post.displayName || post.username}</div>
-                                    <div class="feed-user-name">@${post.username}</div>
+                                    <div class="feed-display-name">${post.displayName || post.username || 'ユーザー'}</div>
+                                    <div class="feed-user-name">@${post.username || 'user'}</div>
                                 </div>
                             </div>
                             <div class="feed-time">${post.date || ''}</div>
@@ -2071,7 +2317,7 @@
                             <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">🏆 ${post.trophyName}</div>
                         </div>
 
-                        ${post.photo ? `<img src="${post.photo}" class="feed-photo">` : ''}
+                        ${post.photo ? `<img src="${post.photo}" class="feed-photo" onclick="openPhotoLightbox('${post.photo}', '${post.trophyName}', '${post.date || ''}', '${(post.comment || '').replace(/'/g, "\\'")}')">` : ''}
                         ${commentHTML}
 
                         <div class="feed-actions">
@@ -2107,6 +2353,20 @@
             }
         }
 
+        async function openUserFromFeed(targetUid) {
+            if (!targetUid) return;
+            if (currentUser && targetUid === currentUser.uid) {
+                switchMainTab('profile');
+                return;
+            }
+            try {
+                const doc = await db.collection('users').doc(targetUid).get();
+                if (doc.exists) {
+                    viewUserProfile(targetUid, doc.data());
+                }
+            } catch (e) {}
+        }
+
         async function toggleLike(postId, currentLiked, postOwnerUid) {
             const postRef = db.collection('posts').doc(postId);
             if (currentLiked) {
@@ -2140,92 +2400,152 @@
         }
 
         /* -------------------------------------------------------------
-           ユーザー検索 View (強化版：大文字小文字・空白耐性つき)
+           ユーザー検索 View (初期状態で登録ユーザー一覧を表示 ＆ リアルタイム検索)
         ------------------------------------------------------------- */
         function renderSearchView() {
             const container = document.getElementById('main-container');
             container.innerHTML = `
                 <div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">🔍 ユーザー検索</div>
-                <div style="display:flex; gap:10px; margin-bottom:20px;">
-                    <input type="text" id="search-query" class="form-input" placeholder="ユーザーIDまたは名前で検索..." style="margin-bottom:0;">
-                    <button class="modal-btn" style="width: 100px; margin-top:0;" onclick="searchUsers()">検索</button>
+                <div style="display:flex; gap:10px; margin-bottom:16px;">
+                    <input type="text" id="search-query" class="form-input" placeholder="ユーザーID (@なしでもOK) や表示名を入力..." style="margin-bottom:0;" oninput="searchUsers()">
+                    <button class="modal-btn" style="width: 90px; margin-top:0;" onclick="searchUsers()">検索</button>
                 </div>
                 <div id="search-results"></div>
             `;
+            // 画面を開いた時点で登録済みユーザー一覧を自動表示
+            searchUsers();
         }
 
         async function searchUsers() {
-            const q = document.getElementById('search-query').value.trim().toLowerCase();
+            const qInput = document.getElementById('search-query');
+            if (!qInput) return;
+            const rawQ = qInput.value.trim().replace(/^@/, '').toLowerCase();
             const resultsEl = document.getElementById('search-results');
-            resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">検索中...</div>';
+            resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:16px;">ユーザーを検索中...</div>';
 
             try {
+                // usersコレクションとpostsコレクションの両方からユーザー情報を網羅的に収集
                 const snapshot = await db.collection('users').get();
-                resultsEl.innerHTML = '';
-                let found = false;
+                const userMap = {};
 
                 snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const uName = (data.username || '').toLowerCase();
-                    const dName = (data.displayName || '').toLowerCase();
-                    
-                    // 検索クエリが含まれているかを判定
-                    if (uName && (uName.includes(q) || dName.includes(q)) && doc.id !== currentUser.uid) {
-                        found = true;
-                        const avatarHTML = data.avatar 
-                            ? `<img src="${data.avatar}" class="feed-avatar">` 
-                            : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
-
-                        const card = document.createElement('div');
-                        card.className = 'feed-card';
-                        card.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding:12px 16px; cursor:pointer;';
-                        card.innerHTML = `
-                            <div style="display:flex; align-items:center; gap:12px;">
-                                ${avatarHTML}
-                                <div>
-                                    <div style="font-size:0.9rem; font-weight:700;">${data.displayName || data.username}</div>
-                                    <div style="font-size:0.7rem; color:var(--text-secondary);">@${data.username} ・ ${data.bio || 'ステータスなし'}</div>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary);"></i>
-                        `;
-                        card.onclick = () => viewUserProfile(doc.id, data);
-                        resultsEl.appendChild(card);
+                    if (currentUser && doc.id === currentUser.uid) return;
+                    const data = doc.data() || {};
+                    if (data.username || data.displayName) {
+                        userMap[doc.id] = {
+                            uid: doc.id,
+                            username: data.username || 'user',
+                            displayName: data.displayName || data.username || 'ユーザー',
+                            bio: data.bio || '人生の実績解除中！',
+                            avatar: data.avatar || '',
+                            following: data.following || [],
+                            followers: data.followers || [],
+                            privacy: data.privacy || 'public',
+                            trophyStatus: data.trophyStatus || {}
+                        };
                     }
                 });
 
-                if (!found) {
-                    resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">ユーザーが見つかりませんでした</div>';
+                // タイムライン投稿からも万が一usersに未同期のユーザーがいれば補完
+                try {
+                    const postsSnap = await db.collection('posts').limit(50).get();
+                    postsSnap.forEach(doc => {
+                        const p = doc.data();
+                        if (p.uid && (!currentUser || p.uid !== currentUser.uid) && !userMap[p.uid] && (p.username || p.displayName)) {
+                            userMap[p.uid] = {
+                                uid: p.uid,
+                                username: p.username || 'user',
+                                displayName: p.displayName || p.username || 'ユーザー',
+                                bio: '人生の実績解除中！',
+                                avatar: p.userAvatar || '',
+                                following: [],
+                                followers: [],
+                                privacy: 'public',
+                                trophyStatus: {}
+                            };
+                        }
+                    });
+                } catch (e) {}
+
+                resultsEl.innerHTML = '';
+                const allUsers = Object.values(userMap);
+
+                const matchedUsers = allUsers.filter(u => {
+                    if (!rawQ) return true; // 未入力時は全ユーザーを表示
+                    const uName = String(u.username || '').toLowerCase();
+                    const dName = String(u.displayName || '').toLowerCase();
+                    return uName.includes(rawQ) || dName.includes(rawQ);
+                });
+
+                const headerLabel = document.createElement('div');
+                headerLabel.style.cssText = 'font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:10px;';
+                headerLabel.innerText = rawQ ? `「${rawQ}」の検索結果 (${matchedUsers.length}件)` : `登録ユーザー一覧 (${matchedUsers.length}名)`;
+                resultsEl.appendChild(headerLabel);
+
+                if (matchedUsers.length === 0) {
+                    resultsEl.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:24px; background:var(--surface-card); border-radius:12px;">一致するユーザーが見つかりませんでした</div>';
+                    return;
                 }
+
+                matchedUsers.forEach(data => {
+                    const avatarHTML = data.avatar 
+                        ? `<img src="${data.avatar}" class="feed-avatar">` 
+                        : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
+
+                    const card = document.createElement('div');
+                    card.className = 'feed-card';
+                    card.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding:12px 16px; cursor:pointer;';
+                    card.innerHTML = `
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            ${avatarHTML}
+                            <div>
+                                <div style="font-size:0.9rem; font-weight:700;">${data.displayName}</div>
+                                <div style="font-size:0.7rem; color:var(--text-secondary);">@${data.username} ・ ${data.bio}</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary);"></i>
+                    `;
+                    card.onclick = () => viewUserProfile(data.uid, data);
+                    resultsEl.appendChild(card);
+                });
             } catch (e) {
-                resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">検索エラーが発生しました</div>';
+                resultsEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem;">検索エラーが発生しました: ' + e.message + '</div>';
             }
         }
 
         async function toggleFollow(targetUid) {
-            const isFollowing = myProfile.following.includes(targetUid);
+            if (!currentUser) return;
+            const isFollowing = (myProfile.following || []).includes(targetUid);
             const myRef = db.collection('users').doc(currentUser.uid);
             const targetRef = db.collection('users').doc(targetUid);
 
-            if (isFollowing) {
-                await myRef.update({ following: firebase.firestore.FieldValue.arrayRemove(targetUid) });
-                await targetRef.update({ followers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) });
-                myProfile.following = myProfile.following.filter(id => id !== targetUid);
-            } else {
-                await myRef.update({ following: firebase.firestore.FieldValue.arrayUnion(targetUid) });
-                await targetRef.update({ followers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
-                myProfile.following.push(targetUid);
-                sendNotification(targetUid, 'follow', 'があなたをフォローしました。');
-            }
+            try {
+                if (isFollowing) {
+                    myProfile.following = myProfile.following.filter(id => id !== targetUid);
+                    await myRef.set({ following: firebase.firestore.FieldValue.arrayRemove(targetUid) }, { merge: true });
+                    await targetRef.set({ followers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) }, { merge: true });
+                } else {
+                    if (!myProfile.following) myProfile.following = [];
+                    myProfile.following.push(targetUid);
+                    await myRef.set({ following: firebase.firestore.FieldValue.arrayUnion(targetUid) }, { merge: true });
+                    await targetRef.set({ followers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) }, { merge: true });
+                    sendNotification(targetUid, 'follow', 'があなたをフォローしました。');
+                }
+                saveProfileToLocalCache(currentUser.uid, myProfile);
+            } catch (e) {}
 
             showNotification(isFollowing ? 'フォロー解除しました' : 'フォローしました', 'FOLLOW');
-            renderSearchView();
+            const btn = document.getElementById('follow-toggle-btn');
+            if (btn) {
+                btn.className = `btn-action-small ${!isFollowing ? 'following' : ''}`;
+                btn.innerText = !isFollowing ? 'フォロー中' : 'フォローする';
+            }
         }
 
         function openEditProfileModal() {
-            document.getElementById('edit-displayname-input').value = myProfile.displayName || myProfile.username;
-            document.getElementById('edit-username-input').value = myProfile.username;
-            document.getElementById('edit-bio-input').value = myProfile.bio;
+            document.getElementById('edit-displayname-input').value = myProfile.displayName || myProfile.username || '';
+            document.getElementById('edit-username-input').value = myProfile.username || '';
+            document.getElementById('edit-bio-input').value = myProfile.bio || '';
             const img = document.getElementById('avatar-preview');
             if (myProfile.avatar) {
                 img.src = myProfile.avatar;
@@ -2252,32 +2572,42 @@
         }
 
         async function saveProfileChanges() {
+            if (!currentUser) return;
             const newDisplayName = document.getElementById('edit-displayname-input').value.trim();
-            const newUsername = document.getElementById('edit-username-input').value.trim();
+            const newUsername = document.getElementById('edit-username-input').value.trim().replace(/^@/, '');
             const newBio = document.getElementById('edit-bio-input').value.trim() || "人生の実績解除中！";
             if (!newDisplayName) return alert('表示名を入力してください');
             if (!newUsername) return alert('ユーザーIDを入力してください');
 
-            if (newUsername !== myProfile.username && await isUsernameTaken(newUsername)) {
+            if (newUsername.toLowerCase() !== (myProfile.username || '').toLowerCase() && await isUsernameTaken(newUsername)) {
                 return alert('このユーザーIDはすでに使われています。別のIDにしてください。');
             }
 
+            myProfile.uid = currentUser.uid;
+            myProfile.email = currentUser.email || myProfile.email || "";
             myProfile.displayName = newDisplayName;
             myProfile.username = newUsername;
             myProfile.bio = newBio;
             myProfile.avatar = tempAvatarBase64;
 
+            saveProfileToLocalCache(currentUser.uid, myProfile);
+
             closeModal('edit-profile-modal');
             switchMainTab('profile');
             showNotification('プロフィールを更新しました', 'PROFILE UPDATED');
 
-            await db.collection('users').doc(currentUser.uid).set({
-                displayName: newDisplayName,
-                username: newUsername,
-                bio: newBio,
-                avatar: tempAvatarBase64,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
+            try {
+                await db.collection('users').doc(currentUser.uid).set({
+                    uid: currentUser.uid,
+                    email: myProfile.email,
+                    displayName: newDisplayName,
+                    username: newUsername,
+                    searchUsername: newUsername.toLowerCase(),
+                    bio: newBio,
+                    avatar: tempAvatarBase64,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            } catch (e) {}
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }

@@ -925,7 +925,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v4.4</span>
+                Life Trophies <span class="version-badge">v4.5</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -990,7 +990,9 @@
             measurementId: "G-YCH8JM2YCW"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const auth = firebase.auth();
         const db = firebase.firestore();
 
@@ -1246,21 +1248,26 @@
         }
 
         auth.onAuthStateChanged(async user => {
-            if (user) {
-                currentUser = user;
-                closeModal('auth-modal');
-                await checkProfileAndLoad();
-                checkUnreadNotifications();
-            } else {
-                currentUser = null;
-                userState = {};
-                customTrophies = [];
-                circleTrophies = [];
-                activeCircles = [];
-                myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [], joinedCircles: [] };
-                setTheme("dark", false);
-                closeModal('username-modal');
-                openModal('auth-modal');
+            try {
+                if (user) {
+                    currentUser = user;
+                    closeModal('auth-modal');
+                    await checkProfileAndLoad();
+                    checkUnreadNotifications();
+                } else {
+                    currentUser = null;
+                    userState = {};
+                    customTrophies = [];
+                    circleTrophies = [];
+                    activeCircles = [];
+                    myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [], joinedCircles: [] };
+                    setTheme("dark", false);
+                    closeModal('username-modal');
+                    openModal('auth-modal');
+                    switchMainTab('trophies');
+                }
+            } catch (err) {
+                // 万が一予期せぬエラーが起きた場合も最低限の画面表示を保障
                 switchMainTab('trophies');
             }
         });
@@ -1625,11 +1632,15 @@
                 statsBox.style.display = 'none';
             }
 
-            if (tab === 'trophies') renderTrophiesView();
-            else if (tab === 'feed') renderFeedView();
-            else if (tab === 'circle') renderCircleView();
-            else if (tab === 'search') renderSearchView();
-            else if (tab === 'profile') renderMyProfileView();
+            try {
+                if (tab === 'trophies') renderTrophiesView();
+                else if (tab === 'feed') renderFeedView();
+                else if (tab === 'circle') renderCircleView();
+                else if (tab === 'search') renderSearchView();
+                else if (tab === 'profile') renderMyProfileView();
+            } catch (e) {
+                document.getElementById('main-container').innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">画面の読み込みに失敗しました。再読み込みしてください。</div>';
+            }
         }
 
         function getAllTrophies() {
@@ -1686,8 +1697,12 @@
         }
 
         async function renderTrophiesView() {
-            await loadCircleTrophiesForBoard();
+            try {
+                await loadCircleTrophiesForBoard();
+            } catch(e) {}
+
             const container = document.getElementById('main-container');
+            if (!container) return;
             container.innerHTML = '';
 
             if (currentUser && !myProfile.username) {
@@ -1913,6 +1928,7 @@
         ------------------------------------------------------------- */
         async function renderCircleView() {
             const container = document.getElementById('main-container');
+            if (!container) return;
             container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">サークル情報を読み込み中...</div>';
 
             try {
@@ -2216,6 +2232,7 @@
         ------------------------------------------------------------- */
         function renderMyProfileView() {
             const container = document.getElementById('main-container');
+            if (!container) return;
             container.innerHTML = '';
 
             const headerBox = document.createElement('div');
@@ -2441,6 +2458,7 @@
             statsBox.style.display = 'grid';
             
             const container = document.getElementById('main-container');
+            if (!container) return;
             container.innerHTML = '';
 
             const backRow = document.createElement('div');
@@ -2623,6 +2641,7 @@
 
         async function openNotificationsModal() {
             const container = document.getElementById('notifications-container');
+            if (!container) return;
             container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">読み込み中...</div>';
             openModal('notifications-modal');
 
@@ -2655,6 +2674,8 @@
         async function openFollowListModal(type) {
             const titleEl = document.getElementById('follow-list-title');
             const listContainer = document.getElementById('follow-list-container');
+            if (!titleEl || !listContainer) return;
+
             titleEl.innerText = type === 'following' ? 'フォロー中リスト' : 'フォロワーリスト';
             listContainer.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">読み込み中...</div>';
             openModal('follow-list-modal');
@@ -2702,6 +2723,7 @@
 
         async function renderFeedView() {
             const container = document.getElementById('main-container');
+            if (!container) return;
             container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">タイムライン読み込み中...</div>';
 
             try {
@@ -2830,6 +2852,7 @@
 
         async function addComment(postId, postOwnerUid) {
             const input = document.getElementById(`comment-input-${postId}`);
+            if (!input) return;
             const text = input.value.trim();
             if (!text) return;
 
@@ -2844,16 +2867,14 @@
                 })
             }).catch(()=>{});
 
-            sendNotification(postOwnerUid, 'comment', `があなたの投稿にコメントしました: "${text}"`);
+            sendNotification(postOwnerUid, 'comment', `があなたにコメントしました: "${text}"`);
             input.value = '';
             renderFeedView();
         }
 
-        /* -------------------------------------------------------------
-           ユーザー検索 View
-        ------------------------------------------------------------- */
         function renderSearchView() {
             const container = document.getElementById('main-container');
+            if (!container) return;
             container.innerHTML = `
                 <div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">🔍 ユーザー検索</div>
                 <div style="display:flex; gap:10px; margin-bottom:16px;">
@@ -2873,6 +2894,7 @@
             if (!qInput) return;
             const rawQ = qInput.value.trim().replace(/^@/, '').toLowerCase();
             const resultsEl = document.getElementById('search-results');
+            if (!resultsEl) return;
 
             if (!rawQ) {
                 resultsEl.innerHTML = `
@@ -2975,9 +2997,6 @@
             });
         }
 
-        /* -------------------------------------------------------------
-           フォロー / フォロワー機能
-        ------------------------------------------------------------- */
         async function toggleFollow(targetUid) {
             if (!currentUser) return;
             const myUid = currentUser.uid;
@@ -3083,11 +3102,18 @@
             syncProfileToCloudBackground(user.uid, myProfile);
         }
 
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.add('active');
+        }
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            if (m) m.classList.remove('active');
+        }
 
         function showNotification(title, subtitle = 'Trophy Unlocked') {
             const notif = document.getElementById('notification');
+            if (!notif) return;
             document.getElementById('notif-subtitle').innerText = subtitle;
             document.getElementById('notif-title').innerText = title;
             notif.classList.add('show');

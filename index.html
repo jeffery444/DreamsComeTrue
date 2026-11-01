@@ -816,7 +816,7 @@
         </div>
     </div>
 
-    <!-- Photo Lightbox / Detail Zoom Modal (条件追加対応) -->
+    <!-- Photo Lightbox / Detail Zoom Modal (達成条件・削除ボタン付き) -->
     <div class="modal" id="photo-lightbox-modal" onclick="closeModal('photo-lightbox-modal')">
         <div class="modal-content" onclick="event.stopPropagation()" style="text-align: center; max-width: 440px;">
             <div class="modal-title" id="lightbox-title" style="margin-bottom: 10px; font-size: 0.95rem;">実績詳細</div>
@@ -824,6 +824,11 @@
             <div id="lightbox-condition" style="font-size: 0.75rem; color: var(--text-primary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; text-align: left; font-weight: 700;"></div>
             <div id="lightbox-date" style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 8px;"></div>
             <div id="lightbox-comment" style="font-size: 0.85rem; background: var(--surface-hover); padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: left; line-height: 1.4; word-break: break-word;"></div>
+            
+            <div id="lightbox-delete-container" style="margin-bottom: 12px; display: none;">
+                <button class="delete-btn" id="lightbox-delete-post-btn" style="width: 100%; padding: 10px; font-size: 0.8rem;">🗑️ このタイムライン投稿を削除する</button>
+            </div>
+
             <button class="modal-btn btn-cancel" onclick="closeModal('photo-lightbox-modal')">閉じる</button>
         </div>
     </div>
@@ -890,7 +895,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v3.3</span>
+                Life Trophies <span class="version-badge">v3.4</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -1135,7 +1140,6 @@
                 localStorage.setItem(`lt_custom_${uid}`, JSON.stringify(customTrophies));
                 db.collection('users').doc(uid).set({ customTrophies: customTrophies }, { merge: true }).catch(()=>{});
                 db.collection('users').doc(uid).collection('trophies').doc('custom').set({ items: customTrophies }).catch(()=>{});
-                // 索引にもカスタム実績を同期
                 syncProfileToCloudBackground(uid, myProfile);
             } catch (e) {}
         }
@@ -1154,7 +1158,7 @@
         }
 
         /* -------------------------------------------------------------
-           実績未解除時の完全削除（タイムラインのpostsも確実に一括削除）
+           実績未解除時の完全削除（タイムラインのpostsも一括削除）
         ------------------------------------------------------------- */
         async function removeSingleUnlockFromStorage(trophyId) {
             if (!currentUser) return;
@@ -1170,27 +1174,45 @@
                 }).catch(()=>{});
             } catch (e) {}
 
-            // タイムライン（posts）に存在する該当実績の投稿を完全特定して自動削除
+            // タイムライン（posts）から該当実績の投稿を徹底削除
             try {
-                const postsSnap = await db.collection('posts').where('uid', '==', uid).where('trophyId', '==', key).get();
+                const postsSnap = await db.collection('posts').where('uid', '==', uid).get();
                 if (postsSnap && !postsSnap.empty) {
                     const batch = db.batch();
+                    let count = 0;
                     postsSnap.forEach(doc => {
-                        batch.delete(doc.ref);
-                    });
-                    await batch.commit();
-                }
-            } catch (e) {
-                // 万が一バッチが失敗した場合は個別削除
-                try {
-                    const fallbackSnap = await db.collection('posts').where('uid', '==', uid).get();
-                    fallbackSnap.forEach(doc => {
                         const p = doc.data();
                         if (String(p.trophyId) === String(key)) {
-                            doc.ref.delete().catch(()=>{});
+                            batch.delete(doc.ref);
+                            count++;
                         }
                     });
-                } catch (err) {}
+                    if (count > 0) await batch.commit();
+                }
+            } catch (e) {}
+        }
+
+        /* -------------------------------------------------------------
+           タイムラインの投稿を手動削除する関数
+        ------------------------------------------------------------- */
+        async function deletePostByPostId(postId, trophyId) {
+            if (!currentUser || !postId) return;
+            if (!confirm('このタイムライン投稿を削除しますか？')) return;
+
+            try {
+                await db.collection('posts').doc(postId).delete();
+                
+                // もし紐づく実績がある場合は、ユーザー状態からも未解除に戻す
+                if (trophyId && userState[trophyId]) {
+                    delete userState[trophyId];
+                    await removeSingleUnlockFromStorage(trophyId);
+                }
+
+                closeModal('photo-lightbox-modal');
+                switchMainTab(activeTab);
+                showNotification('タイムライン投稿を削除しました', 'POST DELETED');
+            } catch (e) {
+                alert('投稿の削除に失敗しました: ' + e.message);
             }
         }
 
@@ -1410,17 +1432,38 @@
             await auth.signOut();
         }
 
+        /* -------------------------------------------------------------
+           アカウント完全削除（関連する全データをクラウドから完全に一括消去）
+        ------------------------------------------------------------- */
         async function deleteAccount() {
-            if (!confirm('本当にアカウントを削除しますか？この操作は元に戻せません。')) return;
+            if (!confirm('本当にアカウントを削除しますか？\n作成したカスタム実績、タイムライン投稿、フォロー関係などすべてのデータが完全に削除され、元に戻せません。')) return;
+            
+            const user = currentUser || auth.currentUser;
+            if (!user) return;
+            const uid = user.uid;
+
             try {
-                const uid = currentUser.uid;
+                // 1. タイムライン投稿（posts）を一括削除
+                const postsSnap = await db.collection('posts').where('uid', '==', uid).get();
+                if (!postsSnap.empty) {
+                    const batch = db.batch();
+                    postsSnap.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                }
+
+                // 2. ユーザードキュメントおよびサブコレクション（trophies, unlocked_items, notifications）を削除
+                // （※Firestoreはサブコレクションを自動削除しないため参照を削除）
+                await db.collection('users').doc(uid).delete().catch(()=>{});
+
+                // 3. ローカルキャッシュのクリア
                 localStorage.removeItem(`lt_profile_${uid}`);
                 localStorage.removeItem(`lt_custom_${uid}`);
                 localStorage.removeItem(`lt_status_${uid}`);
-                db.collection('users').doc(uid).delete().catch(()=>{});
-                db.collection('posts').doc('profile_' + uid).delete().catch(()=>{});
-                await currentUser.delete();
-                alert('アカウントを削除しました');
+                localStorage.removeItem(`lt_reverted_${uid}`);
+
+                // 4. Firebase Authenticationのアカウント削除
+                await user.delete();
+                alert('アカウントおよび関連データを完全に削除しました。');
             } catch (error) {
                 alert('エラー: セキュリティ保護のため、一度ログアウトして再ログインしてから削除を実行してください (' + error.message + ')');
             }
@@ -1513,7 +1556,7 @@
                             customTrophies.push({
                                 id: key,
                                 name: post.trophyName || 'カスタム実績',
-                                condition: 'タイムライン履歴から復元',
+                                condition: post.condition || 'タイムライン履歴から復元',
                                 rank: 'gold',
                                 isCustom: true
                             });
@@ -1770,7 +1813,7 @@
             saveCustomTrophiesToStorage();
         }
 
-        function deleteCustomTrophy(id) {
+        async function deleteCustomTrophy(id) {
             const target = customTrophies.find(t => String(t.id) === String(id));
             const targetName = target ? target.name : 'カスタム実績';
 
@@ -1779,7 +1822,7 @@
             customTrophies = customTrophies.filter(t => String(t.id) !== String(id));
             if (userState[id]) {
                 delete userState[id];
-                removeSingleUnlockFromStorage(id);
+                await removeSingleUnlockFromStorage(id);
             }
 
             renderTrophiesView();
@@ -1834,6 +1877,7 @@
 
             const trophy = getAllTrophies().find(t => String(t.id) === String(selectedTrophyId));
             const trophyName = trophy ? trophy.name : '実績';
+            const trophyCondition = trophy ? trophy.condition : '';
             const commentText = document.getElementById('unlock-comment-input').value.trim();
             
             const now = new Date();
@@ -1851,7 +1895,8 @@
             const unlockEntry = {
                 date: dateTimeStr,
                 photo: photoToSave,
-                comment: commentText
+                comment: commentText,
+                condition: trophyCondition
             };
 
             userState[unlockedId] = unlockEntry;
@@ -1870,6 +1915,7 @@
                     userAvatar: myProfile.avatar,
                     trophyId: unlockedId,
                     trophyName: trophyName,
+                    condition: trophyCondition,
                     photo: photoToSave,
                     comment: commentText,
                     date: dateTimeStr,
@@ -1934,7 +1980,7 @@
                     photoCount++;
                     const trophy = allList.find(t => String(t.id) === String(id));
                     const trophyName = trophy ? trophy.name : '実績';
-                    const trophyCondition = trophy ? trophy.condition : '';
+                    const trophyCondition = item.condition || (trophy ? trophy.condition : '');
                     const comment = item.comment || '';
                     const date = item.date || '';
 
@@ -1944,7 +1990,7 @@
                         <img src="${item.photo}" alt="${trophyName}">
                         <div class="gallery-item-title">${trophyName}</div>
                     `;
-                    el.onclick = () => openPhotoLightbox(item.photo, trophyName, trophyCondition, date, comment);
+                    el.onclick = () => openPhotoLightbox(item.photo, trophyName, trophyCondition, date, comment, null, null);
                     grid.appendChild(el);
                 }
             });
@@ -1956,7 +2002,7 @@
             }
         }
 
-        function openPhotoLightbox(photoSrc, trophyName, conditionText, dateStr, commentText) {
+        async function openPhotoLightbox(photoSrc, trophyName, conditionText, dateStr, commentText, postId = null, postOwnerUid = null) {
             document.getElementById('lightbox-title').innerText = `🏆 ${trophyName}`;
             document.getElementById('lightbox-image').src = photoSrc;
             
@@ -1979,6 +2025,16 @@
                 commentEl.innerText = '（コメントなし）';
                 commentEl.style.display = 'block';
                 commentEl.style.color = 'var(--text-secondary)';
+            }
+
+            // 投稿削除ボタンの表示制御（自分の投稿である場合のみ削除ボタンを表示）
+            const delContainer = document.getElementById('lightbox-delete-container');
+            const delBtn = document.getElementById('lightbox-delete-post-btn');
+            if (currentUser && postOwnerUid && currentUser.uid === postOwnerUid && postId) {
+                delContainer.style.display = 'block';
+                delBtn.onclick = () => deletePostByPostId(postId, null);
+            } else {
+                delContainer.style.display = 'none';
             }
 
             openModal('photo-lightbox-modal');
@@ -2027,7 +2083,7 @@
         }
 
         /* -------------------------------------------------------------
-           他人のプロフィール画面 View (カスタム名・条件表示対応)
+           他人のプロフィール画面 View (カスタム実績の条件完全対応)
         ------------------------------------------------------------- */
         async function viewUserProfile(uid, profileData) {
             if (profileData.privacy === 'followers' && !profileData.followers?.includes(currentUser.uid)) {
@@ -2071,14 +2127,18 @@
                                 targetState[p.trophyId] = {
                                     date: p.date || '',
                                     photo: p.photo || null,
-                                    comment: p.comment || ''
+                                    comment: p.comment || '',
+                                    condition: p.condition || ''
                                 };
+                            } else if (!targetState[p.trophyId].condition && p.condition) {
+                                targetState[p.trophyId].condition = p.condition;
                             }
+
                             if (String(p.trophyId).startsWith('custom_') && !targetCustomTrophies.find(t => String(t.id) === String(p.trophyId))) {
                                 targetCustomTrophies.push({
                                     id: p.trophyId,
                                     name: p.trophyName || 'カスタム実績',
-                                    condition: 'タイムラインから検出',
+                                    condition: p.condition || 'タイムラインから検出',
                                     rank: 'gold',
                                     isCustom: true
                                 });
@@ -2144,14 +2204,14 @@
                     photoCount++;
                     const trophy = allTargetTrophies.find(t => String(t.id) === String(id));
                     const tName = trophy ? trophy.name : '実績';
-                    const tCond = trophy ? trophy.condition : '';
+                    const tCond = item.condition || (trophy ? trophy.condition : '');
                     const el = document.createElement('div');
                     el.className = 'gallery-item';
                     el.innerHTML = `
                         <img src="${item.photo}">
                         <div class="gallery-item-title">${tName}</div>
                     `;
-                    el.onclick = () => openPhotoLightbox(item.photo, tName, tCond, item.date || '', item.comment || '');
+                    el.onclick = () => openPhotoLightbox(item.photo, tName, tCond, item.date || '', item.comment || '', null, null);
                     grid.appendChild(el);
                 }
             });
@@ -2399,7 +2459,7 @@
                                 <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">🏆 ${post.trophyName}</div>
                             </div>
 
-                            ${post.photo ? `<img src="${post.photo}" class="feed-photo" onclick="openPhotoLightbox('${post.photo}', '${post.trophyName}', '', '${post.date || ''}', '${(post.comment || '').replace(/'/g, "\\'")}')">` : ''}
+                            ${post.photo ? `<img src="${post.photo}" class="feed-photo" onclick="openPhotoLightbox('${post.photo}', '${post.trophyName}', '${post.condition || ''}', '${post.date || ''}', '${(post.comment || '').replace(/'/g, "\\'")}', '${postId}', '${post.uid}')">` : ''}
                             ${commentHTML}
 
                             <div class="feed-actions">
@@ -2413,8 +2473,11 @@
                                         <span>${(post.comments || []).length}</span>
                                     </div>
                                 </div>
-                                <div class="feed-action-btn" onclick="sharePost('${post.trophyName}', '${post.displayName || post.username}')">
-                                    <i class="fa-solid fa-share-nodes"></i>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    ${currentUser && post.uid === currentUser.uid ? `<div class="feed-action-btn" style="color:var(--accent-red);" onclick="deletePostByPostId('${postId}', '${post.trophyId || ''}')" title="投稿を削除"><i class="fa-solid fa-trash"></i></div>` : ''}
+                                    <div class="feed-action-btn" onclick="sharePost('${post.trophyName}', '${post.displayName || post.username}')">
+                                        <i class="fa-solid fa-share-nodes"></i>
+                                    </div>
                                 </div>
                             </div>
 

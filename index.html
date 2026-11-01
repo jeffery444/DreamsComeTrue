@@ -178,7 +178,7 @@
 
         .stat-badge .rank-val { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
 
-        /* Bottom Navigation Bar */
+        /* 5タブ構成のボトムナビゲーションバー */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -202,7 +202,7 @@
             align-items: center;
             justify-content: center;
             color: var(--text-secondary);
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             font-weight: 600;
             gap: 3px;
             cursor: pointer;
@@ -214,7 +214,7 @@
         }
 
         .nav-item.active { color: var(--text-primary); }
-        .nav-item i { font-size: 1.2rem; }
+        .nav-item i { font-size: 1.15rem; }
 
         .container {
             padding: 16px 20px;
@@ -222,11 +222,11 @@
             margin: 0 auto;
         }
 
-        /* Board Category Switcher */
+        /* Board Category Switcher (3タブ対応：通常 / カスタム / サークル) */
         .category-tabs {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
             margin-bottom: 14px;
             background: var(--surface-card);
             padding: 4px;
@@ -235,15 +235,18 @@
         }
 
         .category-tab-btn {
-            padding: 10px;
+            padding: 8px 4px;
             border: none;
             border-radius: 8px;
             background: transparent;
             color: var(--text-secondary);
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .category-tab-btn.active {
@@ -738,7 +741,7 @@
             <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 14px; text-align: center; line-height: 1.4;">
                 アカウント作成ありがとうございます！<br>検索やタイムラインで使用する<b>表示名</b>と<b>ユーザーID</b>を設定してください。
             </div>
-            <div id="setup-email-display" style="font-size: 0.7rem; color: var(--text-secondary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; text-align: center; word-break: break-all;"></div>
+            <div id="setup-email-display" style="font-size: 0.70rem; color: var(--text-secondary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; text-align: center; word-break: break-all;"></div>
             <input type="text" id="displayname-input" class="form-input" placeholder="表示名 (例: てるあき)">
             <input type="text" id="username-input" class="form-input" placeholder="ユーザーID・半角英数 (例: HR_40)">
             <input type="text" id="bio-input" class="form-input" placeholder="ステータスメッセージ (例: 人生の実績解除中！)">
@@ -870,6 +873,38 @@
         </div>
     </div>
 
+    <!-- Create Circle Modal (サークル立ち上げ) -->
+    <div class="modal" id="create-circle-modal">
+        <div class="modal-content">
+            <div class="modal-title">⭕ サークルを立ち上げる</div>
+            <input type="text" id="circle-name-input" class="form-input" placeholder="サークル名 (例: 週末エンジニア部)">
+            <textarea id="circle-bio-input" class="form-textarea" placeholder="サークル自己紹介 (例: 一緒に新しいサービスを作ろう！)"></textarea>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeModal('create-circle-modal')">キャンセル</button>
+                <button class="modal-btn" onclick="createCircle()">立ち上げる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Circle Trophy Modal (サークル実績作成) -->
+    <div class="modal" id="circle-trophy-modal">
+        <div class="modal-content">
+            <div class="modal-title">⭕ サークル実績を作成</div>
+            <input type="text" id="circle-trophy-title" class="form-input" placeholder="実績タイトル (例: 初プルリク達成)">
+            <input type="text" id="circle-trophy-condition" class="form-input" placeholder="達成条件 (例: GitHubにPRを送る)">
+            <select id="circle-trophy-rank" class="form-select">
+                <option value="bronze">BRONZE</option>
+                <option value="silver">SILVER</option>
+                <option value="gold">GOLD</option>
+                <option value="platinum">PLATINUM</option>
+            </select>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="closeModal('circle-trophy-modal')">キャンセル</button>
+                <button class="modal-btn" onclick="addCircleTrophy()">作成する</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Unlock Modal -->
     <div class="modal" id="unlock-modal">
         <div class="modal-content">
@@ -895,7 +930,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v3.5</span>
+                Life Trophies <span class="version-badge">v4.0</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -916,7 +951,7 @@
 
     <div class="container" id="main-container"></div>
 
-    <!-- Bottom Navigation Bar -->
+    <!-- 5タブ構成のボトムナビゲーションバー（真ん中にサークル配置） -->
     <nav class="bottom-nav">
         <button class="nav-item" id="nav-btn-feed" onclick="switchMainTab('feed')">
             <i class="fa-solid fa-house"></i>
@@ -925,6 +960,10 @@
         <button class="nav-item active" id="nav-btn-trophies" onclick="switchMainTab('trophies')">
             <i class="fa-solid fa-trophy"></i>
             <span>実績</span>
+        </button>
+        <button class="nav-item" id="nav-btn-circle" onclick="switchMainTab('circle')">
+            <i class="fa-solid fa-circle-nodes"></i>
+            <span>サークル</span>
         </button>
         <button class="nav-item" id="nav-btn-search" onclick="switchMainTab('search')">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -962,14 +1001,17 @@
 
         let currentUser = null;
         let userState = {};
-        let myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
+        let myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [], joinedCircles: [] };
         let customTrophies = [];
+        let circleTrophies = []; // 自分が参加しているサークルのサークル実績リスト
+        let activeCircles = [];  // 全サークルリスト
+        let currentActiveCircleId = null; // 現在閲覧中のサークルID
         let revertedIds = [];
         let isSignUpMode = false;
         let isAuthProcessing = false;
         let selectedTrophyId = null;
         let activeTab = 'trophies';
-        let boardCategory = 'default';
+        let boardCategory = 'default'; // 'default', 'custom', 'circle'
         let trophyFilter = 'all';
         let tempAvatarBase64 = "";
         let tempUnlockPhotoBase64 = "";
@@ -1128,6 +1170,7 @@
                     bio: profileData.bio || "人生の実績解除中！",
                     userAvatar: profileData.avatar || "",
                     customTrophies: customTrophies || [],
+                    joinedCircles: myProfile.joinedCircles || [],
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true }).catch(() => {});
             } catch (e) {}
@@ -1217,7 +1260,9 @@
                 currentUser = null;
                 userState = {};
                 customTrophies = [];
-                myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [] };
+                circleTrophies = [];
+                activeCircles = [];
+                myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [], joinedCircles: [] };
                 setTheme("dark", false);
                 closeModal('username-modal');
                 openModal('auth-modal');
@@ -1255,7 +1300,8 @@
                             username: d.username,
                             bio: d.bio,
                             avatar: d.userAvatar,
-                            customTrophies: d.customTrophies || []
+                            customTrophies: d.customTrophies || [],
+                            joinedCircles: d.joinedCircles || []
                         });
                     }
                 } catch (e) {}
@@ -1277,7 +1323,8 @@
                     theme: source.theme || "dark",
                     privacy: source.privacy || "public",
                     following: Array.isArray(source.following) ? source.following : [],
-                    followers: Array.isArray(source.followers) ? source.followers : []
+                    followers: Array.isArray(source.followers) ? source.followers : [],
+                    joinedCircles: Array.isArray(source.joinedCircles) ? source.joinedCircles : []
                 };
 
                 saveProfileToLocalCache(uid, myProfile);
@@ -1337,6 +1384,7 @@
                 following: myProfile.following || [],
                 followers: myProfile.followers || [],
                 customTrophies: customTrophies || [],
+                joinedCircles: myProfile.joinedCircles || [],
                 updatedAt: new Date().toISOString()
             };
 
@@ -1478,6 +1526,9 @@
                 if (Array.isArray(userDocData.customTrophies) && userDocData.customTrophies.length > mergedCustom.length) {
                     mergedCustom = userDocData.customTrophies;
                 }
+                if (Array.isArray(userDocData.joinedCircles)) {
+                    myProfile.joinedCircles = userDocData.joinedCircles;
+                }
             }
 
             userState = mergedStatus;
@@ -1531,7 +1582,8 @@
                                 date: post.date || '復元済',
                                 photo: post.photo || null,
                                 comment: post.comment || '',
-                                condition: post.condition || ''
+                                condition: post.condition || '',
+                                trophyName: post.trophyName || ''
                             };
                             recoveredCount++;
                         }
@@ -1581,12 +1633,13 @@
 
             if (tab === 'trophies') renderTrophiesView();
             else if (tab === 'feed') renderFeedView();
+            else if (tab === 'circle') renderCircleView();
             else if (tab === 'search') renderSearchView();
             else if (tab === 'profile') renderMyProfileView();
         }
 
         function getAllTrophies() {
-            return [...defaultTrophies, ...customTrophies];
+            return [...defaultTrophies, ...customTrophies, ...circleTrophies];
         }
 
         function setTheme(themeName, shouldSaveToDb = false) {
@@ -1613,9 +1666,33 @@
         }
 
         /* -------------------------------------------------------------
-           実績一覧 View
+           実績一覧 View (通常・カスタム・サークル実績の3タブ対応)
         ------------------------------------------------------------- */
-        function renderTrophiesView() {
+        async function loadCircleTrophiesForBoard() {
+            circleTrophies = [];
+            if (!myProfile.joinedCircles || myProfile.joinedCircles.length === 0) return;
+            try {
+                const snap = await db.collection('circles').where(firebase.firestore.FieldPath.documentId(), 'in', myProfile.joinedCircles.slice(0, 10)).get();
+                snap.forEach(doc => {
+                    const cData = doc.data();
+                    if (Array.isArray(cData.circleTrophies)) {
+                        cData.circleTrophies.forEach(ct => {
+                            circleTrophies.push({
+                                id: ct.id,
+                                name: `⭕ ${cData.circleName}: ${ct.name}`,
+                                condition: ct.condition,
+                                rank: ct.rank || 'gold',
+                                isCircleTrophy: true,
+                                circleId: doc.id
+                            });
+                        });
+                    }
+                });
+            } catch (e) {}
+        }
+
+        async function renderTrophiesView() {
+            await loadCircleTrophiesForBoard();
             const container = document.getElementById('main-container');
             container.innerHTML = '';
 
@@ -1629,25 +1706,32 @@
                 container.appendChild(warnBanner);
             }
 
+            // 3つのカテゴリータブ（通常 / カスタム / サークル実績）
             const categorySwitcher = document.createElement('div');
             categorySwitcher.className = 'category-tabs';
             categorySwitcher.innerHTML = `
                 <button class="category-tab-btn ${boardCategory === 'default' ? 'active' : ''}" onclick="boardCategory='default'; renderTrophiesView();">
-                    🏆 通常実績 (${defaultTrophies.length})
+                    🏆 通常 (${defaultTrophies.length})
                 </button>
                 <button class="category-tab-btn ${boardCategory === 'custom' ? 'active' : ''}" onclick="boardCategory='custom'; renderTrophiesView();">
-                    ✨ カスタム実績 (${customTrophies.length})
+                    ✨ カスタム (${customTrophies.length})
+                </button>
+                <button class="category-tab-btn ${boardCategory === 'circle' ? 'active' : ''}" onclick="boardCategory='circle'; renderTrophiesView();">
+                    ⭕ サークル (${circleTrophies.length})
                 </button>
             `;
             container.appendChild(categorySwitcher);
 
             const actionRow = document.createElement('div');
             actionRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;';
+            
+            let boardTitle = '🏆 トロフィーボード';
+            if (boardCategory === 'custom') boardTitle = '✨ マイ・カスタム実績';
+            if (boardCategory === 'circle') boardTitle = '⭕ 参加サークルの実績';
+
             actionRow.innerHTML = `
-                <div style="font-size:0.85rem; font-weight:800; color:var(--text-primary);">
-                    ${boardCategory === 'default' ? '🏆 トロフィーボード' : '✨ マイ・カスタム実績'}
-                </div>
-                <button class="btn-action-small" onclick="openModal('custom-trophy-modal')">+ カスタム実績を作成</button>
+                <div style="font-size:0.85rem; font-weight:800; color:var(--text-primary);">${boardTitle}</div>
+                ${boardCategory === 'custom' ? '<button class="btn-action-small" onclick="openModal(\'custom-trophy-modal\')">+ カスタム作成</button>' : ''}
             `;
             container.appendChild(actionRow);
 
@@ -1682,13 +1766,26 @@
             const percent = allTrophiesList.length > 0 ? Math.round((totalUnlocked / allTrophiesList.length) * 100) : 0;
             document.getElementById('progress-percent').innerText = `${percent}%`;
 
-            const targetList = boardCategory === 'default' ? defaultTrophies : customTrophies;
+            let targetList = defaultTrophies;
+            if (boardCategory === 'custom') targetList = customTrophies;
+            if (boardCategory === 'circle') targetList = circleTrophies;
+
             const trophyListEl = document.createElement('div');
 
             if (boardCategory === 'custom' && customTrophies.length === 0) {
                 trophyListEl.innerHTML = `
                     <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
-                        まだカスタム実績がありません。<br>右上の「+ カスタム実績を作成」から自分だけの目標を追加しましょう！
+                        まだカスタム実績がありません。<br>上の「+ カスタム作成」から目標を追加しましょう！
+                    </div>
+                `;
+                container.appendChild(trophyListEl);
+                return;
+            }
+
+            if (boardCategory === 'circle' && circleTrophies.length === 0) {
+                trophyListEl.innerHTML = `
+                    <div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">
+                        参加しているサークルにまだサークル実績がありません。<br>「サークルタブ」からサークルに参加・作成して実績を作ろう！
                     </div>
                 `;
                 container.appendChild(trophyListEl);
@@ -1712,7 +1809,10 @@
                     ? `<img src="${userState[t.id].photo}" alt="Trophy Photo">`
                     : `<i class="fa-solid fa-trophy"></i>`;
 
-                const displayNameStr = t.isCustom ? `✨ ${t.name}` : (t.isUltimate ? `★ ${t.name}` : t.name);
+                let displayNameStr = t.name;
+                if (t.isCustom) displayNameStr = `✨ ${t.name}`;
+                else if (t.isCircleTrophy) displayNameStr = `${t.name}`;
+                else if (t.isUltimate) displayNameStr = `★ ${t.name}`;
 
                 const infoBox = document.createElement('div');
                 infoBox.className = 'trophy-info';
@@ -1761,60 +1861,214 @@
             container.appendChild(trophyListEl);
         }
 
-        function addCustomTrophy() {
-            const titleInput = document.getElementById('custom-title');
-            const conditionInput = document.getElementById('custom-condition');
-            const rankSelect = document.getElementById('custom-rank');
-            
-            const title = titleInput.value.trim();
-            const condition = conditionInput.value.trim();
-            const rank = rankSelect.value;
-            
-            if (!title || !condition) {
-                alert('実績タイトルと達成条件の両方を入力してください');
+        /* -------------------------------------------------------------
+           サークル（Circle）機能 View & ロジック
+        ------------------------------------------------------------- */
+        async function renderCircleView() {
+            const container = document.getElementById('main-container');
+            container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">サークル情報を読み込み中...</div>';
+
+            try {
+                const snap = await db.collection('circles').orderBy('createdAt', 'desc').get();
+                activeCircles = [];
+                snap.forEach(doc => {
+                    activeCircles.push(Object.assign({ id: doc.id }, doc.data()));
+                });
+            } catch (e) {
+                activeCircles = [];
+            }
+
+            container.innerHTML = `
+                <div style="font-size:0.9rem; font-weight:800; margin-bottom:14px; text-align:center;">⭕ サークル機能</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <div style="font-size:0.8rem; font-weight:700; color:var(--text-secondary);">コミュニティ＆サークル実績</div>
+                    <button class="btn-action-small" onclick="openModal('create-circle-modal')">+ サークルを立ち上げる</button>
+                </div>
+                <div id="circle-list-container"></div>
+            `;
+
+            renderCircleList();
+        }
+
+        function renderCircleList() {
+            const listEl = document.getElementById('circle-list-container');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            if (activeCircles.length === 0) {
+                listEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px;">まだ作成されたサークルはありません。最初のサークルを立ち上げよう！</div>';
                 return;
             }
 
-            const newTrophy = {
-                id: 'custom_' + Date.now(),
+            activeCircles.forEach(circle => {
+                const members = Array.isArray(circle.members) ? circle.members : [];
+                const isJoined = members.includes(currentUser.uid);
+                const isHost = circle.hostUid === currentUser.uid;
+                const trophies = Array.isArray(circle.circleTrophies) ? circle.circleTrophies : [];
+
+                const card = document.createElement('div');
+                card.className = 'feed-card';
+                card.style.cssText = 'margin-bottom: 14px; padding: 16px;';
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="font-size:1rem; font-weight:900; color:var(--text-primary);">⭕ ${circle.circleName}</div>
+                        <button class="btn-action-small ${isJoined ? 'following' : ''}" onclick="toggleJoinCircle('${circle.id}', ${isJoined})">
+                            ${isJoined ? '参加中' : 'サークルに参加'}
+                        </button>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:10px; line-height:1.4;">${circle.circleBio || '自己紹介なし'}</div>
+                    <div style="font-size:0.68rem; color:var(--text-tertiary); margin-bottom:12px;">
+                        👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 メンバー: <b>${members.length}人</b> ・ 🏆 サークル実績: <b>${trophies.length}件</b>
+                    </div>
+                    ${isJoined ? `
+                        <div style="border-top:1px solid var(--border-color); padding-top:10px; margin-top:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <div style="font-size:0.78rem; font-weight:800;">サークル専用実績一覧</div>
+                                <button class="btn-action-small" onclick="openCircleTrophyModal('${circle.id}')">+ サークル実績を作成</button>
+                            </div>
+                            <div id="circle-trophies-${circle.id}"></div>
+                        </div>
+                    ` : '<div style="font-size:0.7rem; color:var(--text-tertiary); font-style:italic;">※参加するとこのサークルの実績を作成・閲覧できるようになります</div>'}
+                `;
+
+                listEl.appendChild(card);
+
+                if (isJoined) {
+                    const tContainer = document.getElementById(`circle-trophies-${circle.id}`);
+                    if (tContainer) {
+                        if (trophies.length === 0) {
+                            tContainer.innerHTML = '<div style="font-size:0.72rem; color:var(--text-secondary); padding:6px 0;">まだサークル実績がありません。メンバー全員が作成できます！</div>';
+                        } else {
+                            trophies.forEach(ct => {
+                                const isUnlocked = !!userState[ct.id];
+                                const tItem = document.createElement('div');
+                                tItem.style.cssText = 'background:var(--surface-hover); border:1px solid var(--border-color); padding:8px 10px; border-radius:8px; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; gap:10px;';
+                                tItem.innerHTML = `
+                                    <div style="overflow:hidden;">
+                                        <div style="font-size:0.8rem; font-weight:700;">✨ ${ct.name}</div>
+                                        <div style="font-size:0.7rem; color:var(--text-secondary);">${ct.condition}</div>
+                                    </div>
+                                    <div>
+                                        ${isUnlocked ? '<span class="unlocked-tag"><i class="fa-solid fa-check"></i> 解除済</span>' : `<button class="unlock-btn" onclick="openUnlockModal('${ct.id}')">解除</button>`}
+                                    </div>
+                                `;
+                                tContainer.appendChild(tItem);
+                            });
+                        }
+                    }
+                }
+            });
+        }
+
+        async function createCircle() {
+            const nameInput = document.getElementById('circle-name-input');
+            const bioInput = document.getElementById('circle-bio-input');
+            const cName = nameInput.value.trim();
+            const cBio = bioInput.value.trim();
+
+            if (!cName) return alert('サークル名を入力してください');
+
+            const circleId = 'circle_' + Date.now();
+            const newCircleData = {
+                circleName: cName,
+                circleBio: cBio,
+                hostUid: currentUser.uid,
+                hostName: myProfile.displayName || myProfile.username,
+                members: [currentUser.uid],
+                circleTrophies: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('circles').doc(circleId).set(newCircleData);
+                if (!myProfile.joinedCircles) myProfile.joinedCircles = [];
+                myProfile.joinedCircles.push(circleId);
+                await db.collection('users').doc(currentUser.uid).set({ joinedCircles: myProfile.joinedCircles }, { merge: true });
+                saveProfileToLocalCache(currentUser.uid, myProfile);
+
+                nameInput.value = '';
+                bioInput.value = '';
+                closeModal('create-circle-modal');
+                showNotification(`サークル「${cName}」を立ち上げました！`, 'CIRCLE CREATED');
+                renderCircleView();
+            } catch (e) {
+                alert('サークルの作成に失敗しました: ' + e.message);
+            }
+        }
+
+        async function toggleJoinCircle(circleId, isJoined) {
+            if (!currentUser) return;
+            const uid = currentUser.uid;
+            const circleRef = db.collection('circles').doc(circleId);
+            const userRef = db.collection('users').doc(uid);
+
+            try {
+                if (isJoined) {
+                    myProfile.joinedCircles = (myProfile.joinedCircles || []).filter(id => id !== circleId);
+                    await circleRef.update({ members: firebase.firestore.FieldValue.arrayRemove(uid) });
+                    await userRef.set({ joinedCircles: myProfile.joinedCircles }, { merge: true });
+                    showNotification('サークルを退会しました', 'CIRCLE LEFT');
+                } else {
+                    if (!myProfile.joinedCircles) myProfile.joinedCircles = [];
+                    myProfile.joinedCircles.push(circleId);
+                    await circleRef.update({ members: firebase.firestore.FieldValue.arrayUnion(uid) });
+                    await userRef.set({ joinedCircles: myProfile.joinedCircles }, { merge: true });
+                    showNotification('サークルに参加しました！', 'CIRCLE JOINED');
+                }
+                saveProfileToLocalCache(uid, myProfile);
+                renderCircleView();
+            } catch (e) {
+                alert('処理に失敗しました: ' + e.message);
+            }
+        }
+
+        function openCircleTrophyModal(circleId) {
+            currentActiveCircleId = circleId;
+            document.getElementById('circle-trophy-title').value = '';
+            document.getElementById('circle-trophy-condition').value = '';
+            openModal('circle-trophy-modal');
+        }
+
+        async function addCircleTrophy() {
+            if (!currentActiveCircleId) return;
+            const titleInput = document.getElementById('circle-trophy-title');
+            const conditionInput = document.getElementById('circle-trophy-condition');
+            const rankSelect = document.getElementById('circle-trophy-rank');
+
+            const title = titleInput.value.trim();
+            const condition = conditionInput.value.trim();
+            const rank = rankSelect.value;
+
+            if (!title || !condition) return alert('タイトルと達成条件を入力してください');
+
+            const newTrophyId = 'ctrophy_' + Date.now();
+            const newTrophyObj = {
+                id: newTrophyId,
                 name: title,
                 condition: condition,
                 rank: rank,
-                isCustom: true
+                creatorUid: currentUser.uid,
+                isCircleTrophy: true,
+                circleId: currentActiveCircleId
             };
 
-            customTrophies.push(newTrophy);
+            try {
+                const circleRef = db.collection('circles').doc(currentActiveCircleId);
+                await circleRef.update({
+                    circleTrophies: firebase.firestore.FieldValue.arrayUnion(newTrophyObj)
+                });
 
-            titleInput.value = '';
-            conditionInput.value = '';
-            closeModal('custom-trophy-modal');
-
-            boardCategory = 'custom';
-            trophyFilter = 'all';
-            switchMainTab('trophies');
-            showNotification(`カスタム実績「${title}」を追加しました！`, 'CUSTOM TROPHY ADDED');
-
-            saveCustomTrophiesToStorage();
-        }
-
-        async function deleteCustomTrophy(id) {
-            const target = customTrophies.find(t => String(t.id) === String(id));
-            const targetName = target ? target.name : 'カスタム実績';
-
-            if (!confirm(`カスタム実績「${targetName}」を削除しますか？`)) return;
-
-            customTrophies = customTrophies.filter(t => String(t.id) !== String(id));
-            if (userState[id]) {
-                delete userState[id];
-                await removeSingleUnlockFromStorage(id);
+                closeModal('circle-trophy-modal');
+                showNotification(`サークル実績「${title}」を作成しました！`, 'CIRCLE TROPHY CREATED');
+                renderCircleView();
+            } catch (e) {
+                alert('サークル実績の作成に失敗しました: ' + e.message);
             }
-
-            renderTrophiesView();
-            showNotification(`「${targetName}」を削除しました`, 'CUSTOM TROPHY DELETED');
-
-            saveCustomTrophiesToStorage();
         }
 
+        /* -------------------------------------------------------------
+           実績解除関連
+        ------------------------------------------------------------- */
         function openUnlockModal(id) {
             selectedTrophyId = id;
             tempUnlockPhotoBase64 = "";
@@ -1887,7 +2141,7 @@
             userState[unlockedId] = unlockEntry;
 
             closeModal('unlock-modal');
-            switchMainTab('trophies');
+            switchMainTab(activeTab);
             showNotification(`実績を解除しました！「${trophyName}」`, 'TROPHY UNLOCKED!');
 
             saveSingleUnlockToStorage(unlockedId, unlockEntry);
@@ -1912,7 +2166,7 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View (カスタム実績名保持対応)
+           マイページ View
         ------------------------------------------------------------- */
         function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -2067,7 +2321,7 @@
         }
 
         /* -------------------------------------------------------------
-           他人のプロフィール画面 View (実績名の完全一致解決)
+           他人のプロフィール画面 View
         ------------------------------------------------------------- */
         async function viewUserProfile(uid, profileData) {
             if (profileData.privacy === 'followers' && !profileData.followers?.includes(currentUser.uid)) {
@@ -2445,7 +2699,7 @@
                                 <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">🏆 ${post.trophyName}</div>
                             </div>
 
-                            ${post.photo ? `<img src="${post.photo}" class="feed-photo" onclick="openPhotoLightbox('${post.photo}', '${post.trophyName}', '${post.condition || ''}', '${post.date || ''}', '${(post.comment || '').replace(/'/g, "\\'")}', '${postId}', '${post.uid}')">` : ''}
+                            ${post.photo ? `<img src="${post.photo}" class="feed-photo" onclick="openPhotoLightbox('${post.photo}', '${post.trophyName}', '${post.condition || ''}', '${post.date || ''}', '${(post.comment || '').replace(/'/g, "\\'')}', '${postId}', '${post.uid}')">` : ''}
                             ${commentHTML}
 
                             <div class="feed-actions">

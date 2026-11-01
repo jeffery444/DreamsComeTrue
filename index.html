@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Life Trophies</title>
     
     <!-- PWA Settings -->
@@ -95,6 +98,19 @@
             text-transform: uppercase;
             color: var(--text-primary);
             cursor: pointer;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .version-badge {
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            background: var(--surface-hover);
+            padding: 2px 5px;
+            border-radius: 4px;
+            letter-spacing: 0;
         }
 
         .header-right {
@@ -715,7 +731,7 @@
         </div>
     </div>
 
-    <!-- Initial Profile Setup Modal (即時完了・フリーズ防止設計) -->
+    <!-- Initial Profile Setup Modal (待機ゼロ・即時完了仕様) -->
     <div class="modal" id="username-modal" style="z-index: 2500;">
         <div class="modal-content">
             <div class="modal-title">✨ プロフィール初期設定</div>
@@ -872,7 +888,9 @@
     <!-- Header -->
     <header>
         <div class="header-top">
-            <div class="brand-logo" onclick="switchMainTab('trophies')">Life Trophies</div>
+            <div class="brand-logo" onclick="switchMainTab('trophies')">
+                Life Trophies <span class="version-badge">v3.0</span>
+            </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
                     <i class="fa-solid fa-bell"></i>
@@ -1032,10 +1050,7 @@
             { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze' }
         ];
 
-        /* -------------------------------------------------------------
-           通信ハングアップ防止用タイムアウトラッパー
-        ------------------------------------------------------------- */
-        function withTimeout(promise, ms = 2500) {
+        function withTimeout(promise, ms = 2000) {
             return Promise.race([
                 promise,
                 new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
@@ -1076,9 +1091,6 @@
             });
         }
 
-        /* -------------------------------------------------------------
-           プロフィールキャッシュ＆クラウド同期ヘルパー
-        ------------------------------------------------------------- */
         function saveProfileToLocalCache(uid, profileObj) {
             if (!uid) return;
             try {
@@ -1096,24 +1108,22 @@
             }
         }
 
-        // バックグラウンドでFirestoreのusersとposts(検索用ディレクトリ)の両方に同期
         function syncProfileToCloudBackground(uid, profileData) {
             if (!uid) return;
-            db.collection('users').doc(uid).set(profileData, { merge: true }).catch(e => {
-                console.warn('users同期警告:', e);
-            });
-            // もしusersコレクションの権限が制限されていても検索で確実にヒットするようpostsにもプロフィール索引を保存
-            db.collection('posts').doc('profile_' + uid).set({
-                isProfileIndex: true,
-                uid: uid,
-                email: profileData.email || "",
-                displayName: profileData.displayName || profileData.username,
-                username: profileData.username,
-                searchUsername: (profileData.username || "").toLowerCase(),
-                bio: profileData.bio || "人生の実績解除中！",
-                userAvatar: profileData.avatar || "",
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).catch(e => {});
+            try {
+                db.collection('users').doc(uid).set(profileData, { merge: true }).catch(() => {});
+                db.collection('posts').doc('profile_' + uid).set({
+                    isProfileIndex: true,
+                    uid: uid,
+                    email: profileData.email || "",
+                    displayName: profileData.displayName || profileData.username,
+                    username: profileData.username,
+                    searchUsername: (profileData.username || "").toLowerCase(),
+                    bio: profileData.bio || "人生の実績解除中！",
+                    userAvatar: profileData.avatar || "",
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true }).catch(() => {});
+            } catch (e) {}
         }
 
         async function saveCustomTrophiesToStorage() {
@@ -1154,9 +1164,6 @@
             } catch (e) {}
         }
 
-        /* -------------------------------------------------------------
-           認証状態監視と初期プロフィール確認
-        ------------------------------------------------------------- */
         auth.onAuthStateChanged(async user => {
             if (user) {
                 currentUser = user;
@@ -1180,7 +1187,6 @@
             const uid = currentUser.uid;
             const email = currentUser.email || "";
 
-            // 1. まずローカルキャッシュから即座に復元（リロード時に0秒で確実に表示するため）
             const cachedProfile = getProfileFromLocalCache(uid);
             if (cachedProfile && cachedProfile.username && String(cachedProfile.username).trim() !== "") {
                 myProfile = Object.assign({}, myProfile, cachedProfile, { uid, email });
@@ -1188,21 +1194,17 @@
                 closeModal('username-modal');
             }
 
-            // 2. タイムアウト付きでFirestoreからプロフィールを取得（通信詰まりで画面が止まるのを防止）
             let firestoreData = null;
             try {
-                const userDoc = await withTimeout(db.collection('users').doc(uid).get(), 2500);
+                const userDoc = await withTimeout(db.collection('users').doc(uid).get(), 2000);
                 if (userDoc && userDoc.exists) {
                     firestoreData = userDoc.data();
                 }
-            } catch (e) {
-                console.warn('Firestoreプロフィール取得スキップまたはタイムアウト:', e);
-            }
+            } catch (e) {}
 
-            // もしusersになければpostsのプロフィール索引からも確認
             if (!firestoreData || !firestoreData.username) {
                 try {
-                    const idxDoc = await withTimeout(db.collection('posts').doc('profile_' + uid).get(), 2000);
+                    const idxDoc = await withTimeout(db.collection('posts').doc('profile_' + uid).get(), 1500);
                     if (idxDoc && idxDoc.exists && idxDoc.data().username) {
                         const d = idxDoc.data();
                         firestoreData = Object.assign({}, firestoreData || {}, {
@@ -1239,13 +1241,10 @@
                 const privSelect = document.getElementById('privacy-select');
                 if (privSelect) privSelect.value = myProfile.privacy;
 
-                // 裏側でクラウドへ確実に同期
                 syncProfileToCloudBackground(uid, myProfile);
-
                 closeModal('username-modal');
                 await loadUserData(firestoreData);
             } else {
-                // ユーザーIDが未設定の場合のみ初期設定モーダルを表示
                 await loadUserData(firestoreData);
                 openInitialProfileSetupModal();
             }
@@ -1257,42 +1256,23 @@
             if (emailDisp) {
                 emailDisp.innerText = `登録メールアドレス: ${currentUser.email || '確認済'}`;
             }
-            const btn = document.getElementById('save-initial-profile-btn');
-            if (btn) {
-                btn.disabled = false;
-                btn.innerText = '設定を完了して始める';
-            }
             document.getElementById('displayname-input').value = myProfile.displayName || '';
             document.getElementById('username-input').value = myProfile.username || '';
             document.getElementById('bio-input').value = myProfile.bio || '';
             openModal('username-modal');
         }
 
-        // タイムアウト付き重複チェック（最大2秒で判定し、通信不良でも絶対にフリーズさせない）
-        async function isUsernameTakenSafe(username) {
-            const targetLower = username.trim().toLowerCase();
-            try {
-                const snapshot = await withTimeout(db.collection('users').get(), 2000);
-                let taken = false;
-                snapshot.forEach(doc => {
-                    if (doc.id !== currentUser.uid) {
-                        const data = doc.data();
-                        if (data && data.username && String(data.username).trim().toLowerCase() === targetLower) {
-                            taken = true;
-                        }
-                    }
-                });
-                return taken;
-            } catch (e) {
-                return false;
-            }
-        }
-
         /* -------------------------------------------------------------
-           初期プロフィール保存（フリーズ完全防止・即時完了方式）
+           初期プロフィール保存（完全同期・待機ゼロ・フリーズ100%防止）
         ------------------------------------------------------------- */
-        async function saveInitialProfile() {
-            if (!currentUser) return;
+        function saveInitialProfile() {
+            const user = currentUser || auth.currentUser;
+            if (!user) {
+                closeModal('username-modal');
+                openModal('auth-modal');
+                return;
+            }
+
             const displayName = document.getElementById('displayname-input').value.trim();
             const username = document.getElementById('username-input').value.trim().replace(/^@/, '');
             const bio = document.getElementById('bio-input').value.trim() || "人生の実績解除中！";
@@ -1300,24 +1280,8 @@
             if (!displayName) return alert('表示名を入力してください');
             if (!username) return alert('ユーザーIDを入力してください');
 
-            const btn = document.getElementById('save-initial-profile-btn');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerText = '確認中...';
-            }
-
-            // 1. 最大2秒のタイムアウト付きでID重複チェック
-            const taken = await isUsernameTakenSafe(username);
-            if (taken) {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerText = '設定を完了して始める';
-                }
-                return alert('このユーザーIDはすでに別のユーザーに使われています。別のIDを入力してください。');
-            }
-
-            const uid = currentUser.uid;
-            const email = currentUser.email || "";
+            const uid = user.uid;
+            const email = user.email || "";
 
             const profileData = {
                 uid: uid,
@@ -1334,20 +1298,16 @@
                 updatedAt: new Date().toISOString()
             };
 
-            // 2. まずメモリとローカルキャッシュに即座に保存（リロードしても絶対に消えない）
+            // 1. まずローカルに即座に確定保存
             myProfile = Object.assign({}, profileData);
             saveProfileToLocalCache(uid, myProfile);
 
-            // 3. 通信完了を待たずに即座にモーダルを閉じて画面を更新（フリーズ防止）
-            if (btn) {
-                btn.disabled = false;
-                btn.innerText = '設定を完了して始める';
-            }
+            // 2. 待機ゼロ（ボタンのグレーアウトも一切なし）で即座にモーダルを閉じて画面表示
             closeModal('username-modal');
-            switchMainTab(activeTab);
+            switchMainTab('profile');
             showNotification(`ようこそ、${displayName} (@${username}) さん！`, 'PROFILE COMPLETED');
 
-            // 4. バックグラウンドでFirestoreのusersとposts索引の両方に保存
+            // 3. クラウドへの保存はすべてバックグラウンドで実行
             syncProfileToCloudBackground(uid, profileData);
         }
 
@@ -1377,7 +1337,7 @@
 
             isAuthProcessing = true;
             submitBtn.disabled = true;
-            submitBtn.innerText = '通信中...';
+            submitBtn.innerText = '認証中...';
 
             try {
                 if (isSignUpMode) {
@@ -1431,8 +1391,8 @@
                 localStorage.removeItem(`lt_profile_${uid}`);
                 localStorage.removeItem(`lt_custom_${uid}`);
                 localStorage.removeItem(`lt_status_${uid}`);
-                await db.collection('users').doc(uid).delete().catch(()=>{});
-                await db.collection('posts').doc('profile_' + uid).delete().catch(()=>{});
+                db.collection('users').doc(uid).delete().catch(()=>{});
+                db.collection('posts').doc('profile_' + uid).delete().catch(()=>{});
                 await currentUser.delete();
                 alert('アカウントを削除しました');
             } catch (error) {
@@ -1468,29 +1428,31 @@
                 }
             }
 
+            userState = mergedStatus;
+            customTrophies = mergedCustom;
+            switchMainTab(activeTab);
+
+            // クラウド側の追加データは後から非同期でマージして再描画
             try {
                 const statusDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('status').get(), 2000);
-                if (statusDoc && statusDoc.exists && statusDoc.data()) Object.assign(mergedStatus, statusDoc.data());
+                if (statusDoc && statusDoc.exists && statusDoc.data()) Object.assign(userState, statusDoc.data());
             } catch (e) {}
 
             try {
                 const customDoc = await withTimeout(db.collection('users').doc(uid).collection('trophies').doc('custom').get(), 2000);
                 if (customDoc && customDoc.exists && customDoc.data() && Array.isArray(customDoc.data().items)) {
-                    if (customDoc.data().items.length > mergedCustom.length) mergedCustom = customDoc.data().items;
+                    if (customDoc.data().items.length > customTrophies.length) customTrophies = customDoc.data().items;
                 }
             } catch (e) {}
 
             try {
                 const unlockedSnap = await withTimeout(db.collection('users').doc(uid).collection('unlocked_items').get(), 2000);
                 if (unlockedSnap) {
-                    unlockedSnap.forEach(doc => { mergedStatus[doc.id] = doc.data(); });
+                    unlockedSnap.forEach(doc => { userState[doc.id] = doc.data(); });
                 }
             } catch (e) {}
 
-            userState = mergedStatus;
-            customTrophies = mergedCustom;
-
-            await recoverFromPosts(false);
+            recoverFromPosts(false);
             switchMainTab(activeTab);
         }
 
@@ -1500,10 +1462,10 @@
             let recoveredCount = 0;
 
             try {
-                const postsSnap = await withTimeout(db.collection('posts').where('uid', '==', uid).get(), 3000);
+                const postsSnap = await withTimeout(db.collection('posts').where('uid', '==', uid).get(), 2500);
                 postsSnap.forEach(doc => {
                     const post = doc.data();
-                    if (post.isProfileIndex) return; // プロフィール索引データはスキップ
+                    if (post.isProfileIndex) return;
                     let tId = post.trophyId;
 
                     if (!tId && post.trophyName) {
@@ -1575,7 +1537,7 @@
             return [...defaultTrophies, ...customTrophies];
         }
 
-        async function setTheme(themeName, shouldSaveToDb = false) {
+        function setTheme(themeName, shouldSaveToDb = false) {
             myProfile.theme = themeName;
             if (themeName === 'light') {
                 document.body.classList.add('light-mode');
@@ -1589,7 +1551,7 @@
             }
         }
 
-        async function savePrivacySetting(privacyVal) {
+        function savePrivacySetting(privacyVal) {
             myProfile.privacy = privacyVal;
             if (currentUser) {
                 saveProfileToLocalCache(currentUser.uid, myProfile);
@@ -1745,7 +1707,7 @@
             container.appendChild(trophyListEl);
         }
 
-        async function addCustomTrophy() {
+        function addCustomTrophy() {
             const titleInput = document.getElementById('custom-title');
             const conditionInput = document.getElementById('custom-condition');
             const rankSelect = document.getElementById('custom-rank');
@@ -1778,10 +1740,10 @@
             switchMainTab('trophies');
             showNotification(`カスタム実績「${title}」を追加しました！`, 'CUSTOM TROPHY ADDED');
 
-            await saveCustomTrophiesToStorage();
+            saveCustomTrophiesToStorage();
         }
 
-        async function deleteCustomTrophy(id) {
+        function deleteCustomTrophy(id) {
             const target = customTrophies.find(t => String(t.id) === String(id));
             const targetName = target ? target.name : 'カスタム実績';
 
@@ -1790,13 +1752,13 @@
             customTrophies = customTrophies.filter(t => String(t.id) !== String(id));
             if (userState[id]) {
                 delete userState[id];
-                await removeSingleUnlockFromStorage(id);
+                removeSingleUnlockFromStorage(id);
             }
 
             renderTrophiesView();
             showNotification(`「${targetName}」を削除しました`, 'CUSTOM TROPHY DELETED');
 
-            await saveCustomTrophiesToStorage();
+            saveCustomTrophiesToStorage();
         }
 
         function openUnlockModal(id) {
@@ -1834,7 +1796,7 @@
             }
         }
 
-        async function confirmUnlock() {
+        function confirmUnlock() {
             if (!selectedTrophyId) return;
 
             if (!tempUnlockPhotoBase64) {
@@ -1871,7 +1833,7 @@
             switchMainTab('trophies');
             showNotification(`実績を解除しました！「${trophyName}」`, 'TROPHY UNLOCKED!');
 
-            await saveSingleUnlockToStorage(unlockedId, unlockEntry);
+            saveSingleUnlockToStorage(unlockedId, unlockEntry);
 
             try {
                 db.collection('posts').add({
@@ -2044,7 +2006,6 @@
                 if (unlockedSnap) unlockedSnap.forEach(d => { targetState[d.id] = d.data(); });
             } catch (e) {}
 
-            // もしposts側にそのユーザーの投稿があればそこからも実績状態を補完
             try {
                 const userPosts = await withTimeout(db.collection('posts').where('uid', '==', uid).get(), 2000);
                 if (userPosts) {
@@ -2174,7 +2135,7 @@
             document.getElementById('progress-percent').innerText = `${percent}%`;
         }
 
-        async function revertUnlock(id) {
+        function revertUnlock(id) {
             const trophy = getAllTrophies().find(t => String(t.id) === String(id));
             const trophyName = trophy ? trophy.name : 'この実績';
 
@@ -2188,7 +2149,7 @@
             switchMainTab('profile');
             showNotification(`「${trophyName}」を未解除に戻しました`, 'TROPHY RESET');
 
-            await removeSingleUnlockFromStorage(id);
+            removeSingleUnlockFromStorage(id);
         }
 
         function shareProfile() {
@@ -2219,7 +2180,7 @@
             }
         }
 
-        async function sendNotification(targetUid, type, message) {
+        function sendNotification(targetUid, type, message) {
             if (!currentUser || targetUid === currentUser.uid) return;
             try {
                 db.collection('users').doc(targetUid).collection('notifications').add({
@@ -2333,7 +2294,7 @@
                 if (snapshot && !snapshot.empty) {
                     snapshot.forEach(doc => {
                         const post = doc.data();
-                        if (post.isProfileIndex) return; // プロフィール索引はタイムラインに表示しない
+                        if (post.isProfileIndex) return;
                         realPostCount++;
 
                         const postId = doc.id;
@@ -2468,7 +2429,7 @@
         }
 
         /* -------------------------------------------------------------
-           ユーザー検索 View (users + posts索引のハイブリッド高速検索)
+           ユーザー検索 View
         ------------------------------------------------------------- */
         function renderSearchView() {
             const container = document.getElementById('main-container');
@@ -2492,9 +2453,8 @@
 
             const userMap = {};
 
-            // 1. usersコレクションから取得（タイムアウト2.5秒）
             try {
-                const snapshot = await withTimeout(db.collection('users').get(), 2500);
+                const snapshot = await withTimeout(db.collection('users').get(), 2000);
                 if (snapshot) {
                     snapshot.forEach(doc => {
                         if (currentUser && doc.id === currentUser.uid) return;
@@ -2516,9 +2476,8 @@
                 }
             } catch (e) {}
 
-            // 2. postsコレクション（プロフィール索引＆過去投稿）からも補完取得
             try {
-                const postsSnap = await withTimeout(db.collection('posts').limit(100).get(), 2500);
+                const postsSnap = await withTimeout(db.collection('posts').limit(100).get(), 2000);
                 if (postsSnap) {
                     postsSnap.forEach(doc => {
                         const p = doc.data() || {};
@@ -2583,7 +2542,7 @@
             });
         }
 
-        async function toggleFollow(targetUid) {
+        function toggleFollow(targetUid) {
             if (!currentUser) return;
             const isFollowing = (myProfile.following || []).includes(targetUid);
             const myRef = db.collection('users').doc(currentUser.uid);
@@ -2639,32 +2598,29 @@
             }
         }
 
-        async function saveProfileChanges() {
-            if (!currentUser) return;
+        function saveProfileChanges() {
+            const user = currentUser || auth.currentUser;
+            if (!user) return;
             const newDisplayName = document.getElementById('edit-displayname-input').value.trim();
             const newUsername = document.getElementById('edit-username-input').value.trim().replace(/^@/, '');
             const newBio = document.getElementById('edit-bio-input').value.trim() || "人生の実績解除中！";
             if (!newDisplayName) return alert('表示名を入力してください');
             if (!newUsername) return alert('ユーザーIDを入力してください');
 
-            if (newUsername.toLowerCase() !== (myProfile.username || '').toLowerCase() && await isUsernameTakenSafe(newUsername)) {
-                return alert('このユーザーIDはすでに使われています。別のIDにしてください。');
-            }
-
-            myProfile.uid = currentUser.uid;
-            myProfile.email = currentUser.email || myProfile.email || "";
+            myProfile.uid = user.uid;
+            myProfile.email = user.email || myProfile.email || "";
             myProfile.displayName = newDisplayName;
             myProfile.username = newUsername;
             myProfile.bio = newBio;
             myProfile.avatar = tempAvatarBase64;
 
-            saveProfileToLocalCache(currentUser.uid, myProfile);
+            saveProfileToLocalCache(user.uid, myProfile);
 
             closeModal('edit-profile-modal');
             switchMainTab('profile');
             showNotification('プロフィールを更新しました', 'PROFILE UPDATED');
 
-            syncProfileToCloudBackground(currentUser.uid, myProfile);
+            syncProfileToCloudBackground(user.uid, myProfile);
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }

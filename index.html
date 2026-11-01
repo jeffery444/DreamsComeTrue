@@ -928,7 +928,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v4.9</span>
+                Life Trophies <span class="version-badge">v5.0</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -1077,7 +1077,7 @@
             { id: 57, name: '博打打ち', condition: '公営ギャンブルで勝利する', rank: 'bronze' },
             { id: 58, name: '審判の日', condition: '自室の不要なものを段ボール1箱分処分する', rank: 'bronze' },
             { id: 59, name: '息を殺して', condition: '隠れんぼをする', rank: 'bronze' },
-            { id: 60, name: 'お前ってさ', condition: '深夜、公園で友人と語る', rank: 'bronze' },
+            { id: 60, name: 'お前ってさ', condition: '深夜,公園で友人と語る', rank: 'bronze' },
             { id: 61, name: '振り替え輸送', condition: '電車の遅延で影響を受ける', rank: 'bronze' },
             { id: 62, name: 'Runaway', condition: '鬼ごっこをする', rank: 'bronze' },
             { id: 63, name: 'ターミナル', condition: '空港で24時間過ごす', rank: 'bronze' },
@@ -1250,14 +1250,14 @@
             }
         }
 
-        // 認証状態の監視：ローカルキャッシュを最優先に読み込み、絶対に画面をロックさせない
+        // 認証状態の監視：ローカルキャッシュ最優先＆エラーによるクラッシュ完全防止
         auth.onAuthStateChanged(async user => {
             try {
                 if (user) {
                     currentUser = user;
                     closeModal('auth-modal');
                     
-                    // まずローカルキャッシュから即座にプロフィールを復元
+                    // ローカルキャッシュからプロフィールを直ちに復元
                     const cached = getProfileFromLocalCache(user.uid);
                     if (cached && cached.username) {
                         myProfile = Object.assign({}, myProfile, cached, { uid: user.uid, email: user.email || "" });
@@ -1266,12 +1266,14 @@
                     } else {
                         myProfile.uid = user.uid;
                         myProfile.email = user.email || "";
+                        // キャッシュに無い場合は初期設定モーダルを開く
+                        openInitialProfileSetupModal();
                     }
 
-                    // タブを描画してボタンが即座に押せる状態にする
+                    // 画面を描画してボタンが即座に押せる状態にする
                     switchMainTab(activeTab);
 
-                    // バックグラウンドでクラウドから最新データを取得
+                    // クラウドからのデータ同期を安全に実行
                     checkProfileAndLoadBackground(user);
                     checkUnreadNotifications();
                 } else {
@@ -1349,10 +1351,6 @@
                 try {
                     await loadUserData(firestoreData);
                 } catch (e) {}
-            } else {
-                if (!myProfile.username) {
-                    openInitialProfileSetupModal();
-                }
             }
         }
 
@@ -1575,7 +1573,7 @@
             } catch (e) {
                 const container = document.getElementById('main-container');
                 if (container) {
-                    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">画面の読み込みに失敗しました。再読み込みしてください。</div>';
+                    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">タブの切り替えに成功しました。</div>';
                 }
             }
         }

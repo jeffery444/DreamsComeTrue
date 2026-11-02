@@ -78,6 +78,8 @@
         .category-tab-btn.active { background: var(--text-primary); color: var(--bg-main); }
         .profile-card-header { background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; }
         .profile-avatar-large { width: 60px; height: 60px; border-radius: 50%; background: var(--surface-hover); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: var(--text-secondary); object-fit: cover; flex-shrink: 0; }
+        .profile-avatar-large.clickable { cursor: pointer; transition: transform 0.15s; pointer-events: auto !important; }
+        .profile-avatar-large.clickable:active { transform: scale(0.92); }
         .profile-info { flex-grow: 1; min-width: 0; }
         .profile-displayname { font-size: 1rem; font-weight: 900; color: var(--text-primary); margin-bottom: 2px; }
         .profile-username { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
@@ -149,7 +151,8 @@
         .gallery-item { aspect-ratio: 1; position: relative; overflow: hidden; border-radius: 6px; background: var(--surface-card); cursor: pointer; pointer-events: auto !important; }
         .gallery-item img, .gallery-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
         .gallery-video-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; pointer-events: none; }
-        .gallery-item-title { position: absolute; bottom: 0; inset-x: 0; background: rgba(0,0,0,0.75); font-size: 0.55rem; padding: 3px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .gallery-item-title { position: absolute; bottom: 0; inset-inline: 0;
+ background: rgba(0,0,0,0.75); font-size: 0.55rem; padding: 3px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
         .unlocked-manage-card { background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .unlocked-manage-thumb { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; background: var(--surface-card); flex-shrink: 0; }
         .policy-badge { font-size: 0.62rem; font-weight: 800; padding: 3px 8px; border-radius: 12px; display: inline-block; }
@@ -182,9 +185,9 @@
     <div class="modal" id="auth-modal">
         <div class="modal-content">
             <div class="modal-title" id="auth-title">ログイン</div>
-            <form onsubmit="event.preventDefault(); handleAuth();" autocomplete="off">
-                <input type="email" id="auth-email" class="form-input" placeholder="メールアドレス" autocomplete="off">
-                <input type="password" id="auth-password" class="form-input" placeholder="パスワード (6文字以上)" autocomplete="new-password">
+            <form onsubmit="event.preventDefault(); handleAuth();" autocomplete="on">
+                <input type="text" id="auth-email" class="form-input" placeholder="メールアドレス または ユーザーID" autocomplete="username" autocapitalize="none" required>
+                <input type="password" id="auth-password" class="form-input" placeholder="パスワード (6文字以上)" autocomplete="current-password" required>
                 <button type="submit" class="modal-btn" id="auth-submit-btn">ログイン</button>
             </form>
             <div style="text-align:center; margin-top:14px; font-size:0.75rem; color:var(--text-secondary); cursor:pointer; padding:6px;" id="auth-switch-text" onclick="toggleAuthMode()">アカウントをお持ちでない方は新規登録</div>
@@ -201,7 +204,7 @@
             <div id="setup-email-display" style="font-size: 0.70rem; color: var(--text-secondary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; text-align: center; word-break: break-all;"></div>
             <input type="text" id="displayname-input" class="form-input" placeholder="表示名 (例: てるあき)">
             <input type="text" id="username-input" class="form-input" placeholder="ユーザーID・半角英数 (例: HR_40)">
-            <input type="text" id="bio-input" class="form-input" placeholder="ステータスメッセージ (例: 人生の実績解除中！)">
+            <input type="text" id="bio-input" class="form-input" placeholder="ステータスメッセージ (例: 実績解除中！)">
             <button type="button" class="modal-btn" id="save-initial-profile-btn" onclick="saveInitialProfile()">設定を完了して始める</button>
             <button type="button" class="modal-btn btn-cancel" style="margin-top: 10px; font-size: 0.75rem;" onclick="logout()">別のアカウントでログインし直す</button>
         </div>
@@ -224,6 +227,18 @@
                 <button class="modal-btn btn-cancel" onclick="closeModal('edit-profile-modal')">キャンセル</button>
                 <button class="modal-btn" onclick="saveProfileChanges()">保存する</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Avatar Zoom Lightbox Modal (プロフィール写真拡大表示モーダル) -->
+    <div class="modal" id="avatar-lightbox-modal" onclick="closeModal('avatar-lightbox-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()" style="text-align: center; max-width: 360px;">
+            <div class="modal-title" id="avatar-lightbox-name" style="margin-bottom: 14px;">プロフィール画像</div>
+            <img id="avatar-lightbox-img" style="width: 240px; height: 240px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-light); margin: 0 auto 18px; display: none;" alt="Avatar Zoom">
+            <div id="avatar-lightbox-placeholder" style="width: 200px; height: 200px; border-radius: 50%; background: var(--surface-hover); border: 2px solid var(--border-light); margin: 0 auto 18px; display: none; align-items: center; justify-content: center; font-size: 4.5rem; color: var(--text-secondary);">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <button class="modal-btn btn-cancel" onclick="closeModal('avatar-lightbox-modal')">閉じる</button>
         </div>
     </div>
 
@@ -271,7 +286,7 @@
         </div>
     </div>
 
-    <!-- Photo / Video Lightbox / Detail Zoom Modal (いいね数＆コメント一覧・動画再生対応) -->
+    <!-- Photo / Video Lightbox / Detail Zoom Modal -->
     <div class="modal" id="photo-lightbox-modal" onclick="closeModal('photo-lightbox-modal')">
         <div class="modal-content" onclick="event.stopPropagation()" style="text-align: center; max-width: 440px;">
             <div class="modal-title" id="lightbox-title" style="margin-bottom: 10px; font-size: 0.95rem;">実績詳細</div>
@@ -281,7 +296,6 @@
             <div id="lightbox-date" style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 8px;"></div>
             <div id="lightbox-comment" style="font-size: 0.82rem; background: var(--surface-hover); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; text-align: left; line-height: 1.4; word-break: break-word;"></div>
             
-            <!-- いいね数＆コメント表示エリア -->
             <div id="lightbox-social-section" style="background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; margin-bottom: 14px; text-align: left;">
                 <div style="display:flex; align-items:center; gap:14px; font-size:0.8rem; font-weight:700; margin-bottom:8px; border-bottom:1px solid var(--border-color); padding-bottom:6px;">
                     <span style="color:var(--accent-red);"><i class="fa-solid fa-heart"></i> いいね <span id="lightbox-likes-count">0</span>件</span>
@@ -291,7 +305,7 @@
             </div>
 
             <div id="lightbox-delete-container" style="margin-bottom: 12px; display: none;">
-                <button class="delete-btn" id="lightbox-delete-post-btn" style="width: 100%; padding: 10px; font-size: 0.8rem;">🗑️ このタイムライン投稿を削除する</button>
+                <button class="delete-btn" id="lightbox-delete-post-btn" style="width: 100%; padding: 10px; font-size: 0.8rem;">🗑️ この投稿を削除する</button>
             </div>
             <button class="modal-btn btn-cancel" onclick="closeModal('photo-lightbox-modal')">閉じる</button>
         </div>
@@ -334,7 +348,7 @@
         </div>
     </div>
 
-    <!-- Create Circle Modal (例文変更＆参加方式選択対応) -->
+    <!-- Create Circle Modal -->
     <div class="modal" id="create-circle-modal">
         <div class="modal-content">
             <div class="modal-title">⭕ サークルを立ち上げる</div>
@@ -356,8 +370,8 @@
     <div class="modal" id="circle-trophy-modal">
         <div class="modal-content">
             <div class="modal-title">⭕ サークル実績を作成</div>
-            <input type="text" id="circle-trophy-title" class="form-input" placeholder="実績タイトル (例: 初プルリク達成)">
-            <input type="text" id="circle-trophy-condition" class="form-input" placeholder="達成条件 (例: GitHubにPRを送る)">
+            <input type="text" id="circle-trophy-title" class="form-input" placeholder="実績タイトル (例: 赤衣の男)">
+            <input type="text" id="circle-trophy-condition" class="form-input" placeholder="達成条件 (例: 大いなる存在との繋がりを匂わせる)">
             <select id="circle-trophy-rank" class="form-select">
                 <option value="bronze">BRONZE (銅)</option>
                 <option value="silver">SILVER (銀)</option>
@@ -371,7 +385,7 @@
         </div>
     </div>
 
-    <!-- Unlock Modal (写真＆5秒以内の動画対応) -->
+    <!-- Unlock Modal -->
     <div class="modal" id="unlock-modal">
         <div class="modal-content">
             <div class="modal-title" id="modal-trophy-title">実績を解除</div>
@@ -452,8 +466,8 @@
         let circleTrophies = [];
         let activeCircles = [];
         let currentActiveCircleId = null;
-        let circleViewMode = 'list'; // 'list', 'preview', 'room'
-        let circleRoomSubTab = 'trophies'; // 'trophies', 'chat', 'members'
+        let circleViewMode = 'list';
+        let circleRoomSubTab = 'trophies';
         let lastCircleSearchQuery = "";
         let revertedIds = [];
         let isSignUpMode = false;
@@ -484,23 +498,24 @@
             { id: 14, name: '伝説の目撃者', condition: '現地でプロのモータースポーツやプロスポーツの決勝を観戦する', rank: 'gold' },
             { id: 15, name: 'Bullet', condition: '日帰りまたは0泊で海外へ行く', rank: 'gold' },
             { id: 16, name: '本物の勝負師', condition: '合法的なカジノで遊ぶ', rank: 'gold' },
-            { id: 17, name: 'ダイヤモンドは砕けない', condition: 'ダイヤモンド製品を購入する', rank: 'gold' },
-            { id: 18, name: 'スティールボールラン', condition: '馬に乗る', rank: 'silver' },
-            { id: 19, name: 'なにわの商人', condition: '家電量販店で値引きを交渉をして割引をしてもらう', rank: 'silver' },
-            { id: 20, name: 'デジタルデトックス', condition: '見知らぬ人に教えを請う', rank: 'silver' },
-            { id: 21, name: 'ポーカーフェイスドロップ', condition: 'ジェットコースターで叫ばない', rank: 'silver' },
-            { id: 22, name: '明けの明星', condition: '始発で出かける', rank: 'silver' },
-            { id: 23, name: 'グローバル化社会', condition: 'TOEICを受ける', rank: 'silver' },
-            { id: 24, name: '寒風の半袖ファイター', condition: '気温が10℃を下回ってる日に半袖で出かける', rank: 'silver' },
-            { id: 25, name: 'ストライカー', condition: 'シュートを決める', rank: 'silver' },
-            { id: 26, name: '銀世界', condition: 'ウインタースポーツで遊ぶ', rank: 'silver' },
-            { id: 27, name: '栄養学', condition: '厚生労働省が定める日本人の食事摂取基準を満たした食事を1日摂る', rank: 'silver' },
-            { id: 28, name: 'ALL OUT', condition: '筋力トレーニングでプロテインシェイカーが振れないほど追い込む', rank: 'silver' },
-            { id: 29, name: '成功者', condition: '平日の昼間にジムに行く', rank: 'silver' },
-            { id: 30, name: 'ナイトクルーズ', condition: '夜行バスで500km以上移動する', rank: 'silver' },
-            { id: 31, name: '大悪党', condition: 'その場にいる全員を騙し、後でネタバラシをする', rank: 'silver' },
-            { id: 32, name: '創作料理人', condition: 'レシピを見ずに美味しい料理を作る', rank: 'silver' },
-            { id: 33, name: '気分は監督', condition: '映画館で自分以外の観客がいない状態で映画を見る', rank: 'silver' },
+            { id: 17, name: 'ダイヤモンドは砕けない', condition: 'ダイヤモンド製品を購入する', rank: 'gold' },   
+            { id: 18, name: 'アルテマ', condition: '大掃除や断捨離で自分に不要なものを完全処分する', rank: 'gold' },
+            { id: 19, name: 'スティールボールラン', condition: '馬に乗る', rank: 'silver' },
+            { id: 20, name: 'なにわの商人', condition: '家電量販店で値引きを交渉をして割引をしてもらう', rank: 'silver' },
+            { id: 21, name: 'デジタルデトックス', condition: '見知らぬ人に教えを請う', rank: 'silver' },
+            { id: 22, name: 'ポーカーフェイスドロップ', condition: 'ジェットコースターで叫ばない', rank: 'silver' },
+            { id: 23, name: '明けの明星', condition: '始発で出かける', rank: 'silver' },
+            { id: 24, name: 'グローバル化社会', condition: 'TOEICを受ける', rank: 'silver' },
+            { id: 25, name: '寒風の半袖ファイター', condition: '気温が10℃を下回ってる日に半袖で出かける', rank: 'silver' },
+            { id: 26, name: 'ストライカー', condition: 'シュートを決める', rank: 'silver' },
+            { id: 27, name: '銀世界', condition: 'ウインタースポーツで遊ぶ', rank: 'silver' },
+            { id: 28, name: '栄養学', condition: '厚生労働省が定める日本人の食事摂取基準を満たした食事を1日摂る', rank: 'silver' },
+            { id: 29, name: 'ALL OUT', condition: '筋力トレーニングでプロテインシェイカーが振れないほど追い込む', rank: 'silver' },
+            { id: 30, name: '成功者', condition: '平日の昼間にジムに行く', rank: 'silver' },
+            { id: 31, name: 'ナイトクルーズ', condition: '夜行バスで500km以上移動する', rank: 'silver' },
+            { id: 32, name: '大悪党', condition: 'その場にいる全員を騙し、後でネタバラシをする', rank: 'silver' },
+            { id: 33, name: '創作料理人', condition: 'レシピを見ずに美味しい料理を作る', rank: 'silver' },
+            { id: 91, name: '気分は監督', condition: '映画館で自分以外の観客がいない状態で映画を見る', rank: 'silver' },
             { id: 34, name: '東海道中膝栗毛', condition: '東京大阪間を自動車で移動する', rank: 'silver' },
             { id: 35, name: '不屈の意志', condition: '継続していた悪癖を止める', rank: 'silver' },
             { id: 36, name: '現金主義', condition: '新品の携帯電話を一括で購入', rank: 'silver' },
@@ -527,6 +542,7 @@
             { id: 52, name: '電池切れ？', condition: '道に迷う', rank: 'bronze' },
             { id: 53, name: '直属のディナー', condition: '上司と2人で食事に行く', rank: 'bronze' },
             { id: 54, name: '野人', condition: '2日間風呂に入らない', rank: 'bronze' },
+            { id: 94, name: 'ゴールドソーサーの勝者', condition: 'ゲームセンターのクレーンゲームやアーケードゲームで景品をGETする', rank: 'bronze' },
             { id: 55, name: '水面の旅人', condition: '雨の日に散歩をする', rank: 'bronze' },
             { id: 56, name: '大金の重み', condition: '10万円以上の現金を引き出す', rank: 'bronze' },
             { id: 57, name: '博打打ち', condition: '公営ギャンブルで勝利する', rank: 'bronze' },
@@ -555,6 +571,7 @@
             { id: 86, name: '知識の証明', condition: 'なんらかの国家資格または検定試験に合格する', rank: 'bronze' },
             { id: 87, name: '文字通り', condition: 'セブンイレブンにて税込711円ピッタリ買い物をする', rank: 'bronze' },
             { id: 88, name: 'スプリント！', condition: '全力疾走して自分の50m走のタイムを計測する', rank: 'bronze' },
+            { id: 92, name: '星を救う者', condition: '街のゴミ拾いを行うまたは、エコ活動に参加する', rank: 'bronze' },
             { id: 89, name: '夜のピクニック', condition: '天体観測に行く', rank: 'bronze' },
             { id: 90, name: 'ルーティンブレイカー', condition: 'よく行く飲食店で一度も頼んだことのないメニューを注文する', rank: 'bronze' }
         ];
@@ -581,9 +598,127 @@
             return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))]);
         }
 
-        // 動画データかどうかを判定するヘルパー関数
         function isVideoSource(src) {
             return typeof src === 'string' && src.startsWith('data:video/');
+        }
+
+        // プロフィール写真（自分・他人）をタップして拡大表示する関数
+        function openAvatarLightbox(avatarSrc, displayName) {
+            const nameEl = document.getElementById('avatar-lightbox-name');
+            const imgEl = document.getElementById('avatar-lightbox-img');
+            const placeholderEl = document.getElementById('avatar-lightbox-placeholder');
+
+            if (nameEl) nameEl.innerText = displayName || 'プロフィール画像';
+
+            if (avatarSrc && String(avatarSrc).trim() !== '') {
+                if (imgEl) {
+                    imgEl.src = avatarSrc;
+                    imgEl.style.display = 'block';
+                }
+                if (placeholderEl) placeholderEl.style.display = 'none';
+            } else {
+                if (imgEl) {
+                    imgEl.removeAttribute('src');
+                    imgEl.style.display = 'none';
+                }
+                if (placeholderEl) placeholderEl.style.display = 'flex';
+            }
+
+            openModal('avatar-lightbox-modal');
+        }
+
+        // ユーザーIDとメールアドレスの対応を端末とクラウドに記憶するヘルパー
+        function rememberUsernameEmailMap(username, email) {
+            if (!username || !email) return;
+            try {
+                const cleanId = String(username).trim().replace(/^@/, '').toLowerCase();
+                if (!cleanId || !String(email).includes('@')) return;
+                const mapStr = localStorage.getItem('lt_id_email_map');
+                const map = mapStr ? JSON.parse(mapStr) : {};
+                map[cleanId] = String(email).trim();
+                localStorage.setItem('lt_id_email_map', JSON.stringify(map));
+            } catch (e) {}
+        }
+
+        // ユーザーIDからメールアドレスを多段階で逆引きする関数
+        async function resolveEmailByUsername(rawInput) {
+            const cleanId = String(rawInput).trim().replace(/^@/, '').toLowerCase();
+            if (!cleanId) return null;
+
+            // 1. 端末内のIDマップキャッシュから探す
+            try {
+                const mapStr = localStorage.getItem('lt_id_email_map');
+                if (mapStr) {
+                    const map = JSON.parse(mapStr);
+                    if (map[cleanId] && map[cleanId].includes('@')) return map[cleanId];
+                }
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('lt_profile_')) {
+                        const p = JSON.parse(localStorage.getItem(k) || '{}');
+                        const uName = String(p.username || '').trim().replace(/^@/, '').toLowerCase();
+                        const dName = String(p.displayName || '').trim().toLowerCase();
+                        if ((uName === cleanId || dName === cleanId) && p.email && p.email.includes('@')) {
+                            rememberUsernameEmailMap(cleanId, p.email);
+                            return p.email;
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            // 2. Firestoreの users コレクションから検索（インデックスおよび全件走査フォールバック）
+            try {
+                const qSnap = await withTimeout(db.collection('users').where('searchUsername', '==', cleanId).limit(1).get(), 2000);
+                if (qSnap && !qSnap.empty && qSnap.docs[0].data().email) {
+                    const foundEmail = qSnap.docs[0].data().email;
+                    rememberUsernameEmailMap(cleanId, foundEmail);
+                    return foundEmail;
+                }
+            } catch (e) {}
+
+            try {
+                const usersSnap = await withTimeout(db.collection('users').get(), 3000);
+                if (usersSnap && !usersSnap.empty) {
+                    for (const doc of usersSnap.docs) {
+                        const d = doc.data() || {};
+                        const uName = String(d.username || d.searchUsername || '').trim().replace(/^@/, '').toLowerCase();
+                        const dName = String(d.displayName || '').trim().toLowerCase();
+                        if ((uName === cleanId || dName === cleanId) && d.email && d.email.includes('@')) {
+                            rememberUsernameEmailMap(cleanId, d.email);
+                            return d.email;
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            // 3. Firestoreの posts コレクションから探す
+            try {
+                const postsSnap = await withTimeout(db.collection('posts').limit(150).get(), 3000);
+                if (postsSnap && !postsSnap.empty) {
+                    for (const doc of postsSnap.docs) {
+                        const d = doc.data() || {};
+                        const uName = String(d.username || d.searchUsername || '').trim().replace(/^@/, '').toLowerCase();
+                        const dName = String(d.displayName || '').trim().toLowerCase();
+                        if (uName === cleanId || dName === cleanId) {
+                            if (d.email && d.email.includes('@')) {
+                                rememberUsernameEmailMap(cleanId, d.email);
+                                return d.email;
+                            }
+                            if (d.uid) {
+                                try {
+                                    const uDoc = await withTimeout(db.collection('users').doc(d.uid).get(), 2000);
+                                    if (uDoc && uDoc.exists && uDoc.data().email) {
+                                        rememberUsernameEmailMap(cleanId, uDoc.data().email);
+                                        return uDoc.data().email;
+                                    }
+                                } catch (err) {}
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            return null;
         }
 
         function compressImageFile(file, maxSize, quality) {
@@ -606,7 +741,6 @@
             });
         }
 
-        // 動画の秒数を事前検証（5秒超過や破損動画によるフリーズを防止）
         function checkVideoDuration(file) {
             return new Promise((resolve, reject) => {
                 const url = URL.createObjectURL(file);
@@ -650,10 +784,8 @@
             });
         }
 
-        // Firestore無料版(1MB上限)に収めるための動画自動軽量化処理
         function compressVideoFile(file, objectUrl) {
             return new Promise((resolve, reject) => {
-                // 既に十分軽い動画（550KB以下）ならそのままDataURL化
                 if (file.size <= 550 * 1024) {
                     URL.revokeObjectURL(objectUrl);
                     const reader = new FileReader();
@@ -663,7 +795,6 @@
                     return;
                 }
 
-                // MediaRecorder非対応環境でのフォールバック
                 if (typeof MediaRecorder === 'undefined') {
                     URL.revokeObjectURL(objectUrl);
                     if (file.size <= 750 * 1024) {
@@ -793,33 +924,17 @@
         }
 
         function saveProfileToLocalCache(uid, profileObj) {
-            if (uid) { try { localStorage.setItem(`lt_profile_${uid}`, JSON.stringify(profileObj)); } catch (e) {} }
+            if (uid) {
+                try { localStorage.setItem(`lt_profile_${uid}`, JSON.stringify(profileObj)); } catch (e) {}
+                if (profileObj && profileObj.username && profileObj.email) {
+                    rememberUsernameEmailMap(profileObj.username, profileObj.email);
+                }
+            }
         }
 
         function getProfileFromLocalCache(uid) {
             if (!uid) return null;
-            try { const s = localStorage.getItem(`lt_profile_${uid}`); return s ? JSON.parse(s) : null; } catch (e) { return null; }
-        }
-
-        function syncProfileToCloudBackground(uid, profileData) {
-            if (!uid) return;
-            try {
-                db.collection('users').doc(uid).set(profileData, { merge: true }).catch(() => {});
-                db.collection('posts').doc('profile_' + uid).set({
-                    isProfileIndex: true, uid: uid, email: profileData.email || "",
-                    displayName: profileData.displayName || profileData.username, username: profileData.username,
-                    searchUsername: (profileData.username || "").toLowerCase(), bio: profileData.bio || "人生の実績解除中！",
-                    userAvatar: profileData.avatar || "", customTrophies: customTrophies || [],
-                    joinedCircles: myProfile.joinedCircles || [], updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true }).catch(() => {});
-            } catch (e) {}
-        }
-
-        async function saveCustomTrophiesToStorage() {
-            if (!currentUser) return;
-            const uid = currentUser.uid;
-            try {
-                localStorage.setItem(`lt_custom_${uid}`, JSON.stringify(customTrophies));
+            try { const s = localStorage.getItem(`lt_profile_${uid}`); return s ? JSON.parse(s) : null; } catch (e) { return null; } }  function syncProfileToCloudBackground(uid, profileData) { if (!uid) return; const emailStr = profileData.email || (currentUser && currentUser.email) || ""; const cleanSearchUsername = String(profileData.username || "").trim().replace(/^@/, '').toLowerCase(); if (cleanSearchUsername && emailStr) { rememberUsernameEmailMap(cleanSearchUsername, emailStr); } try { const updatedProfile = Object.assign({}, profileData, { email: emailStr, searchUsername: cleanSearchUsername }); db.collection('users').doc(uid).set(updatedProfile, { merge: true }).catch(() => {}); db.collection('posts').doc('profile_' + uid).set({ isProfileIndex: true, uid: uid, email: emailStr, displayName: profileData.displayName || profileData.username, username: profileData.username, searchUsername: cleanSearchUsername, bio: profileData.bio || "人生の実績解除中！", userAvatar: profileData.avatar || "", customTrophies: customTrophies || [], joinedCircles: myProfile.joinedCircles || [], updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {}); } catch (e) {} }  async function saveCustomTrophiesToStorage() { if (!currentUser) return; const uid = currentUser.uid; try { localStorage.setItem(`lt_custom_${uid}`, JSON.stringify(customTrophies));
                 db.collection('users').doc(uid).set({ customTrophies: customTrophies }, { merge: true }).catch(()=>{});
                 db.collection('users').doc(uid).collection('trophies').doc('custom').set({ items: customTrophies }).catch(()=>{});
                 syncProfileToCloudBackground(uid, myProfile);
@@ -831,8 +946,7 @@
             const uid = currentUser.uid, key = String(trophyId);
             revertedIds = revertedIds.filter(id => String(id) !== key);
             try {
-                localStorage.setItem(`lt_reverted_${uid}`, JSON.stringify(revertedIds));
-                localStorage.setItem(`lt_status_${uid}`, JSON.stringify(userState));
+                localStorage.setItem(`lt_reverted_${uid}`, JSON.stringify(revertedIds)); localStorage.setItem(`lt_status_${uid}`, JSON.stringify(userState));
                 db.collection('users').doc(uid).collection('unlocked_items').doc(key).set(unlockData).catch(()=>{});
                 db.collection('users').doc(uid).collection('trophies').doc('status').set({ [key]: unlockData }, { merge: true }).catch(()=>{});
             } catch (e) {}
@@ -843,8 +957,7 @@
             const uid = currentUser.uid, key = String(trophyId);
             if (!revertedIds.includes(key)) revertedIds.push(key);
             try {
-                localStorage.setItem(`lt_reverted_${uid}`, JSON.stringify(revertedIds));
-                localStorage.setItem(`lt_status_${uid}`, JSON.stringify(userState));
+                localStorage.setItem(`lt_reverted_${uid}`, JSON.stringify(revertedIds)); localStorage.setItem(`lt_status_${uid}`, JSON.stringify(userState));
                 db.collection('users').doc(uid).collection('unlocked_items').doc(key).delete().catch(()=>{});
                 db.collection('users').doc(uid).collection('trophies').doc('status').update({ [key]: firebase.firestore.FieldValue.delete() }).catch(()=>{});
             } catch (e) {}
@@ -887,6 +1000,7 @@
             const cachedProfile = getProfileFromLocalCache(uid);
             if (cachedProfile && cachedProfile.username && String(cachedProfile.username).trim() !== "") {
                 myProfile = Object.assign({}, myProfile, cachedProfile, { uid, email });
+                rememberUsernameEmailMap(myProfile.username, email);
                 setTheme(myProfile.theme || "dark", false); closeModal('username-modal');
             }
             let firestoreData = null;
@@ -905,6 +1019,7 @@
                 const source = Object.assign({}, cachedProfile || {}, firestoreData || {});
                 myProfile = {
                     uid, email, displayName: source.displayName || validUsername, username: validUsername,
+                    searchUsername: validUsername.replace(/^@/, '').toLowerCase(),
                     bio: source.bio || "人生の実績解除中！", avatar: source.avatar || "", theme: source.theme || "dark", privacy: source.privacy || "public",
                     following: Array.isArray(source.following) ? source.following : [], followers: Array.isArray(source.followers) ? source.followers : [],
                     joinedCircles: Array.isArray(source.joinedCircles) ? source.joinedCircles : []
@@ -920,94 +1035,24 @@
         function openInitialProfileSetupModal() {
             if (!currentUser) return;
             const emailDisp = document.getElementById('setup-email-display');
-            if (emailDisp) emailDisp.innerText = `登録メールアドレス: ${currentUser.email || '確認済'}`;
-            document.getElementById('displayname-input').value = myProfile.displayName || '';
-            document.getElementById('username-input').value = myProfile.username || '';
-            document.getElementById('bio-input').value = myProfile.bio || '';
-            openModal('username-modal');
-        }
+            if (emailDisp) emailDisp.innerText = `登録メールアドレス: ${currentUser.email || '確認済'}`; document.getElementById('displayname-input').value = myProfile.displayName || ''; document.getElementById('username-input').value = myProfile.username || ''; document.getElementById('bio-input').value = myProfile.bio || ''; openModal('username-modal'); }  function saveInitialProfile() { const user = currentUser || auth.currentUser; if (!user) { closeModal('username-modal'); openModal('auth-modal'); return; } const displayName = document.getElementById('displayname-input').value.trim(); const username = document.getElementById('username-input').value.trim().replace(/^@/, ''); const bio = document.getElementById('bio-input').value.trim() || "人生の実績解除中！"; if (!displayName) return alert('表示名を入力してください'); if (!username) return alert('ユーザーIDを入力してください'); const uid = user.uid, email = user.email || ""; const profileData = { uid, email, displayName, username, searchUsername: username.toLowerCase(), bio, avatar: myProfile.avatar || "", theme: myProfile.theme || "dark", privacy: myProfile.privacy || "public", following: myProfile.following || [], followers: myProfile.followers || [], customTrophies: customTrophies || [], joinedCircles: myProfile.joinedCircles || [], updatedAt: new Date().toISOString() }; myProfile = Object.assign({}, profileData); saveProfileToLocalCache(uid, myProfile); closeModal('username-modal'); switchMainTab('profile'); showNotification(`ようこそ、${displayName} (@${username}) さん！`, 'PROFILE COMPLETED'); syncProfileToCloudBackground(uid, profileData); }  function toggleAuthMode() { isSignUpMode = !isSignUpMode; document.getElementById('auth-title').innerText = isSignUpMode ? '新規アカウント登録' : 'ログイン'; document.getElementById('auth-submit-btn').innerText = isSignUpMode ? '登録する' : 'ログイン'; document.getElementById('auth-switch-text').innerText = isSignUpMode ? 'すでにアカウントをお持ちの方はログイン' : 'アカウントをお持ちでない方は新規登録';  const inputField = document.getElementById('auth-email'); if (inputField) { inputField.placeholder = isSignUpMode ? 'メールアドレス' : 'メールアドレス または ユーザーID'; } }  async function handleAuth() { if (isAuthProcessing) return; const inputVal = document.getElementById('auth-email').value.trim(); const password = document.getElementById('auth-password').value; const submitBtn = document.getElementById('auth-submit-btn');  if (!inputVal || !password) return alert('メールアドレス（またはユーザーID）とパスワードを入力してください'); if (password.length < 6) return alert('パスワードは6文字以上で入力してください');  // 先頭に@があるだけの場合（@jefferyなど）はメールアドレスではなくユーザーIDとして判定
+            const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputVal);  isAuthProcessing = true; submitBtn.disabled = true; submitBtn.innerText = '認証中...';  try { if (isSignUpMode) { if (!isEmailFormat) { throw new Error('新規登録には有効なメールアドレスを入力してください。'); } const cred = await auth.createUserWithEmailAndPassword(inputVal, password); currentUser = cred.user; closeModal('auth-modal'); openInitialProfileSetupModal(); } else { let loginEmail = inputVal;  if (!isEmailFormat) { const cleanId = inputVal.replace(/^@/, ''); submitBtn.innerText = 'IDを確認中...'; const resolved = await resolveEmailByUsername(cleanId);  if (!resolved) { throw new Error(`ユーザーID「@${cleanId}」に紐づくメールアドレスが見つかりませんでした。\n\n※一度だけ「メールアドレス」でログインしていただくと、自動的にIDとメールアドレスが紐付けられ、次回からIDのみでログインできるようになります！`);
+                        }
+                        loginEmail = resolved;
+                    }
 
-        function saveInitialProfile() {
-            const user = currentUser || auth.currentUser;
-            if (!user) { closeModal('username-modal'); openModal('auth-modal'); return; }
-            const displayName = document.getElementById('displayname-input').value.trim();
-            const username = document.getElementById('username-input').value.trim().replace(/^@/, '');
-            const bio = document.getElementById('bio-input').value.trim() || "人生の実績解除中！";
-            if (!displayName) return alert('表示名を入力してください');
-            if (!username) return alert('ユーザーIDを入力してください');
-            const uid = user.uid, email = user.email || "";
-            const profileData = {
-                uid, email, displayName, username, searchUsername: username.toLowerCase(), bio,
-                avatar: myProfile.avatar || "", theme: myProfile.theme || "dark", privacy: myProfile.privacy || "public",
-                following: myProfile.following || [], followers: myProfile.followers || [],
-                customTrophies: customTrophies || [], joinedCircles: myProfile.joinedCircles || [], updatedAt: new Date().toISOString()
-            };
-            myProfile = Object.assign({}, profileData); saveProfileToLocalCache(uid, myProfile);
-            closeModal('username-modal'); switchMainTab('profile');
-            showNotification(`ようこそ、${displayName} (@${username}) さん！`, 'PROFILE COMPLETED');
-            syncProfileToCloudBackground(uid, profileData);
-        }
-
-        function toggleAuthMode() {
-            isSignUpMode = !isSignUpMode;
-            document.getElementById('auth-title').innerText = isSignUpMode ? '新規アカウント登録' : 'ログイン';
-            document.getElementById('auth-submit-btn').innerText = isSignUpMode ? '登録する' : 'ログイン';
-            document.getElementById('auth-switch-text').innerText = isSignUpMode ? 'すでにアカウントをお持ちの方はログイン' : 'アカウントをお持ちでない方は新規登録';
-        }
-
-        async function handleAuth() {
-            if (isAuthProcessing) return;
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value;
-            const submitBtn = document.getElementById('auth-submit-btn');
-            if (!email || !password) return alert('メールアドレスとパスワードを入力してください');
-            if (password.length < 6) return alert('パスワードは6文字以上で入力してください');
-            isAuthProcessing = true; submitBtn.disabled = true; submitBtn.innerText = '認証中...';
-            try {
-                if (isSignUpMode) {
-                    const cred = await auth.createUserWithEmailAndPassword(email, password);
-                    currentUser = cred.user; closeModal('auth-modal'); openInitialProfileSetupModal();
-                } else {
-                    await auth.signInWithEmailAndPassword(email, password);
+                    submitBtn.innerText = 'ログイン中...';
+                    await auth.signInWithEmailAndPassword(loginEmail, password);
                 }
             } catch (error) {
                 if (isSignUpMode && error.code === 'auth/email-already-in-use') {
-                    try { await auth.signInWithEmailAndPassword(email, password); return; }
-                    catch (e) {
-                        alert(`メールアドレス「${email}」は既に登録されています。ログイン画面に切り替えます。`);
-                        isSignUpMode = false; toggleAuthMode(); isSignUpMode = false;
-                    }
-                } else { alert('認証エラー: ' + error.message); }
-            } finally {
-                isAuthProcessing = false; submitBtn.disabled = false;
-                submitBtn.innerText = isSignUpMode ? '登録する' : 'ログイン';
-            }
-        }
-
-        async function logout() { closeModal('settings-modal'); closeModal('username-modal'); await auth.signOut(); }
-
-        async function deleteAccount() {
-            if (!confirm('本当にアカウントを削除しますか？すべてのデータが完全に削除され、元に戻せません。')) return;
-            const user = currentUser || auth.currentUser; if (!user) return;
-            const uid = user.uid;
+                    try { 
+                        await auth.signInWithEmailAndPassword(inputVal, password); 
+                        return; 
+                    } catch (e) {
+                        alert(`メールアドレス「${inputVal}」は既に登録されています。ログイン画面に切り替えます。`); isSignUpMode = false; toggleAuthMode(); isSignUpMode = false; } } else { alert('認証エラー: ' + error.message); } } finally { isAuthProcessing = false; submitBtn.disabled = false; submitBtn.innerText = isSignUpMode ? '登録する' : 'ログイン'; } }  async function logout() { closeModal('settings-modal'); closeModal('username-modal'); await auth.signOut(); }  async function deleteAccount() { if (!confirm('本当にアカウントを削除しますか？すべてのデータが完全に削除され、元に戻せません。')) return; const user = currentUser || auth.currentUser; if (!user) return; const uid = user.uid; try { const postsSnap = await db.collection('posts').where('uid', '==', uid).get(); if (!postsSnap.empty) { const batch = db.batch(); postsSnap.forEach(doc => batch.delete(doc.ref)); await batch.commit(); } await db.collection('users').doc(uid).delete().catch(()=>{}); localStorage.removeItem(`lt_profile_${uid}`); localStorage.removeItem(`lt_custom_${uid}`); localStorage.removeItem(`lt_status_${uid}`); localStorage.removeItem(`lt_reverted_${uid}`); await user.delete(); alert('アカウントを削除しました。'); } catch (error) { alert('一度ログアウトして再ログインしてから削除を実行してください (' + error.message + ')'); } }  async function loadUserData(userDocData) { if (!currentUser) return; const uid = currentUser.uid; let mergedStatus = {}, mergedCustom = []; try { const r = localStorage.getItem(`lt_reverted_${uid}`); revertedIds = r ? JSON.parse(r) : []; } catch (e) { revertedIds = []; }
             try {
-                const postsSnap = await db.collection('posts').where('uid', '==', uid).get();
-                if (!postsSnap.empty) { const batch = db.batch(); postsSnap.forEach(doc => batch.delete(doc.ref)); await batch.commit(); }
-                await db.collection('users').doc(uid).delete().catch(()=>{});
-                localStorage.removeItem(`lt_profile_${uid}`); localStorage.removeItem(`lt_custom_${uid}`);
-                localStorage.removeItem(`lt_status_${uid}`); localStorage.removeItem(`lt_reverted_${uid}`);
-                await user.delete(); alert('アカウントを削除しました。');
-            } catch (error) { alert('一度ログアウトして再ログインしてから削除を実行してください (' + error.message + ')'); }
-        }
-
-        async function loadUserData(userDocData) {
-            if (!currentUser) return;
-            const uid = currentUser.uid;
-            let mergedStatus = {}, mergedCustom = [];
-            try { const r = localStorage.getItem(`lt_reverted_${uid}`); revertedIds = r ? JSON.parse(r) : []; } catch (e) { revertedIds = []; }
-            try {
-                const ls = localStorage.getItem(`lt_status_${uid}`); if (ls) Object.assign(mergedStatus, JSON.parse(ls));
-                const lc = localStorage.getItem(`lt_custom_${uid}`); if (lc) mergedCustom = JSON.parse(lc);
+                const ls = localStorage.getItem(`lt_status_${uid}`); if (ls) Object.assign(mergedStatus, JSON.parse(ls)); const lc = localStorage.getItem(`lt_custom_${uid}`); if (lc) mergedCustom = JSON.parse(lc);
             } catch (e) {}
             if (userDocData) {
                 if (userDocData.trophyStatus) Object.assign(mergedStatus, userDocData.trophyStatus);
@@ -1046,18 +1091,9 @@
                     }
                 });
                 if (recoveredCount > 0) {
-                    localStorage.setItem(`lt_status_${uid}`, JSON.stringify(userState));
-                    localStorage.setItem(`lt_custom_${uid}`, JSON.stringify(customTrophies));
+                    localStorage.setItem(`lt_status_${uid}`, JSON.stringify(userState)); localStorage.setItem(`lt_custom_${uid}`, JSON.stringify(customTrophies));
                     saveCustomTrophiesToStorage(); switchMainTab(activeTab);
-                    showNotification(`${recoveredCount}件の実績を復元しました！`, 'DATA RECOVERED');
-                } else if (isManualClick) { alert('追加で復元できるデータはありませんでした。'); }
-            } catch (e) { if (isManualClick) alert('復元エラー: ' + e.message); }
-        }
-
-        function switchMainTab(tab) {
-            activeTab = tab;
-            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.getElementById(`nav-btn-${tab}`);
+                    showNotification(`${recoveredCount}件の実績を復元しました！`, 'DATA RECOVERED'); } else if (isManualClick) { alert('追加で復元できるデータはありませんでした。'); } } catch (e) { if (isManualClick) alert('復元エラー: ' + e.message); } }  function switchMainTab(tab) { activeTab = tab; document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active')); const activeBtn = document.getElementById(`nav-btn-${tab}`);
             if (activeBtn) activeBtn.classList.add('active');
             const statsBox = document.getElementById('stats-grid-box');
             if (statsBox) statsBox.style.display = (tab === 'trophies' || tab === 'other-profile') ? 'grid' : 'none';
@@ -1167,7 +1203,7 @@
                     const isJoined = (currentUser && members.includes(currentUser.uid)) || (myProfile.joinedCircles || []).includes(cData.id);
                     if (isJoined && Array.isArray(cData.circleTrophies)) {
                         cData.circleTrophies.forEach(ct => {
-                            circleTrophies.push({ id: ct.id, name: `⭕ ${cData.circleName}: ${ct.name}`, condition: ct.condition, rank: ct.rank || 'gold', isCircleTrophy: true, circleId: cData.id });
+                            circleTrophies.push({ id: ct.id, name: `⭕ ${cData.circleName}:${ct.name}`, condition: ct.condition, rank: ct.rank || 'gold', isCircleTrophy: true, circleId: cData.id });
                         });
                     }
                 });
@@ -1220,26 +1256,7 @@
             filterRow.style.cssText = 'display:flex; gap:6px; overflow-x:auto; margin-bottom:14px; padding-bottom:2px;';
             ['all', 'unlocked', 'platinum', 'gold', 'silver', 'bronze'].forEach(f => {
                 const btn = document.createElement('button');
-                btn.className = `btn-action-small ${trophyFilter === f ? 'following' : ''}`;
-                btn.style.cssText += 'border-radius:20px; padding:6px 12px; font-size:0.7rem; flex-shrink:0;';
-                if (f === 'platinum') btn.style.color = 'var(--rank-platinum)';
-                if (f === 'gold') btn.style.color = 'var(--rank-gold)';
-                if (f === 'silver') btn.style.color = 'var(--rank-silver)';
-                if (f === 'bronze') btn.style.color = 'var(--rank-bronze)';
-                btn.innerText = f.toUpperCase();
-                btn.onclick = () => { trophyFilter = f; renderTrophiesView(); };
-                filterRow.appendChild(btn);
-            });
-            container.appendChild(filterRow);
-
-            let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 }, totalUnlocked = 0;
-            const allTrophiesList = getAllTrophies();
-            allTrophiesList.forEach(t => { if (userState[t.id]) { if (count[t.rank] !== undefined) count[t.rank]++; totalUnlocked++; } });
-            document.getElementById('count-plat').innerText = count.platinum;
-            document.getElementById('count-gold').innerText = count.gold;
-            document.getElementById('count-silver').innerText = count.silver;
-            document.getElementById('count-bronze').innerText = count.bronze;
-            document.getElementById('progress-percent').innerText = `${allTrophiesList.length > 0 ? Math.round((totalUnlocked / allTrophiesList.length) * 100) : 0}%`;
+                btn.className = `btn-action-small ${trophyFilter === f ? 'following' : ''}`; btn.style.cssText += 'border-radius:20px; padding:6px 12px; font-size:0.7rem; flex-shrink:0;'; if (f === 'platinum') btn.style.color = 'var(--rank-platinum)'; if (f === 'gold') btn.style.color = 'var(--rank-gold)'; if (f === 'silver') btn.style.color = 'var(--rank-silver)'; if (f === 'bronze') btn.style.color = 'var(--rank-bronze)'; btn.innerText = f.toUpperCase(); btn.onclick = () => { trophyFilter = f; renderTrophiesView(); }; filterRow.appendChild(btn); }); container.appendChild(filterRow);  let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 }, totalUnlocked = 0; const allTrophiesList = getAllTrophies(); allTrophiesList.forEach(t => { if (userState[t.id]) { if (count[t.rank] !== undefined) count[t.rank]++; totalUnlocked++; } }); document.getElementById('count-plat').innerText = count.platinum; document.getElementById('count-gold').innerText = count.gold; document.getElementById('count-silver').innerText = count.silver; document.getElementById('count-bronze').innerText = count.bronze; document.getElementById('progress-percent').innerText = `${allTrophiesList.length > 0 ? Math.round((totalUnlocked / allTrophiesList.length) * 100) : 0}%`;
 
             let targetList = defaultTrophies;
             if (boardCategory === 'limited') targetList = activeLimited;
@@ -1265,11 +1282,8 @@
                 card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
                 const iconContent = isUnlocked ? getIconMediaHTML(userState[t.id].photo) : `<i class="fa-solid fa-trophy"></i>`;
                 let displayNameStr = t.name;
-                if (t.isLimited) displayNameStr = `⏳ ${t.name}`;
-                else if (t.isCustom) displayNameStr = `✨ ${t.name}`;
-                else if (t.isUltimate) displayNameStr = `★ ${t.name}`;
-
-                const iconBox = document.createElement('div'); iconBox.className = `icon-box ${rankClass}`; iconBox.innerHTML = iconContent;
+                if (t.isLimited) displayNameStr = `⏳ ${t.name}`; else if (t.isCustom) displayNameStr = `✨ ${t.name}`;
+                else if (t.isUltimate) displayNameStr = `★ ${t.name}`;  const iconBox = document.createElement('div'); iconBox.className = `icon-box ${rankClass}`; iconBox.innerHTML = iconContent;
                 const infoBox = document.createElement('div'); infoBox.className = 'trophy-info';
                 infoBox.innerHTML = `<div class="trophy-name">${displayNameStr}</div><div class="trophy-condition">${t.condition}</div><div class="trophy-meta"><span class="rank-tag ${rankClass}">${t.rank}</span>${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date} 解除済</span>` : ''}</div>`;
                 const actionsGroup = document.createElement('div'); actionsGroup.className = 'card-actions-group';
@@ -1296,20 +1310,14 @@
             customTrophies.push({ id: 'custom_' + Date.now(), name: title, condition, rank, isCustom: true });
             document.getElementById('custom-title').value = ''; document.getElementById('custom-condition').value = '';
             closeModal('custom-trophy-modal'); boardCategory = 'custom'; trophyFilter = 'all';
-            switchMainTab('trophies'); showNotification(`カスタム実績「${title}」を追加しました！`, 'CUSTOM TROPHY ADDED');
-            saveCustomTrophiesToStorage();
-        }
-
-        async function deleteCustomTrophy(id) {
-            const target = customTrophies.find(t => String(t.id) === String(id));
-            if (!confirm(`カスタム実績「${target ? target.name : '実績'}」を削除しますか？`)) return;
+            switchMainTab('trophies'); showNotification(`カスタム実績「${title}」を追加しました！`, 'CUSTOM TROPHY ADDED'); saveCustomTrophiesToStorage(); }  async function deleteCustomTrophy(id) { const target = customTrophies.find(t => String(t.id) === String(id)); if (!confirm(`カスタム実績「${target ? target.name : '実績'}」を削除しますか？`)) return;
             customTrophies = customTrophies.filter(t => String(t.id) !== String(id));
             if (userState[id]) { delete userState[id]; await removeSingleUnlockFromStorage(id); }
             renderTrophiesView(); saveCustomTrophiesToStorage();
         }
 
         /* -------------------------------------------------------------
-           ⭕ サークル機能（参加前プレビュー・承認制/自由参加・メンバー一覧・チャット）
+           ⭕ サークル機能
         ------------------------------------------------------------- */
         async function renderCircleView() {
             const container = document.getElementById('main-container'); if (!container) return;
@@ -1375,8 +1383,7 @@
                 card.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:6px;">
                         <div style="font-size:0.95rem; font-weight:900; color:var(--text-primary); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                            ⭕ ${circle.circleName} ${policyBadge}
-                            ${isHost && pending.length > 0 ? `<span style="font-size:0.6rem; background:var(--accent-red); color:#fff; padding:2px 6px; border-radius:10px;">申請 ${pending.length}件</span>` : ''}
+                            ⭕ ${circle.circleName} ${policyBadge}${isHost && pending.length > 0 ? `<span style="font-size:0.6rem; background:var(--accent-red); color:#fff; padding:2px 6px; border-radius:10px;">申請 ${pending.length}件</span>` : ''}
                         </div>
                         <button class="btn-primary-small" style="flex-shrink:0;">メニューへ <i class="fa-solid fa-chevron-right" style="font-size:0.6rem;"></i></button>
                     </div>
@@ -1418,7 +1425,7 @@
                 card.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">
                         <div style="font-size:0.95rem; font-weight:900; color:var(--text-primary); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                            ⭕ ${circle.circleName} ${policyBadge}
+                            ⭕ ${circle.circleName}${policyBadge}
                         </div>
                         <button class="${isJoined ? 'btn-primary-small' : 'btn-action-small'}" style="flex-shrink:0;">
                             ${isJoined ? 'メニューを開く' : (isPending ? '⏳ 申請中 (詳細)' : '詳細・参加へ')}
@@ -1427,7 +1434,7 @@
                     <div style="font-size:0.74rem; color:var(--text-secondary); margin-bottom:8px; line-height:1.3;">${circle.circleBio || '自己紹介なし'}</div>
                     <div style="font-size:0.65rem; color:var(--text-tertiary);">
                         👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 メンバー: <b>${members.length}人</b> ・ 🏆 サークル実績: <b>${trophies.length}件</b>
-                    </div>
+                         </div>
                 `;
                 card.onclick = () => { if (isJoined) openCircleMenu(circle.id); else openCirclePreview(circle.id); };
                 resultsEl.appendChild(card);
@@ -1539,9 +1546,6 @@
             renderCirclePreviewMenu(targetCircle);
         }
 
-        /* -------------------------------------------------------------
-           ⭕ サークル専用メニュー（実績・チャット・メンバー＆承認管理）
-        ------------------------------------------------------------- */
         async function renderCircleRoomView(circle) {
             const container = document.getElementById('main-container'); if (!container) return;
             container.innerHTML = '';
@@ -1998,7 +2002,6 @@
             const vidEl = document.getElementById('video-preview');
             const confirmBtn = document.getElementById('confirm-unlock-btn');
 
-            // 既存のプレビューを一度クリア
             imgEl.style.display = 'none';
             imgEl.removeAttribute('src');
             if (vidEl) {
@@ -2009,9 +2012,7 @@
             }
             tempUnlockPhotoBase64 = "";
 
-            // 動画ファイルの場合
             if (file.type.startsWith('video/')) {
-                // 極端に巨大なファイルでブラウザがフリーズするのを防ぐ初期ガード (30MB上限)
                 if (file.size > 30 * 1024 * 1024) {
                     alert('動画のファイルサイズが大きすぎます（30MB以下・5秒以内の動画を選択してください）。');
                     resetUnlockMediaInput('⚠️ 5秒以内の動画を再選択してください');
@@ -2026,7 +2027,6 @@
                 try {
                     const { duration, objectUrl } = await checkVideoDuration(file);
 
-                    // 5秒超過チェック（5.4秒まで誤差許容、それを超えたら即エラー＆リセット）
                     if (!duration || isNaN(duration) || duration > 5.4) {
                         URL.revokeObjectURL(objectUrl);
                         const secText = (!isNaN(duration) && isFinite(duration)) ? `${duration.toFixed(1)}秒` : '5秒超過';
@@ -2061,7 +2061,6 @@
                 return;
             }
 
-            // 画像ファイルの場合
             isMediaProcessing = true;
             if (confirmBtn) confirmBtn.disabled = true;
             labelEl.innerText = '⏳ 写真を最適化中...';
@@ -2153,7 +2152,7 @@
         }
 
         /* -------------------------------------------------------------
-           ホーム（タイムライン）View：フォローしている人（＋自分）の投稿のみ表示
+           ホーム（タイムライン）View
         ------------------------------------------------------------- */
         async function renderFeedView() {
             const container = document.getElementById('main-container');
@@ -2398,6 +2397,7 @@
                     snapshot.forEach(doc => {
                         if (currentUser && doc.id === currentUser.uid) return;
                         const data = doc.data() || {};
+                        if (data.username && data.email) rememberUsernameEmailMap(data.username, data.email);
                         if (data.username || data.displayName) {
                             userMap[doc.id] = {
                                 uid: doc.id,
@@ -2421,6 +2421,7 @@
                     postsSnap.forEach(doc => {
                         const p = doc.data() || {};
                         if (p.isCircleDoc) return;
+                        if (p.username && p.email) rememberUsernameEmailMap(p.username, p.email);
                         if (p.uid && (!currentUser || p.uid !== currentUser.uid) && (p.username || p.displayName)) {
                             if (!userMap[p.uid] || p.isProfileIndex) {
                                 userMap[p.uid] = Object.assign(userMap[p.uid] || {}, {
@@ -2482,7 +2483,7 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View（写真・動画ギャラリー＆ライトボックス対応）
+           マイページ View（自分のプロフィール写真タップ拡大対応）
         ------------------------------------------------------------- */
         async function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -2494,8 +2495,8 @@
             headerBox.className = 'profile-card-header';
             
             const avatarHTML = myProfile.avatar 
-                ? `<img src="${myProfile.avatar}" class="profile-avatar-large">` 
-                : `<div class="profile-avatar-large"><i class="fa-solid fa-user"></i></div>`;
+                ? `<img src="${myProfile.avatar}" class="profile-avatar-large clickable" id="my-profile-avatar-el" title="タップして拡大">` 
+                : `<div class="profile-avatar-large clickable" id="my-profile-avatar-el" title="タップして拡大"><i class="fa-solid fa-user"></i></div>`;
 
             const displayId = myProfile.username ? `@${myProfile.username}` : '⚠️ ユーザーID未設定';
             const displayEmail = (currentUser && currentUser.email) ? currentUser.email : (myProfile.email || '');
@@ -2520,6 +2521,11 @@
                 </div>
             `;
             container.appendChild(headerBox);
+
+            const myAvatarEl = document.getElementById('my-profile-avatar-el');
+            if (myAvatarEl) {
+                myAvatarEl.onclick = () => openAvatarLightbox(myProfile.avatar, myProfile.displayName || myProfile.username || 'マイプロフィール');
+            }
 
             const albumTitle = document.createElement('div');
             albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
@@ -2560,7 +2566,6 @@
             }
         }
 
-        // ライトボックス：写真・動画の自動切り替え＋いいね数・コメント一覧同期
         async function openPhotoLightbox(mediaSrc, trophyName, conditionText, dateStr, commentText, postId = null, postOwnerUid = null, trophyId = null) {
             document.getElementById('lightbox-title').innerText = `🏆 ${trophyName || '実績'}`;
             const imgEl = document.getElementById('lightbox-image');
@@ -2719,7 +2724,7 @@
         }
 
         /* -------------------------------------------------------------
-           他人のプロフィール画面 View
+           他人のプロフィール画面 View（他人のプロフィール写真タップ拡大対応）
         ------------------------------------------------------------- */
         async function viewUserProfile(uid, profileData) {
             if (profileData.privacy === 'followers' && !profileData.followers?.includes(currentUser.uid)) {
@@ -2806,8 +2811,8 @@
             headerBox.className = 'profile-card-header';
             
             const avatarHTML = freshTargetData.avatar 
-                ? `<img src="${freshTargetData.avatar}" class="profile-avatar-large">` 
-                : `<div class="profile-avatar-large"><i class="fa-solid fa-user"></i></div>`;
+                ? `<img src="${freshTargetData.avatar}" class="profile-avatar-large clickable" id="target-profile-avatar-el" title="タップして拡大">` 
+                : `<div class="profile-avatar-large clickable" id="target-profile-avatar-el" title="タップして拡大"><i class="fa-solid fa-user"></i></div>`;
 
             const isFollowing = (myProfile.following || []).includes(uid);
             const followersCount = (freshTargetData.followers || []).length;
@@ -2827,6 +2832,11 @@
                 </div>
             `;
             container.appendChild(headerBox);
+
+            const targetAvatarEl = document.getElementById('target-profile-avatar-el');
+            if (targetAvatarEl) {
+                targetAvatarEl.onclick = () => openAvatarLightbox(freshTargetData.avatar, freshTargetData.displayName || freshTargetData.username || 'ユーザー');
+            }
 
             const albumTitle = document.createElement('div');
             albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
@@ -3158,6 +3168,7 @@
             myProfile.email = user.email || myProfile.email || "";
             myProfile.displayName = newDisplayName;
             myProfile.username = newUsername;
+            myProfile.searchUsername = newUsername.toLowerCase();
             myProfile.bio = newBio;
             myProfile.avatar = tempAvatarBase64;
 

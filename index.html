@@ -93,7 +93,7 @@
         .trophy-card.unlocked { background: var(--surface-card); border-color: var(--border-light); }
         .trophy-card.ultimate { border: 1px solid var(--rank-platinum); box-shadow: inset 0 0 15px rgba(229, 247, 255, 0.08); }
         .icon-box { width: 44px; height: 44px; border-radius: 10px; background: var(--surface-hover); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; color: var(--text-tertiary); flex-shrink: 0; overflow: hidden; transition: all 0.2s; }
-        .icon-box img { width: 100%; height: 100%; object-fit: cover; }
+        .icon-box img, .icon-box video { width: 100%; height: 100%; object-fit: cover; }
         .icon-box.rank-platinum { color: var(--rank-platinum); opacity: 0.55; }
         .icon-box.rank-gold { color: var(--rank-gold); opacity: 0.55; }
         .icon-box.rank-silver { color: var(--rank-silver); opacity: 0.55; }
@@ -125,7 +125,7 @@
         .feed-user-name { font-size: 0.65rem; color: var(--text-secondary); }
         .feed-time { font-size: 0.65rem; color: var(--text-secondary); }
         .feed-trophy-banner { background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
-        .feed-photo { width: 100%; max-height: 250px; object-fit: cover; border-radius: 10px; margin-bottom: 12px; cursor: pointer; pointer-events: auto !important; }
+        .feed-photo { width: 100%; max-height: 250px; object-fit: cover; border-radius: 10px; margin-bottom: 12px; cursor: pointer; pointer-events: auto !important; display: block; background: #000; }
         .feed-comment-box { font-size: 0.8rem; color: var(--text-primary); background: var(--surface-hover); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; line-height: 1.4; word-break: break-word; }
         .feed-actions { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary); }
         .feed-actions-left { display: flex; align-items: center; gap: 16px; }
@@ -147,7 +147,8 @@
         .chat-time { font-size: 0.55rem; color: var(--text-tertiary); margin-top: 2px; padding: 0 4px; }
         .gallery-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
         .gallery-item { aspect-ratio: 1; position: relative; overflow: hidden; border-radius: 6px; background: var(--surface-card); cursor: pointer; pointer-events: auto !important; }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-item img, .gallery-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .gallery-video-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; pointer-events: none; }
         .gallery-item-title { position: absolute; bottom: 0; inset-x: 0; background: rgba(0,0,0,0.75); font-size: 0.55rem; padding: 3px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
         .unlocked-manage-card { background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .unlocked-manage-thumb { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; background: var(--surface-card); flex-shrink: 0; }
@@ -170,7 +171,7 @@
         .modal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .photo-upload-zone { border: 2px dashed var(--border-light); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; margin-bottom: 16px; background: var(--surface-hover); transition: border-color 0.2s; pointer-events: auto !important; }
         .photo-upload-zone.required-highlight { border-color: var(--accent-red); }
-        .photo-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; }
+        .photo-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; background: #000; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 10px; }
         .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); pointer-events: auto !important; }
     </style>
@@ -270,11 +271,12 @@
         </div>
     </div>
 
-    <!-- Photo Lightbox / Detail Zoom Modal (いいね数＆コメント一覧対応) -->
+    <!-- Photo / Video Lightbox / Detail Zoom Modal (いいね数＆コメント一覧・動画再生対応) -->
     <div class="modal" id="photo-lightbox-modal" onclick="closeModal('photo-lightbox-modal')">
         <div class="modal-content" onclick="event.stopPropagation()" style="text-align: center; max-width: 440px;">
             <div class="modal-title" id="lightbox-title" style="margin-bottom: 10px; font-size: 0.95rem;">実績詳細</div>
-            <img id="lightbox-image" style="width: 100%; max-height: 280px; object-fit: cover; border-radius: 10px; margin-bottom: 12px;" alt="Zoomed Photo">
+            <img id="lightbox-image" style="width: 100%; max-height: 280px; object-fit: cover; border-radius: 10px; margin-bottom: 12px; display: none;" alt="Zoomed Photo">
+            <video id="lightbox-video" style="width: 100%; max-height: 280px; object-fit: cover; border-radius: 10px; margin-bottom: 12px; display: none; background: #000;" controls playsinline loop></video>
             <div id="lightbox-condition" style="font-size: 0.75rem; color: var(--text-primary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; text-align: left; font-weight: 700;"></div>
             <div id="lightbox-date" style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 8px;"></div>
             <div id="lightbox-comment" style="font-size: 0.82rem; background: var(--surface-hover); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; text-align: left; line-height: 1.4; word-break: break-word;"></div>
@@ -332,12 +334,12 @@
         </div>
     </div>
 
-    <!-- Create Circle Modal (参加方式選択対応) -->
+    <!-- Create Circle Modal (例文変更＆参加方式選択対応) -->
     <div class="modal" id="create-circle-modal">
         <div class="modal-content">
             <div class="modal-title">⭕ サークルを立ち上げる</div>
-            <input type="text" id="circle-name-input" class="form-input" placeholder="サークル名 (例: 週末エンジニア部)">
-            <textarea id="circle-bio-input" class="form-textarea" placeholder="サークル自己紹介 (例: 一緒に新しいサービスを作ろう！)"></textarea>
+            <input type="text" id="circle-name-input" class="form-input" placeholder="サークル名 (例: 我らの団)">
+            <textarea id="circle-bio-input" class="form-textarea" placeholder="サークル自己紹介 (例: 謎の鱗の正体を追ってくれる団員募集！)"></textarea>
             <div style="font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-bottom:6px;">参加ルール（後から変更可能）</div>
             <select id="circle-policy-select" class="form-select">
                 <option value="open">🔓 自由参加（誰でもすぐ参加可能）</option>
@@ -369,17 +371,18 @@
         </div>
     </div>
 
-    <!-- Unlock Modal -->
+    <!-- Unlock Modal (写真＆5秒以内の動画対応) -->
     <div class="modal" id="unlock-modal">
         <div class="modal-content">
             <div class="modal-title" id="modal-trophy-title">実績を解除</div>
             <div class="photo-upload-zone" id="unlock-photo-zone" onclick="document.getElementById('photo-input').click()">
-                <i class="fa-solid fa-camera" style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 8px;"></i>
-                <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary);" id="photo-upload-label">📸 証拠写真を撮影・選択 (必須)</div>
-                <div style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 4px;">※写真を添付しないと解除できません</div>
+                <i class="fa-solid fa-photo-film" style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 8px;"></i>
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary);" id="photo-upload-label">📸 証拠写真 または 動画を選択 (必須)</div>
+                <div style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 4px;">※動画の場合は<b>5秒まで</b>（写真または動画の添付が必須です）</div>
             </div>
             <img id="photo-preview" class="photo-preview" alt="Preview">
-            <input type="file" id="photo-input" accept="image/*" style="display: none;" onchange="previewImage(event)">
+            <video id="video-preview" class="photo-preview" controls playsinline muted loop></video>
+            <input type="file" id="photo-input" accept="image/*,video/*" style="display: none;" onchange="previewImage(event)">
             <textarea id="unlock-comment-input" class="form-textarea" placeholder="思い出や感想のコメントを残す（任意）"></textarea>
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" onclick="closeModal('unlock-modal')">キャンセル</button>
@@ -392,7 +395,7 @@
     <header>
         <div class="header-top">
             <div class="brand-logo" onclick="switchMainTab('trophies')">
-                Life Trophies <span class="version-badge">v1.1</span>
+                Life Trophies <span class="version-badge">v1.2</span>
             </div>
             <div class="header-right">
                 <button class="header-icon-btn" onclick="openNotificationsModal()">
@@ -461,6 +464,7 @@
         let trophyFilter = 'all';
         let tempAvatarBase64 = "";
         let tempUnlockPhotoBase64 = "";
+        let isMediaProcessing = false;
         let notifTimer = null;
 
         const defaultTrophies = [
@@ -577,6 +581,11 @@
             return Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))]);
         }
 
+        // 動画データかどうかを判定するヘルパー関数
+        function isVideoSource(src) {
+            return typeof src === 'string' && src.startsWith('data:video/');
+        }
+
         function compressImageFile(file, maxSize, quality) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -594,6 +603,192 @@
                     img.onerror = reject; img.src = e.target.result;
                 };
                 reader.onerror = reject; reader.readAsDataURL(file);
+            });
+        }
+
+        // 動画の秒数を事前検証（5秒超過や破損動画によるフリーズを防止）
+        function checkVideoDuration(file) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(file);
+                const tempVideo = document.createElement('video');
+                tempVideo.preload = 'metadata';
+                let settled = false;
+
+                const cleanup = () => {
+                    tempVideo.removeAttribute('src');
+                    tempVideo.load();
+                };
+
+                const timer = setTimeout(() => {
+                    if (!settled) {
+                        settled = true;
+                        URL.revokeObjectURL(url);
+                        cleanup();
+                        reject(new Error('METADATA_TIMEOUT'));
+                    }
+                }, 4000);
+
+                tempVideo.onloadedmetadata = () => {
+                    if (settled) return;
+                    settled = true;
+                    clearTimeout(timer);
+                    const duration = tempVideo.duration;
+                    cleanup();
+                    resolve({ duration, objectUrl: url });
+                };
+
+                tempVideo.onerror = () => {
+                    if (settled) return;
+                    settled = true;
+                    clearTimeout(timer);
+                    URL.revokeObjectURL(url);
+                    cleanup();
+                    reject(new Error('INVALID_VIDEO'));
+                };
+
+                tempVideo.src = url;
+            });
+        }
+
+        // Firestore無料版(1MB上限)に収めるための動画自動軽量化処理
+        function compressVideoFile(file, objectUrl) {
+            return new Promise((resolve, reject) => {
+                // 既に十分軽い動画（550KB以下）ならそのままDataURL化
+                if (file.size <= 550 * 1024) {
+                    URL.revokeObjectURL(objectUrl);
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                    return;
+                }
+
+                // MediaRecorder非対応環境でのフォールバック
+                if (typeof MediaRecorder === 'undefined') {
+                    URL.revokeObjectURL(objectUrl);
+                    if (file.size <= 750 * 1024) {
+                        const reader = new FileReader();
+                        reader.onload = e => resolve(e.target.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    } else {
+                        reject(new Error('TOO_LARGE_FOR_DB'));
+                    }
+                    return;
+                }
+
+                const video = document.createElement('video');
+                video.src = objectUrl;
+                video.muted = true;
+                video.playsInline = true;
+                video.setAttribute('playsinline', '');
+
+                let isFinished = false;
+                const failTimer = setTimeout(() => {
+                    if (!isFinished) {
+                        isFinished = true;
+                        URL.revokeObjectURL(objectUrl);
+                        reject(new Error('COMPRESS_TIMEOUT'));
+                    }
+                }, 12000);
+
+                video.onloadedmetadata = () => {
+                    const maxDim = 360;
+                    let w = video.videoWidth || 360;
+                    let h = video.videoHeight || 360;
+                    if (w > h) {
+                        if (w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+                    } else {
+                        if (h > maxDim) { w = Math.round(w * (maxDim / h)); h = maxDim; }
+                    }
+                    if (w % 2 !== 0) w--;
+                    if (h % 2 !== 0) h--;
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+
+                    const stream = canvas.captureStream ? canvas.captureStream(24) : (canvas.mozCaptureStream ? canvas.mozCaptureStream(24) : null);
+                    if (!stream) {
+                        clearTimeout(failTimer);
+                        URL.revokeObjectURL(objectUrl);
+                        if (file.size <= 750 * 1024) {
+                            const reader = new FileReader();
+                            reader.onload = e => resolve(e.target.result);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                        } else {
+                            reject(new Error('TOO_LARGE_FOR_DB'));
+                        }
+                        return;
+                    }
+
+                    let mimeType = 'video/webm;codecs=vp8';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/mp4';
+
+                    let recorder;
+                    try {
+                        recorder = MediaRecorder.isTypeSupported(mimeType)
+                            ? new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 450000 })
+                            : new MediaRecorder(stream, { videoBitsPerSecond: 450000 });
+                    } catch (err) {
+                        clearTimeout(failTimer);
+                        URL.revokeObjectURL(objectUrl);
+                        reject(err);
+                        return;
+                    }
+
+                    const chunks = [];
+                    recorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+                    recorder.onstop = () => {
+                        if (isFinished) return;
+                        isFinished = true;
+                        clearTimeout(failTimer);
+                        URL.revokeObjectURL(objectUrl);
+                        const blob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
+                        if (blob.size > 800 * 1024) {
+                            reject(new Error('TOO_LARGE_FOR_DB'));
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = e => resolve(e.target.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    };
+
+                    const drawFrame = () => {
+                        if (!video.paused && !video.ended && !isFinished) {
+                            ctx.drawImage(video, 0, 0, w, h);
+                            requestAnimationFrame(drawFrame);
+                        }
+                    };
+
+                    video.onplay = () => {
+                        recorder.start();
+                        drawFrame();
+                    };
+
+                    video.onended = () => {
+                        if (recorder.state === 'recording') recorder.stop();
+                    };
+
+                    video.play().catch(err => {
+                        clearTimeout(failTimer);
+                        URL.revokeObjectURL(objectUrl);
+                        reject(err);
+                    });
+                };
+
+                video.onerror = () => {
+                    if (!isFinished) {
+                        isFinished = true;
+                        clearTimeout(failTimer);
+                        URL.revokeObjectURL(objectUrl);
+                        reject(new Error('VIDEO_LOAD_ERROR'));
+                    }
+                };
             });
         }
 
@@ -979,6 +1174,14 @@
             } catch (e) {}
         }
 
+        function getIconMediaHTML(mediaSrc) {
+            if (!mediaSrc) return `<i class="fa-solid fa-trophy"></i>`;
+            if (isVideoSource(mediaSrc)) {
+                return `<video src="${mediaSrc}" muted loop playsinline autoplay></video>`;
+            }
+            return `<img src="${mediaSrc}" alt="Trophy Media">`;
+        }
+
         /* -------------------------------------------------------------
            実績一覧 View
         ------------------------------------------------------------- */
@@ -1060,7 +1263,7 @@
                 visibleCount++;
                 const card = document.createElement('div');
                 card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
-                const iconContent = (isUnlocked && userState[t.id].photo) ? `<img src="${userState[t.id].photo}" alt="Trophy Photo">` : `<i class="fa-solid fa-trophy"></i>`;
+                const iconContent = isUnlocked ? getIconMediaHTML(userState[t.id].photo) : `<i class="fa-solid fa-trophy"></i>`;
                 let displayNameStr = t.name;
                 if (t.isLimited) displayNameStr = `⏳ ${t.name}`;
                 else if (t.isCustom) displayNameStr = `✨ ${t.name}`;
@@ -1239,7 +1442,6 @@
             currentActiveCircleId = circleId; circleViewMode = 'room'; circleRoomSubTab = 'trophies'; renderCircleView();
         }
 
-        // 未参加サークルの参加前プレビューメニュー画面（自己紹介・実績一覧・承認制/自由参加を表示）
         function renderCirclePreviewMenu(circle) {
             const container = document.getElementById('main-container'); if (!container) return;
             container.innerHTML = '';
@@ -1411,7 +1613,7 @@
                         const rankClass = `rank-${ct.rank || 'gold'}`;
                         const card = document.createElement('div');
                         card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''}`;
-                        const iconContent = (isUnlocked && userState[ct.id].photo) ? `<img src="${userState[ct.id].photo}" alt="Photo">` : `<i class="fa-solid fa-trophy"></i>`;
+                        const iconContent = isUnlocked ? getIconMediaHTML(userState[ct.id].photo) : `<i class="fa-solid fa-trophy"></i>`;
                         card.innerHTML = `
                             <div class="icon-box ${rankClass}">${iconContent}</div>
                             <div class="trophy-info">
@@ -1457,9 +1659,8 @@
                 const memWrapper = document.createElement('div');
                 container.appendChild(memWrapper);
 
-                // ホスト専用：参加申請（承認待ち）リスト
                 if (isHost && pending.length > 0) {
-                                       const pendTitle = document.createElement('div');
+                    const pendTitle = document.createElement('div');
                     pendTitle.style.cssText = 'font-size:0.82rem; font-weight:800; color:var(--rank-gold); margin-bottom:8px;';
                     pendTitle.innerHTML = `📩 参加承認待ちのユーザー (${pending.length}人)`;
                     memWrapper.appendChild(pendTitle);
@@ -1494,7 +1695,6 @@
                     }
                 }
 
-                // 参加メンバー一覧
                 const memTitle = document.createElement('div');
                 memTitle.style.cssText = 'font-size:0.82rem; font-weight:800; color:var(--text-primary); margin-bottom:8px;';
                 memTitle.innerHTML = `👥 参加メンバー一覧 (${members.length}人)`;
@@ -1734,11 +1934,12 @@
         }
 
         /* -------------------------------------------------------------
-           実績解除関連
+           実績解除関連（写真 ＆ 5秒以内の動画対応・フリーズ防止対策済み）
         ------------------------------------------------------------- */
         async function openUnlockModal(id) {
             selectedTrophyId = id;
             tempUnlockPhotoBase64 = "";
+            isMediaProcessing = false;
             await loadCircleTrophiesForBoard();
             const trophy = getAllTrophies().find(t => String(t.id) === String(id));
             document.getElementById('modal-trophy-title').innerText = `🏆 「${trophy ? trophy.name : '実績'}」を解除`;
@@ -1746,38 +1947,149 @@
             const previewEl = document.getElementById('photo-preview');
             previewEl.style.display = 'none';
             previewEl.removeAttribute('src');
+
+            const videoPreviewEl = document.getElementById('video-preview');
+            if (videoPreviewEl) {
+                videoPreviewEl.pause();
+                videoPreviewEl.style.display = 'none';
+                videoPreviewEl.removeAttribute('src');
+                videoPreviewEl.load();
+            }
             
+            const confirmBtn = document.getElementById('confirm-unlock-btn');
+            if (confirmBtn) confirmBtn.disabled = false;
+
             document.getElementById('photo-input').value = '';
             document.getElementById('unlock-comment-input').value = '';
             document.getElementById('unlock-photo-zone').classList.remove('required-highlight');
-            document.getElementById('photo-upload-label').innerText = '📸 証拠写真を撮影・選択 (必須)';
+            document.getElementById('photo-upload-label').innerText = '📸 証拠写真 または 動画を選択 (必須)';
             openModal('unlock-modal');
+        }
+
+        function resetUnlockMediaInput(labelMessage = '📸 証拠写真 または 動画を選択 (必須)') {
+            tempUnlockPhotoBase64 = "";
+            isMediaProcessing = false;
+            const fileInput = document.getElementById('photo-input');
+            if (fileInput) fileInput.value = '';
+            const imgEl = document.getElementById('photo-preview');
+            if (imgEl) {
+                imgEl.style.display = 'none';
+                imgEl.removeAttribute('src');
+            }
+            const vidEl = document.getElementById('video-preview');
+            if (vidEl) {
+                vidEl.pause();
+                vidEl.style.display = 'none';
+                vidEl.removeAttribute('src');
+                vidEl.load();
+            }
+            const labelEl = document.getElementById('photo-upload-label');
+            if (labelEl) labelEl.innerText = labelMessage;
+            const confirmBtn = document.getElementById('confirm-unlock-btn');
+            if (confirmBtn) confirmBtn.disabled = false;
         }
 
         async function previewImage(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            document.getElementById('photo-upload-label').innerText = '写真を最適化中...';
+            const labelEl = document.getElementById('photo-upload-label');
+            const imgEl = document.getElementById('photo-preview');
+            const vidEl = document.getElementById('video-preview');
+            const confirmBtn = document.getElementById('confirm-unlock-btn');
+
+            // 既存のプレビューを一度クリア
+            imgEl.style.display = 'none';
+            imgEl.removeAttribute('src');
+            if (vidEl) {
+                vidEl.pause();
+                vidEl.style.display = 'none';
+                vidEl.removeAttribute('src');
+                vidEl.load();
+            }
+            tempUnlockPhotoBase64 = "";
+
+            // 動画ファイルの場合
+            if (file.type.startsWith('video/')) {
+                // 極端に巨大なファイルでブラウザがフリーズするのを防ぐ初期ガード (30MB上限)
+                if (file.size > 30 * 1024 * 1024) {
+                    alert('動画のファイルサイズが大きすぎます（30MB以下・5秒以内の動画を選択してください）。');
+                    resetUnlockMediaInput('⚠️ 5秒以内の動画を再選択してください');
+                    document.getElementById('unlock-photo-zone').classList.add('required-highlight');
+                    return;
+                }
+
+                isMediaProcessing = true;
+                if (confirmBtn) confirmBtn.disabled = true;
+                labelEl.innerText = '⏳ 動画の長さを確認中...';
+
+                try {
+                    const { duration, objectUrl } = await checkVideoDuration(file);
+
+                    // 5秒超過チェック（5.4秒まで誤差許容、それを超えたら即エラー＆リセット）
+                    if (!duration || isNaN(duration) || duration > 5.4) {
+                        URL.revokeObjectURL(objectUrl);
+                        const secText = (!isNaN(duration) && isFinite(duration)) ? `${duration.toFixed(1)}秒` : '5秒超過';
+                        alert(`⚠️ 5秒を超える動画（${secText}）はアップロードできません。\n5秒以内の動画にトリミングするか、別の動画・写真を再度選択してください。`);
+                        resetUnlockMediaInput('⚠️ 5秒以内の動画を再選択してください');
+                        document.getElementById('unlock-photo-zone').classList.add('required-highlight');
+                        return;
+                    }
+
+                    labelEl.innerText = '⏳ 動画を最適化中 (最大5秒ほどかかります)...';
+                    tempUnlockPhotoBase64 = await compressVideoFile(file, objectUrl);
+
+                    if (vidEl) {
+                        vidEl.src = tempUnlockPhotoBase64;
+                        vidEl.style.display = 'block';
+                        vidEl.play().catch(() => {});
+                    }
+                    document.getElementById('unlock-photo-zone').classList.remove('required-highlight');
+                    labelEl.innerText = `✅ 動画を選択済み (${duration.toFixed(1)}秒 / タップで変更)`;
+                } catch (err) {
+                    if (err && err.message === 'TOO_LARGE_FOR_DB') {
+                        alert('⚠️ 動画の容量がデータベース上限（約1MB）を超えました。\nもう少し短い動画（3〜5秒程度）にするか、画質を落として再度アップロードしてください。');
+                    } else {
+                        alert('⚠️ 動画の読み込みまたは変換に失敗しました。\n5秒以内の別の動画または写真を再度選択してください。');
+                    }
+                    resetUnlockMediaInput('⚠️ もう一度ファイルを選択してください');
+                    document.getElementById('unlock-photo-zone').classList.add('required-highlight');
+                } finally {
+                    isMediaProcessing = false;
+                    if (confirmBtn) confirmBtn.disabled = false;
+                }
+                return;
+            }
+
+            // 画像ファイルの場合
+            isMediaProcessing = true;
+            if (confirmBtn) confirmBtn.disabled = true;
+            labelEl.innerText = '⏳ 写真を最適化中...';
             try {
                 tempUnlockPhotoBase64 = await compressImageFile(file, 600, 0.65);
-                const img = document.getElementById('photo-preview');
-                img.src = tempUnlockPhotoBase64;
-                img.style.display = 'block';
+                imgEl.src = tempUnlockPhotoBase64;
+                imgEl.style.display = 'block';
                 document.getElementById('unlock-photo-zone').classList.remove('required-highlight');
-                document.getElementById('photo-upload-label').innerText = '✅ 写真を選択済み (タップで変更)';
+                labelEl.innerText = '✅ 写真を選択済み (タップで変更)';
             } catch (err) {
                 alert('写真の読み込みに失敗しました。別の画像をお試しください。');
-                tempUnlockPhotoBase64 = "";
+                resetUnlockMediaInput();
+            } finally {
+                isMediaProcessing = false;
+                if (confirmBtn) confirmBtn.disabled = false;
             }
         }
 
         function confirmUnlock() {
             if (!selectedTrophyId) return;
+            if (isMediaProcessing) {
+                alert('現在メディアを処理中です。完了まで数秒お待ちください。');
+                return;
+            }
 
             if (!tempUnlockPhotoBase64) {
                 document.getElementById('unlock-photo-zone').classList.add('required-highlight');
-                alert('実績を解除するには証拠写真の添付が必須です！上のカメラ枠をタップして写真を選択してください。');
+                alert('実績を解除するには証拠写真または動画（5秒まで）の添付が必須です！上の枠をタップして選択してください。');
                 return;
             }
 
@@ -1797,11 +2109,13 @@
             const dateTimeStr = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
 
             const unlockedId = String(selectedTrophyId);
-            const photoToSave = tempUnlockPhotoBase64;
+            const mediaToSave = tempUnlockPhotoBase64;
+            const mediaType = isVideoSource(mediaToSave) ? 'video' : 'image';
 
             const unlockEntry = {
                 date: dateTimeStr,
-                photo: photoToSave,
+                photo: mediaToSave,
+                mediaType: mediaType,
                 comment: commentText,
                 condition: trophyCondition,
                 trophyName: trophyName,
@@ -1827,7 +2141,8 @@
                     trophyName: trophyName,
                     trophyRank: trophyRank,
                     condition: trophyCondition,
-                    photo: photoToSave,
+                    photo: mediaToSave,
+                    mediaType: mediaType,
                     comment: commentText,
                     date: dateTimeStr,
                     likes: [],
@@ -1859,7 +2174,6 @@
                     snapshot.forEach(doc => {
                         const post = doc.data();
                         if (post.isProfileIndex || post.isCircleDoc) return;
-                        // フォローしているユーザー（および自分自身）以外の投稿はスキップ
                         if (!allowedUids.includes(post.uid)) return;
 
                         realPostCount++;
@@ -1881,6 +2195,15 @@
                         const commentHTML = post.comment && post.comment.trim() !== '' 
                             ? `<div class="feed-comment-box">${post.comment}</div>` 
                             : '';
+
+                        let mediaHTML = '';
+                        if (post.photo) {
+                            if (isVideoSource(post.photo)) {
+                                mediaHTML = `<video src="${post.photo}" class="feed-photo" id="feed-img-${postId}" controls playsinline loop muted></video>`;
+                            } else {
+                                mediaHTML = `<img src="${post.photo}" class="feed-photo" id="feed-img-${postId}">`;
+                            }
+                        }
 
                         const card = document.createElement('div');
                         card.className = 'feed-card';
@@ -1905,7 +2228,7 @@
                                 </div>
                             </div>
 
-                            ${post.photo ? `<img src="${post.photo}" class="feed-photo" id="feed-img-${postId}">` : ''}
+                            ${mediaHTML}
                             ${commentHTML}
 
                             <div class="feed-actions">
@@ -1943,7 +2266,7 @@
                         if (userBtn) userBtn.onclick = () => openUserFromFeed(post.uid);
 
                         const imgBtn = document.getElementById(`feed-img-${postId}`);
-                        if (imgBtn) {
+                        if (imgBtn && !isVideoSource(post.photo)) {
                             imgBtn.onclick = () => openPhotoLightbox(post.photo, post.trophyName || '実績', post.condition || '', post.date || '', post.comment || '', postId, post.uid, post.trophyId);
                         }
 
@@ -2159,7 +2482,7 @@
         }
 
         /* -------------------------------------------------------------
-           マイページ View（サムネイルタップでいいね数・コメント表示）
+           マイページ View（写真・動画ギャラリー＆ライトボックス対応）
         ------------------------------------------------------------- */
         async function renderMyProfileView() {
             const container = document.getElementById('main-container');
@@ -2200,7 +2523,7 @@
 
             const albumTitle = document.createElement('div');
             albumTitle.style.cssText = 'font-size:0.85rem; font-weight:800; margin-bottom:10px; color:var(--text-primary);';
-            albumTitle.innerHTML = '📸 実績フォトギャラリー (タップで詳細・いいね・コメント表示)';
+            albumTitle.innerHTML = '📸 実績メディアギャラリー (タップで詳細・いいね・コメント表示)';
             container.appendChild(albumTitle);
 
             const grid = document.createElement('div');
@@ -2217,11 +2540,12 @@
                     const trophyCondition = item.condition || (trophy ? trophy.condition : '');
                     const comment = item.comment || '';
                     const date = item.date || '';
+                    const isVid = isVideoSource(item.photo);
 
                     const el = document.createElement('div');
                     el.className = 'gallery-item';
                     el.innerHTML = `
-                        <img src="${item.photo}" alt="${trophyName}">
+                        ${isVid ? `<video src="${item.photo}" muted loop playsinline autoplay></video><div class="gallery-video-badge"><i class="fa-solid fa-video"></i></div>` : `<img src="${item.photo}" alt="${trophyName}">`}
                         <div class="gallery-item-title">${trophyName}</div>
                     `;
                     el.onclick = () => openPhotoLightbox(item.photo, trophyName, trophyCondition, date, comment, null, currentUser ? currentUser.uid : null, id);
@@ -2230,16 +2554,36 @@
             });
 
             if (photoCount === 0) {
-                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">まだ写真付きで解除した実績がありません。</div>';
+                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px; background:var(--surface-card); border-radius:12px; border:1px solid var(--border-color);">まだ写真・動画付きで解除した実績がありません。</div>';
             } else {
                 container.appendChild(grid);
             }
         }
 
-        // 写真ライトボックス：対応するタイムライン投稿から「いいね数」と「コメント一覧」を自動取得して表示
-        async function openPhotoLightbox(photoSrc, trophyName, conditionText, dateStr, commentText, postId = null, postOwnerUid = null, trophyId = null) {
+        // ライトボックス：写真・動画の自動切り替え＋いいね数・コメント一覧同期
+        async function openPhotoLightbox(mediaSrc, trophyName, conditionText, dateStr, commentText, postId = null, postOwnerUid = null, trophyId = null) {
             document.getElementById('lightbox-title').innerText = `🏆 ${trophyName || '実績'}`;
-            document.getElementById('lightbox-image').src = photoSrc;
+            const imgEl = document.getElementById('lightbox-image');
+            const vidEl = document.getElementById('lightbox-video');
+
+            if (isVideoSource(mediaSrc)) {
+                imgEl.style.display = 'none';
+                imgEl.removeAttribute('src');
+                if (vidEl) {
+                    vidEl.src = mediaSrc;
+                    vidEl.style.display = 'block';
+                    vidEl.play().catch(() => {});
+                }
+            } else {
+                if (vidEl) {
+                    vidEl.pause();
+                    vidEl.style.display = 'none';
+                    vidEl.removeAttribute('src');
+                    vidEl.load();
+                }
+                imgEl.src = mediaSrc;
+                imgEl.style.display = 'block';
+            }
             
             const condEl = document.getElementById('lightbox-condition');
             if (conditionText && conditionText.trim() !== '') {
@@ -2262,7 +2606,6 @@
                 commentEl.style.color = 'var(--text-secondary)';
             }
 
-            // 初期状態リセット
             const likesCountEl = document.getElementById('lightbox-likes-count');
             const commentsCountEl = document.getElementById('lightbox-comments-count');
             const commentsListEl = document.getElementById('lightbox-comments-list');
@@ -2276,7 +2619,6 @@
 
             openModal('photo-lightbox-modal');
 
-            // Firestoreから該当投稿のいいね＆コメントを取得
             try {
                 let matchedPostDoc = null;
                 if (postId) {
@@ -2343,10 +2685,15 @@
                     else if (t.rank === 'silver') rankColor = 'var(--rank-silver)';
                     else if (t.rank === 'bronze') rankColor = 'var(--rank-bronze)';
 
+                    const isVid = isVideoSource(itemData.photo);
+                    const thumbHTML = itemData.photo
+                        ? (isVid ? `<video src="${itemData.photo}" class="unlocked-manage-thumb" muted loop playsinline autoplay></video>` : `<img src="${itemData.photo}" class="unlocked-manage-thumb">`)
+                        : `<div class="unlocked-manage-thumb" style="display:flex;align-items:center;justify-content:center;color:${rankColor};"><i class="fa-solid fa-trophy"></i></div>`;
+
                     const leftInfo = document.createElement('div');
                     leftInfo.style.cssText = 'display:flex; align-items:center; gap:10px; overflow:hidden;';
                     leftInfo.innerHTML = `
-                        ${itemData.photo ? `<img src="${itemData.photo}" class="unlocked-manage-thumb">` : `<div class="unlocked-manage-thumb" style="display:flex;align-items:center;justify-content:center;color:${rankColor};"><i class="fa-solid fa-trophy"></i></div>`}
+                        ${thumbHTML}
                         <div style="overflow:hidden;">
                             <div style="font-size:0.8rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.name}</div>
                             <div style="font-size:0.62rem; color:var(--text-secondary);">解除日時: ${itemData.date}</div>
@@ -2498,10 +2845,11 @@
                     const trophy = allTargetTrophies.find(t => String(t.id) === String(id));
                     const tName = item.trophyName || (trophy ? trophy.name : '実績');
                     const tCond = item.condition || (trophy ? trophy.condition : '');
+                    const isVid = isVideoSource(item.photo);
                     const el = document.createElement('div');
                     el.className = 'gallery-item';
                     el.innerHTML = `
-                        <img src="${item.photo}">
+                        ${isVid ? `<video src="${item.photo}" muted loop playsinline autoplay></video><div class="gallery-video-badge"><i class="fa-solid fa-video"></i></div>` : `<img src="${item.photo}">`}
                         <div class="gallery-item-title">${tName}</div>
                     `;
                     el.onclick = () => openPhotoLightbox(item.photo, tName, tCond, item.date || '', item.comment || '', null, uid, id);
@@ -2512,7 +2860,7 @@
             if (photoCount > 0) {
                 container.appendChild(grid);
             } else {
-                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.75rem; padding:16px; background:var(--surface-card); border-radius:10px; margin-bottom:16px;">公開されている実績写真はまだありません</div>';
+                container.innerHTML += '<div style="text-align:center; color:var(--text-secondary); font-size:0.75rem; padding:16px; background:var(--surface-card); border-radius:10px; margin-bottom:16px;">公開されている実績メディアはまだありません</div>';
             }
 
             const trophyListEl = document.createElement('div');
@@ -2532,9 +2880,7 @@
                 const card = document.createElement('div');
                 card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
                 
-                const iconContent = (isUnlocked && targetState[t.id].photo)
-                    ? `<img src="${targetState[t.id].photo}" alt="Photo">`
-                    : `<i class="fa-solid fa-trophy"></i>`;
+                const iconContent = isUnlocked ? getIconMediaHTML(targetState[t.id].photo) : `<i class="fa-solid fa-trophy"></i>`;
 
                 let displayNameStr = t.name;
                 if (t.isLimited) displayNameStr = `⏳ ${t.name}`;
@@ -2831,6 +3177,14 @@
         function closeModal(id) {
             const m = document.getElementById(id);
             if (m) m.classList.remove('active');
+            if (id === 'photo-lightbox-modal') {
+                const vidEl = document.getElementById('lightbox-video');
+                if (vidEl) vidEl.pause();
+            }
+            if (id === 'unlock-modal') {
+                const vidEl = document.getElementById('video-preview');
+                if (vidEl) vidEl.pause();
+            }
         }
 
         function showNotification(title, subtitle = 'Trophy Unlocked') {

@@ -151,8 +151,7 @@
         .gallery-item { aspect-ratio: 1; position: relative; overflow: hidden; border-radius: 6px; background: var(--surface-card); cursor: pointer; pointer-events: auto !important; }
         .gallery-item img, .gallery-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
         .gallery-video-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; pointer-events: none; }
-        .gallery-item-title { position: absolute; bottom: 0; inset-inline: 0;
- background: rgba(0,0,0,0.75); font-size: 0.55rem; padding: 3px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .gallery-item-title { position: absolute; bottom: 0; inset-inline: 0; background: rgba(0,0,0,0.75); font-size: 0.55rem; padding: 3px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
         .unlocked-manage-card { background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .unlocked-manage-thumb { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; background: var(--surface-card); flex-shrink: 0; }
         .policy-badge { font-size: 0.62rem; font-weight: 800; padding: 3px 8px; border-radius: 12px; display: inline-block; }
@@ -177,6 +176,51 @@
         .photo-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; display: none; margin-bottom: 16px; background: #000; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 10px; }
         .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); pointer-events: auto !important; }
+
+        /* リスト系モーダル（通知・フォロー・フォロワー）のヘッダー＆フッター常時固定レイアウト */
+        #follow-list-modal .modal-content,
+        #notifications-modal .modal-content {
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+            padding: 0;
+            overflow: hidden;
+        }
+        .modal-header-fixed {
+            padding: 18px 20px 14px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            background: var(--surface-card);
+        }
+        .modal-body-scrollable {
+            padding: 14px 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+            -webkit-overflow-scrolling: touch;
+        }
+        .modal-footer-fixed {
+            padding: 12px 20px 18px 20px;
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+            background: var(--surface-card);
+        }
+        .notif-item-card {
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+        .notif-item-card:active {
+            background: var(--surface-hover);
+        }
     </style>
 </head>
 <body>
@@ -311,21 +355,31 @@
         </div>
     </div>
 
-    <!-- Follow / Follower List Modal -->
-    <div class="modal" id="follow-list-modal">
-        <div class="modal-content">
-            <div class="modal-title" id="follow-list-title">リスト</div>
-            <div id="follow-list-container" style="margin-bottom: 16px;"></div>
-            <button class="modal-btn btn-cancel" onclick="closeModal('follow-list-modal')">閉じる</button>
+    <!-- Follow / Follower List Modal (ヘッダー・閉じるボタン常時固定) -->
+    <div class="modal" id="follow-list-modal" onclick="closeModal('follow-list-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header-fixed">
+                <div class="modal-title" id="follow-list-title" style="margin-bottom: 0; text-align: left;">リスト</div>
+                <button class="header-icon-btn" onclick="closeModal('follow-list-modal')" style="font-size: 1.1rem; padding: 4px;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="follow-list-container" class="modal-body-scrollable"></div>
+            <div class="modal-footer-fixed">
+                <button class="modal-btn btn-cancel" onclick="closeModal('follow-list-modal')" style="margin-top: 0;">閉じる</button>
+            </div>
         </div>
     </div>
 
-    <!-- Notifications Modal -->
-    <div class="modal" id="notifications-modal">
-        <div class="modal-content">
-            <div class="modal-title">🔔 お知らせ</div>
-            <div id="notifications-container" style="margin-bottom: 16px;"></div>
-            <button class="modal-btn btn-cancel" onclick="closeModal('notifications-modal')">閉じる</button>
+    <!-- Notifications Modal (ヘッダー・閉じるボタン常時固定) -->
+    <div class="modal" id="notifications-modal" onclick="closeModal('notifications-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header-fixed">
+                <div class="modal-title" style="margin-bottom: 0; text-align: left;">🔔 お知らせ</div>
+                <button class="header-icon-btn" onclick="closeModal('notifications-modal')" style="font-size: 1.1rem; padding: 4px;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="notifications-container" class="modal-body-scrollable"></div>
+            <div class="modal-footer-fixed">
+                <button class="modal-btn btn-cancel" onclick="closeModal('notifications-modal')" style="margin-top: 0;">閉じる</button>
+            </div>
         </div>
     </div>
 
@@ -934,7 +988,7 @@
 
         function getProfileFromLocalCache(uid) {
             if (!uid) return null;
-            try { const s = localStorage.getItem(`lt_profile_${uid}`); return s ? JSON.parse(s) : null; } catch (e) { return null; } }  function syncProfileToCloudBackground(uid, profileData) { if (!uid) return; const emailStr = profileData.email || (currentUser && currentUser.email) || ""; const cleanSearchUsername = String(profileData.username || "").trim().replace(/^@/, '').toLowerCase(); if (cleanSearchUsername && emailStr) { rememberUsernameEmailMap(cleanSearchUsername, emailStr); } try { const updatedProfile = Object.assign({}, profileData, { email: emailStr, searchUsername: cleanSearchUsername }); db.collection('users').doc(uid).set(updatedProfile, { merge: true }).catch(() => {}); db.collection('posts').doc('profile_' + uid).set({ isProfileIndex: true, uid: uid, email: emailStr, displayName: profileData.displayName || profileData.username, username: profileData.username, searchUsername: cleanSearchUsername, bio: profileData.bio || "人生の実績解除中！", userAvatar: profileData.avatar || "", customTrophies: customTrophies || [], joinedCircles: myProfile.joinedCircles || [], updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {}); } catch (e) {} }  async function saveCustomTrophiesToStorage() { if (!currentUser) return; const uid = currentUser.uid; try { localStorage.setItem(`lt_custom_${uid}`, JSON.stringify(customTrophies));
+            try { const s = localStorage.getItem(`lt_profile_${uid}`); return s ? JSON.parse(s) : null; } catch (e) { return null; } }  function syncProfileToCloudBackground(uid, profileData) { if (!uid) return; const emailStr = profileData.email  ||  (currentUser && currentUser.email)  ||  ""; const cleanSearchUsername = String(profileData.username  ||  "").trim().replace(/^@/, '').toLowerCase(); if (cleanSearchUsername && emailStr) { rememberUsernameEmailMap(cleanSearchUsername, emailStr); } try { const updatedProfile = Object.assign({}, profileData, { email: emailStr, searchUsername: cleanSearchUsername }); db.collection('users').doc(uid).set(updatedProfile, { merge: true }).catch(() => {}); db.collection('posts').doc('profile_' + uid).set({ isProfileIndex: true, uid: uid, email: emailStr, displayName: profileData.displayName  ||  profileData.username, username: profileData.username, searchUsername: cleanSearchUsername, bio: profileData.bio  ||  "人生の実績解除中！", userAvatar: profileData.avatar  ||  "", customTrophies: customTrophies  ||  [], joinedCircles: myProfile.joinedCircles  ||  [], updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {}); } catch (e) {} }  async function saveCustomTrophiesToStorage() { if (!currentUser) return; const uid = currentUser.uid; try { localStorage.setItem(`lt_custom_${uid}`, JSON.stringify(customTrophies));
                 db.collection('users').doc(uid).set({ customTrophies: customTrophies }, { merge: true }).catch(()=>{});
                 db.collection('users').doc(uid).collection('trophies').doc('custom').set({ items: customTrophies }).catch(()=>{});
                 syncProfileToCloudBackground(uid, myProfile);
@@ -1035,8 +1089,7 @@
         function openInitialProfileSetupModal() {
             if (!currentUser) return;
             const emailDisp = document.getElementById('setup-email-display');
-            if (emailDisp) emailDisp.innerText = `登録メールアドレス: ${currentUser.email || '確認済'}`; document.getElementById('displayname-input').value = myProfile.displayName || ''; document.getElementById('username-input').value = myProfile.username || ''; document.getElementById('bio-input').value = myProfile.bio || ''; openModal('username-modal'); }  function saveInitialProfile() { const user = currentUser || auth.currentUser; if (!user) { closeModal('username-modal'); openModal('auth-modal'); return; } const displayName = document.getElementById('displayname-input').value.trim(); const username = document.getElementById('username-input').value.trim().replace(/^@/, ''); const bio = document.getElementById('bio-input').value.trim() || "人生の実績解除中！"; if (!displayName) return alert('表示名を入力してください'); if (!username) return alert('ユーザーIDを入力してください'); const uid = user.uid, email = user.email || ""; const profileData = { uid, email, displayName, username, searchUsername: username.toLowerCase(), bio, avatar: myProfile.avatar || "", theme: myProfile.theme || "dark", privacy: myProfile.privacy || "public", following: myProfile.following || [], followers: myProfile.followers || [], customTrophies: customTrophies || [], joinedCircles: myProfile.joinedCircles || [], updatedAt: new Date().toISOString() }; myProfile = Object.assign({}, profileData); saveProfileToLocalCache(uid, myProfile); closeModal('username-modal'); switchMainTab('profile'); showNotification(`ようこそ、${displayName} (@${username}) さん！`, 'PROFILE COMPLETED'); syncProfileToCloudBackground(uid, profileData); }  function toggleAuthMode() { isSignUpMode = !isSignUpMode; document.getElementById('auth-title').innerText = isSignUpMode ? '新規アカウント登録' : 'ログイン'; document.getElementById('auth-submit-btn').innerText = isSignUpMode ? '登録する' : 'ログイン'; document.getElementById('auth-switch-text').innerText = isSignUpMode ? 'すでにアカウントをお持ちの方はログイン' : 'アカウントをお持ちでない方は新規登録';  const inputField = document.getElementById('auth-email'); if (inputField) { inputField.placeholder = isSignUpMode ? 'メールアドレス' : 'メールアドレス または ユーザーID'; } }  async function handleAuth() { if (isAuthProcessing) return; const inputVal = document.getElementById('auth-email').value.trim(); const password = document.getElementById('auth-password').value; const submitBtn = document.getElementById('auth-submit-btn');  if (!inputVal || !password) return alert('メールアドレス（またはユーザーID）とパスワードを入力してください'); if (password.length < 6) return alert('パスワードは6文字以上で入力してください');  // 先頭に@があるだけの場合（@jefferyなど）はメールアドレスではなくユーザーIDとして判定
-            const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputVal);  isAuthProcessing = true; submitBtn.disabled = true; submitBtn.innerText = '認証中...';  try { if (isSignUpMode) { if (!isEmailFormat) { throw new Error('新規登録には有効なメールアドレスを入力してください。'); } const cred = await auth.createUserWithEmailAndPassword(inputVal, password); currentUser = cred.user; closeModal('auth-modal'); openInitialProfileSetupModal(); } else { let loginEmail = inputVal;  if (!isEmailFormat) { const cleanId = inputVal.replace(/^@/, ''); submitBtn.innerText = 'IDを確認中...'; const resolved = await resolveEmailByUsername(cleanId);  if (!resolved) { throw new Error(`ユーザーID「@${cleanId}」に紐づくメールアドレスが見つかりませんでした。\n\n※一度だけ「メールアドレス」でログインしていただくと、自動的にIDとメールアドレスが紐付けられ、次回からIDのみでログインできるようになります！`);
+            if (emailDisp) emailDisp.innerText = `登録メールアドレス: ${currentUser.email  ||  '確認済'}`; document.getElementById('displayname-input').value = myProfile.displayName  ||  ''; document.getElementById('username-input').value = myProfile.username  ||  ''; document.getElementById('bio-input').value = myProfile.bio  ||  ''; openModal('username-modal'); }  function saveInitialProfile() { const user = currentUser  ||  auth.currentUser; if (!user) { closeModal('username-modal'); openModal('auth-modal'); return; } const displayName = document.getElementById('displayname-input').value.trim(); const username = document.getElementById('username-input').value.trim().replace(/^@/, ''); const bio = document.getElementById('bio-input').value.trim()  ||  "人生の実績解除中！"; if (!displayName) return alert('表示名を入力してください'); if (!username) return alert('ユーザーIDを入力してください'); const uid = user.uid, email = user.email  ||  ""; const profileData = { uid, email, displayName, username, searchUsername: username.toLowerCase(), bio, avatar: myProfile.avatar  ||  "", theme: myProfile.theme  ||  "dark", privacy: myProfile.privacy  ||  "public", following: myProfile.following  ||  [], followers: myProfile.followers  ||  [], customTrophies: customTrophies  ||  [], joinedCircles: myProfile.joinedCircles  ||  [], updatedAt: new Date().toISOString() }; myProfile = Object.assign({}, profileData); saveProfileToLocalCache(uid, myProfile); closeModal('username-modal'); switchMainTab('profile'); showNotification(`ようこそ、${displayName} (@${username}) さん！`, 'PROFILE COMPLETED'); syncProfileToCloudBackground(uid, profileData); }  function toggleAuthMode() { isSignUpMode = !isSignUpMode; document.getElementById('auth-title').innerText = isSignUpMode ? '新規アカウント登録' : 'ログイン'; document.getElementById('auth-submit-btn').innerText = isSignUpMode ? '登録する' : 'ログイン'; document.getElementById('auth-switch-text').innerText = isSignUpMode ? 'すでにアカウントをお持ちの方はログイン' : 'アカウントをお持ちでない方は新規登録';  const inputField = document.getElementById('auth-email'); if (inputField) { inputField.placeholder = isSignUpMode ? 'メールアドレス' : 'メールアドレス または ユーザーID'; } }  async function handleAuth() { if (isAuthProcessing) return; const inputVal = document.getElementById('auth-email').value.trim(); const password = document.getElementById('auth-password').value; const submitBtn = document.getElementById('auth-submit-btn');  if (!inputVal  ||  !password) return alert('メールアドレス（またはユーザーID）とパスワードを入力してください'); if (password.length < 6) return alert('パスワードは6文字以上で入力してください');  const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputVal);  isAuthProcessing = true; submitBtn.disabled = true; submitBtn.innerText = '認証中...';  try { if (isSignUpMode) { if (!isEmailFormat) { throw new Error('新規登録には有効なメールアドレスを入力してください。'); } const cred = await auth.createUserWithEmailAndPassword(inputVal, password); currentUser = cred.user; closeModal('auth-modal'); openInitialProfileSetupModal(); } else { let loginEmail = inputVal;  if (!isEmailFormat) { const cleanId = inputVal.replace(/^@/, ''); submitBtn.innerText = 'IDを確認中...'; const resolved = await resolveEmailByUsername(cleanId);  if (!resolved) { throw new Error(`ユーザーID「@${cleanId}」に紐づくメールアドレスが見つかりませんでした。\n\n※一度だけ「メールアドレス」でログインしていただくと、自動的にIDとメールアドレスが紐付けられ、次回からIDのみでログインできるようになります！`);
                         }
                         loginEmail = resolved;
                     }
@@ -1050,7 +1103,7 @@
                         await auth.signInWithEmailAndPassword(inputVal, password); 
                         return; 
                     } catch (e) {
-                        alert(`メールアドレス「${inputVal}」は既に登録されています。ログイン画面に切り替えます。`); isSignUpMode = false; toggleAuthMode(); isSignUpMode = false; } } else { alert('認証エラー: ' + error.message); } } finally { isAuthProcessing = false; submitBtn.disabled = false; submitBtn.innerText = isSignUpMode ? '登録する' : 'ログイン'; } }  async function logout() { closeModal('settings-modal'); closeModal('username-modal'); await auth.signOut(); }  async function deleteAccount() { if (!confirm('本当にアカウントを削除しますか？すべてのデータが完全に削除され、元に戻せません。')) return; const user = currentUser || auth.currentUser; if (!user) return; const uid = user.uid; try { const postsSnap = await db.collection('posts').where('uid', '==', uid).get(); if (!postsSnap.empty) { const batch = db.batch(); postsSnap.forEach(doc => batch.delete(doc.ref)); await batch.commit(); } await db.collection('users').doc(uid).delete().catch(()=>{}); localStorage.removeItem(`lt_profile_${uid}`); localStorage.removeItem(`lt_custom_${uid}`); localStorage.removeItem(`lt_status_${uid}`); localStorage.removeItem(`lt_reverted_${uid}`); await user.delete(); alert('アカウントを削除しました。'); } catch (error) { alert('一度ログアウトして再ログインしてから削除を実行してください (' + error.message + ')'); } }  async function loadUserData(userDocData) { if (!currentUser) return; const uid = currentUser.uid; let mergedStatus = {}, mergedCustom = []; try { const r = localStorage.getItem(`lt_reverted_${uid}`); revertedIds = r ? JSON.parse(r) : []; } catch (e) { revertedIds = []; }
+                        alert(`メールアドレス「${inputVal}」は既に登録されています。ログイン画面に切り替えます。`); isSignUpMode = false; toggleAuthMode(); isSignUpMode = false; } } else { alert('認証エラー: ' + error.message); } } finally { isAuthProcessing = false; submitBtn.disabled = false; submitBtn.innerText = isSignUpMode ? '登録する' : 'ログイン'; } }  async function logout() { closeModal('settings-modal'); closeModal('username-modal'); await auth.signOut(); }  async function deleteAccount() { if (!confirm('本当にアカウントを削除しますか？すべてのデータが完全に削除され、元に戻せません。')) return; const user = currentUser  ||  auth.currentUser; if (!user) return; const uid = user.uid; try { const postsSnap = await db.collection('posts').where('uid', '==', uid).get(); if (!postsSnap.empty) { const batch = db.batch(); postsSnap.forEach(doc => batch.delete(doc.ref)); await batch.commit(); } await db.collection('users').doc(uid).delete().catch(()=>{}); localStorage.removeItem(`lt_profile_${uid}`); localStorage.removeItem(`lt_custom_${uid}`); localStorage.removeItem(`lt_status_${uid}`); localStorage.removeItem(`lt_reverted_${uid}`); await user.delete(); alert('アカウントを削除しました。'); } catch (error) { alert('一度ログアウトして再ログインしてから削除を実行してください (' + error.message + ')'); } }  async function loadUserData(userDocData) { if (!currentUser) return; const uid = currentUser.uid; let mergedStatus = {}, mergedCustom = []; try { const r = localStorage.getItem(`lt_reverted_${uid}`); revertedIds = r ? JSON.parse(r) : []; } catch (e) { revertedIds = []; }
             try {
                 const ls = localStorage.getItem(`lt_status_${uid}`); if (ls) Object.assign(mergedStatus, JSON.parse(ls)); const lc = localStorage.getItem(`lt_custom_${uid}`); if (lc) mergedCustom = JSON.parse(lc);
             } catch (e) {}
@@ -1397,7 +1450,7 @@
             });
         }
 
-        function searchCircles() {
+               function searchCircles() {
             const qInput = document.getElementById('circle-search-query'), resultsEl = document.getElementById('circle-search-results');
             if (!qInput || !resultsEl) return;
             const rawQ = qInput.value.trim().toLowerCase(); lastCircleSearchQuery = qInput.value.trim();
@@ -1425,7 +1478,7 @@
                 card.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px;">
                         <div style="font-size:0.95rem; font-weight:900; color:var(--text-primary); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                            ⭕ ${circle.circleName}${policyBadge}
+                            ⭕ ${circle.circleName} ${policyBadge}
                         </div>
                         <button class="${isJoined ? 'btn-primary-small' : 'btn-action-small'}" style="flex-shrink:0;">
                             ${isJoined ? 'メニューを開く' : (isPending ? '⏳ 申請中 (詳細)' : '詳細・参加へ')}
@@ -1434,7 +1487,7 @@
                     <div style="font-size:0.74rem; color:var(--text-secondary); margin-bottom:8px; line-height:1.3;">${circle.circleBio || '自己紹介なし'}</div>
                     <div style="font-size:0.65rem; color:var(--text-tertiary);">
                         👑 ホスト: <b>${circle.hostName || '不明'}</b> ・ 👥 メンバー: <b>${members.length}人</b> ・ 🏆 サークル実績: <b>${trophies.length}件</b>
-                         </div>
+                    </div>
                 `;
                 card.onclick = () => { if (isJoined) openCircleMenu(circle.id); else openCirclePreview(circle.id); };
                 resultsEl.appendChild(card);
@@ -1522,7 +1575,7 @@
                 if (!Array.isArray(targetCircle.pendingMembers)) targetCircle.pendingMembers = [];
                 if (!targetCircle.pendingMembers.includes(uid)) targetCircle.pendingMembers.push(uid);
                 await saveCircleSafe(circleId, targetCircle);
-                sendNotification(targetCircle.hostUid, 'circle_request', `がサークル「${targetCircle.circleName}」への参加を申請しました。`);
+                sendNotification(targetCircle.hostUid, 'circle_request', `がサークル「${targetCircle.circleName}」への参加を申請しました。`, { circleId: circleId });
                 showNotification('ホストに参加申請を送りました！', 'REQUEST SENT');
                 renderCirclePreviewMenu(targetCircle);
             } else {
@@ -1764,7 +1817,7 @@
                 }, { merge: true });
             } catch (e) {}
 
-            sendNotification(targetUid, 'circle_approved', `がサークル「${targetCircle.circleName}」への参加を承認しました！`);
+            sendNotification(targetUid, 'circle_approved', `がサークル「${targetCircle.circleName}」への参加を承認しました！`, { circleId: circleId });
             showNotification('メンバーの参加を承認しました！', 'MEMBER APPROVED');
             renderCircleRoomView(targetCircle);
         }
@@ -2152,7 +2205,7 @@
         }
 
         /* -------------------------------------------------------------
-           ホーム（タイムライン）View
+           ホーム（タイムライン）View：常に最新のアイコン・表示名を表示
         ------------------------------------------------------------- */
         async function renderFeedView() {
             const container = document.getElementById('main-container');
@@ -2167,114 +2220,135 @@
                 const allowedUids = currentUser ? [...followingList, currentUser.uid] : followingList;
 
                 const allTrophiesList = getAllTrophies();
-                let realPostCount = 0;
+                const filteredDocs = [];
+                const uniqueUids = new Set();
 
                 if (snapshot && !snapshot.empty) {
                     snapshot.forEach(doc => {
                         const post = doc.data();
                         if (post.isProfileIndex || post.isCircleDoc) return;
                         if (!allowedUids.includes(post.uid)) return;
-
-                        realPostCount++;
-
-                        const postId = doc.id;
-                        const isLiked = currentUser && (post.likes || []).includes(currentUser.uid);
-
-                        const matchedTrophy = allTrophiesList.find(t => String(t.id) === String(post.trophyId) || t.name === post.trophyName);
-                        const rank = post.trophyRank || (matchedTrophy ? matchedTrophy.rank : 'gold');
-                        let rankColorVar = 'var(--rank-gold)';
-                        if (rank === 'platinum') rankColorVar = 'var(--rank-platinum)';
-                        else if (rank === 'silver') rankColorVar = 'var(--rank-silver)';
-                        else if (rank === 'bronze') rankColorVar = 'var(--rank-bronze)';
-
-                        const avatarHTML = post.userAvatar 
-                            ? `<img src="${post.userAvatar}" class="feed-avatar">` 
-                            : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
-
-                        const commentHTML = post.comment && post.comment.trim() !== '' 
-                            ? `<div class="feed-comment-box">${post.comment}</div>` 
-                            : '';
-
-                        let mediaHTML = '';
-                        if (post.photo) {
-                            if (isVideoSource(post.photo)) {
-                                mediaHTML = `<video src="${post.photo}" class="feed-photo" id="feed-img-${postId}" controls playsinline loop muted></video>`;
-                            } else {
-                                mediaHTML = `<img src="${post.photo}" class="feed-photo" id="feed-img-${postId}">`;
-                            }
-                        }
-
-                        const card = document.createElement('div');
-                        card.className = 'feed-card';
-                        card.innerHTML = `
-                            <div class="feed-header">
-                                <div class="feed-user-info" id="feed-user-${postId}">
-                                    ${avatarHTML}
-                                    <div>
-                                        <div class="feed-display-name">${post.displayName || post.username || 'ユーザー'}</div>
-                                        <div class="feed-user-name">@${post.username || 'user'}</div>
-                                    </div>
-                                </div>
-                                <div class="feed-time">${post.date || ''}</div>
-                            </div>
-
-                            <div class="feed-trophy-banner">
-                                <div style="font-size:0.65rem; color:${rankColorVar}; font-weight:800; letter-spacing:1px; margin-bottom:2px;">
-                                    ${rank.toUpperCase()} TROPHY UNLOCKED
-                                </div>
-                                <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">
-                                    <i class="fa-solid fa-trophy" style="color:${rankColorVar}; margin-right:4px;"></i>${post.trophyName || '実績'}
-                                </div>
-                            </div>
-
-                            ${mediaHTML}
-                            ${commentHTML}
-
-                            <div class="feed-actions">
-                                <div class="feed-actions-left">
-                                    <div class="feed-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${postId}', ${isLiked}, '${post.uid}')">
-                                        <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
-                                        <span>${(post.likes || []).length}</span>
-                                    </div>
-                                    <div class="feed-action-btn">
-                                        <i class="fa-regular fa-comment"></i>
-                                        <span>${(post.comments || []).length}</span>
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: 10px; align-items: center;">
-                                    ${currentUser && post.uid === currentUser.uid ? `<div class="feed-action-btn" style="color:var(--accent-red);" onclick="deletePostByPostId('${postId}', '${post.trophyId || ''}')" title="投稿を削除"><i class="fa-solid fa-trash"></i></div>` : ''}
-                                    <div class="feed-action-btn" id="feed-share-${postId}">
-                                        <i class="fa-solid fa-share-nodes"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="feed-comments-section">
-                                <div id="comments-list-${postId}">
-                                    ${(post.comments || []).map(c => `<div class="comment-item"><b>${c.displayName || c.username}:</b> ${c.text}</div>`).join('')}
-                                </div>
-                                <div class="comment-input-box">
-                                    <input type="text" id="comment-input-${postId}" class="form-input" placeholder="お祝いコメントを入力..." style="margin-bottom:0; font-size:0.75rem; padding:8px 12px;">
-                                    <button class="btn-action-small" onclick="addComment('${postId}', '${post.uid}')">送信</button>
-                                </div>
-                            </div>
-                        `;
-                        container.appendChild(card);
-
-                        const userBtn = document.getElementById(`feed-user-${postId}`);
-                        if (userBtn) userBtn.onclick = () => openUserFromFeed(post.uid);
-
-                        const imgBtn = document.getElementById(`feed-img-${postId}`);
-                        if (imgBtn && !isVideoSource(post.photo)) {
-                            imgBtn.onclick = () => openPhotoLightbox(post.photo, post.trophyName || '実績', post.condition || '', post.date || '', post.comment || '', postId, post.uid, post.trophyId);
-                        }
-
-                        const shareBtn = document.getElementById(`feed-share-${postId}`);
-                        if (shareBtn) {
-                            shareBtn.onclick = () => sharePost(post.trophyName || '実績', post.displayName || post.username || 'ユーザー');
-                        }
+                        filteredDocs.push({ id: doc.id, data: post });
+                        if (post.uid) uniqueUids.add(post.uid);
                     });
                 }
+
+                // 投稿者の最新プロフィール（最新のアイコン・現在の表示名）を並列で取得してマップ化
+                const latestUserMap = {};
+                await Promise.all(Array.from(uniqueUids).map(async uid => {
+                    latestUserMap[uid] = await fetchBasicUserInfo(uid);
+                }));
+
+                let realPostCount = 0;
+
+                filteredDocs.forEach(item => {
+                    const post = item.data;
+                    const postId = item.id;
+                    realPostCount++;
+
+                    const isLiked = currentUser && (post.likes || []).includes(currentUser.uid);
+
+                    // 最新プロフィールがあれば現在のアイコン・表示名を優先使用
+                    const latestUser = latestUserMap[post.uid] || {};
+                    const currentAvatar = (latestUser.avatar && latestUser.avatar.trim() !== '') ? latestUser.avatar : post.userAvatar;
+                    const currentDisplayName = latestUser.displayName || post.displayName || post.username || 'ユーザー';
+                    const currentUsername = latestUser.username || post.username || 'user';
+
+                    const matchedTrophy = allTrophiesList.find(t => String(t.id) === String(post.trophyId) || t.name === post.trophyName);
+                    const rank = post.trophyRank || (matchedTrophy ? matchedTrophy.rank : 'gold');
+                    let rankColorVar = 'var(--rank-gold)';
+                    if (rank === 'platinum') rankColorVar = 'var(--rank-platinum)';
+                    else if (rank === 'silver') rankColorVar = 'var(--rank-silver)';
+                    else if (rank === 'bronze') rankColorVar = 'var(--rank-bronze)';
+
+                    const avatarHTML = currentAvatar 
+                        ? `<img src="${currentAvatar}" class="feed-avatar">` 
+                        : `<div class="feed-avatar"><i class="fa-solid fa-user"></i></div>`;
+
+                    const commentHTML = post.comment && post.comment.trim() !== '' 
+                        ? `<div class="feed-comment-box">${post.comment}</div>` 
+                        : '';
+
+                    let mediaHTML = '';
+                    if (post.photo) {
+                        if (isVideoSource(post.photo)) {
+                            mediaHTML = `<video src="${post.photo}" class="feed-photo" id="feed-img-${postId}" controls playsinline loop muted></video>`;
+                        } else {
+                            mediaHTML = `<img src="${post.photo}" class="feed-photo" id="feed-img-${postId}">`;
+                        }
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'feed-card';
+                    card.id = `feed-card-${postId}`;
+                    card.innerHTML = `
+                        <div class="feed-header">
+                            <div class="feed-user-info" id="feed-user-${postId}">
+                                ${avatarHTML}
+                                <div>
+                                    <div class="feed-display-name">${currentDisplayName}</div>
+                                    <div class="feed-user-name">@${currentUsername}</div>
+                                </div>
+                            </div>
+                            <div class="feed-time">${post.date || ''}</div>
+                        </div>
+
+                        <div class="feed-trophy-banner">
+                            <div style="font-size:0.65rem; color:${rankColorVar}; font-weight:800; letter-spacing:1px; margin-bottom:2px;">
+                                ${rank.toUpperCase()} TROPHY UNLOCKED
+                            </div>
+                            <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">
+                                <i class="fa-solid fa-trophy" style="color:${rankColorVar}; margin-right:4px;"></i>${post.trophyName || '実績'}
+                            </div>
+                        </div>
+
+                        ${mediaHTML}
+                        ${commentHTML}
+
+                        <div class="feed-actions">
+                            <div class="feed-actions-left">
+                                <div class="feed-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${postId}', ${isLiked}, '${post.uid}')">
+                                    <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                    <span>${(post.likes || []).length}</span>
+                                </div>
+                                <div class="feed-action-btn">
+                                    <i class="fa-regular fa-comment"></i>
+                                    <span>${(post.comments || []).length}</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                ${currentUser && post.uid === currentUser.uid ? `<div class="feed-action-btn" style="color:var(--accent-red);" onclick="deletePostByPostId('${postId}', '${post.trophyId || ''}')" title="投稿を削除"><i class="fa-solid fa-trash"></i></div>` : ''}
+                                <div class="feed-action-btn" id="feed-share-${postId}">
+                                    <i class="fa-solid fa-share-nodes"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feed-comments-section">
+                            <div id="comments-list-${postId}">
+                                ${(post.comments || []).map(c => `<div class="comment-item"><b>${c.displayName || c.username}:</b> ${c.text}</div>`).join('')}
+                            </div>
+                            <div class="comment-input-box">
+                                <input type="text" id="comment-input-${postId}" class="form-input" placeholder="お祝いコメントを入力..." style="margin-bottom:0; font-size:0.75rem; padding:8px 12px;">
+                                <button class="btn-action-small" onclick="addComment('${postId}', '${post.uid}')">送信</button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+
+                    const userBtn = document.getElementById(`feed-user-${postId}`);
+                    if (userBtn) userBtn.onclick = () => openUserFromFeed(post.uid);
+
+                    const imgBtn = document.getElementById(`feed-img-${postId}`);
+                    if (imgBtn && !isVideoSource(post.photo)) {
+                        imgBtn.onclick = () => openPhotoLightbox(post.photo, post.trophyName || '実績', post.condition || '', post.date || '', post.comment || '', postId, post.uid, post.trophyId);
+                    }
+
+                    const shareBtn = document.getElementById(`feed-share-${postId}`);
+                    if (shareBtn) {
+                        shareBtn.onclick = () => sharePost(post.trophyName || '実績', currentDisplayName);
+                    }
+                });
 
                 if (realPostCount === 0) {
                     container.innerHTML += `
@@ -2323,7 +2397,7 @@
                 await postRef.update({ likes: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) }).catch(()=>{});
             } else {
                 await postRef.update({ likes: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) }).catch(()=>{});
-                sendNotification(postOwnerUid, 'like', 'があなたの投稿に「いいね！」しました。');
+                sendNotification(postOwnerUid, 'like', 'があなたの投稿に「いいね！」しました。', { postId: postId });
             }
             renderFeedView();
         }
@@ -2346,7 +2420,7 @@
                 })
             }).catch(()=>{});
 
-            sendNotification(postOwnerUid, 'comment', `があなたの投稿にコメントしました: "${text}"`);
+            sendNotification(postOwnerUid, 'comment', `があなたの投稿にコメントしました: "${text}"`, { postId: postId });
             input.value = '';
             renderFeedView();
         }
@@ -2972,17 +3046,20 @@
             }
         }
 
-        function sendNotification(targetUid, type, message) {
+        /* -------------------------------------------------------------
+           通知機能（タップで該当箇所にジャンプ対応）
+        ------------------------------------------------------------- */
+        function sendNotification(targetUid, type, message, extraData = {}) {
             if (!currentUser || targetUid === currentUser.uid) return;
             try {
-                db.collection('users').doc(targetUid).collection('notifications').add({
+                db.collection('users').doc(targetUid).collection('notifications').add(Object.assign({
                     type: type,
                     senderUid: currentUser.uid,
                     senderName: myProfile.displayName || myProfile.username || 'ユーザー',
                     message: message,
                     read: false,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                }).catch(()=>{});
+                }, extraData)).catch(()=>{});
             } catch (e) {}
         }
 
@@ -3002,7 +3079,7 @@
             openModal('notifications-modal');
 
             try {
-                const snapshot = await withTimeout(db.collection('users').doc(currentUser.uid).collection('notifications').orderBy('createdAt', 'desc').limit(20).get(), 2500);
+                const snapshot = await withTimeout(db.collection('users').doc(currentUser.uid).collection('notifications').orderBy('createdAt', 'desc').limit(40).get(), 2500);
                 container.innerHTML = '';
 
                 if (!snapshot || snapshot.empty) {
@@ -3015,9 +3092,14 @@
                     batch.update(doc.ref, { read: true });
                     const data = doc.data();
                     const card = document.createElement('div');
-                    card.className = 'feed-card';
-                    card.style.cssText = 'padding:10px 14px; margin-bottom:8px; font-size:0.75rem;';
-                    card.innerHTML = `<b>${data.senderName}</b> ${data.message}`;
+                    card.className = 'feed-card notif-item-card';
+                    card.innerHTML = `
+                        <div style="line-height: 1.4; word-break: break-word;">
+                            <b>${data.senderName || 'ユーザー'}</b> ${data.message || ''}
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="color:var(--text-secondary); font-size:0.75rem; flex-shrink:0;"></i>
+                    `;
+                    card.onclick = () => handleNotificationClick(data);
                     container.appendChild(card);
                 });
                 batch.commit().catch(()=>{});
@@ -3025,6 +3107,78 @@
                 if (dot) dot.style.display = 'none';
             } catch (e) {
                 container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">通知はありません</div>';
+            }
+        }
+
+        // 通知をタップした際に該当箇所へジャンプする処理
+        async function handleNotificationClick(notifData) {
+            closeModal('notifications-modal');
+            if (!notifData) return;
+
+            const type = notifData.type;
+
+            // 1. フォロー通知 → 相手のプロフィールへジャンプ
+            if (type === 'follow' && notifData.senderUid) {
+                await openUserFromFeed(notifData.senderUid);
+                return;
+            }
+
+            // 2. サークル参加申請 / 承認通知 → 該当サークルの画面へジャンプ
+            if (type === 'circle_request' || type === 'circle_approved') {
+                activeTab = 'circle';
+                document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+                const cirBtn = document.getElementById('nav-btn-circle');
+                if (cirBtn) cirBtn.classList.add('active');
+                const statsBox = document.getElementById('stats-grid-box');
+                if (statsBox) statsBox.style.display = 'none';
+
+                activeCircles = await fetchAllCirclesSafe();
+                let targetCircleId = notifData.circleId || null;
+
+                if (!targetCircleId && notifData.message) {
+                    const match = notifData.message.match(/「(.+?)」/);
+                    if (match && match[1]) {
+                        const found = activeCircles.find(c => c.circleName === match[1]);
+                        if (found) targetCircleId = found.id;
+                    }
+                }
+
+                if (targetCircleId) {
+                    currentActiveCircleId = targetCircleId;
+                    circleViewMode = 'room';
+                    circleRoomSubTab = (type === 'circle_request') ? 'members' : 'trophies';
+                } else {
+                    currentActiveCircleId = null;
+                    circleViewMode = 'list';
+                }
+                await renderCircleView();
+                return;
+            }
+
+            // 3. いいね / コメント通知 → 該当の投稿詳細（またはタイムラインの該当投稿）へジャンプ
+            if (type === 'like' || type === 'comment') {
+                if (notifData.postId) {
+                    try {
+                        const pDoc = await withTimeout(db.collection('posts').doc(notifData.postId).get(), 2000);
+                        if (pDoc && pDoc.exists) {
+                            const p = pDoc.data();
+                            await switchMainTab('feed');
+                            const cardEl = document.getElementById(`feed-card-${notifData.postId}`);
+                            if (cardEl) cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            if (p.photo) {
+                                openPhotoLightbox(p.photo, p.trophyName || '実績', p.condition || '', p.date || '', p.comment || '', notifData.postId, p.uid, p.trophyId);
+                            }
+                            return;
+                        }
+                    } catch (e) {}
+                }
+                await switchMainTab('feed');
+                return;
+            }
+
+            // その他：送信者のプロフィールへジャンプ
+            if (notifData.senderUid) {
+                await openUserFromFeed(notifData.senderUid);
             }
         }
 
@@ -3179,6 +3333,25 @@
             showNotification('プロフィールを更新しました', 'PROFILE UPDATED');
 
             syncProfileToCloudBackground(user.uid, myProfile);
+
+            // 過去に投稿したすべてのタイムライン投稿のアイコン・表示名も最新に一括更新する
+            try {
+                db.collection('posts').where('uid', '==', user.uid).get().then(snap => {
+                    if (snap && !snap.empty) {
+                        const batch = db.batch();
+                        snap.forEach(doc => {
+                            if (!doc.data().isCircleDoc) {
+                                batch.update(doc.ref, {
+                                    userAvatar: myProfile.avatar || "",
+                                    displayName: newDisplayName,
+                                    username: newUsername
+                                });
+                            }
+                        });
+                        batch.commit().catch(() => {});
+                    }
+                }).catch(() => {});
+            } catch (e) {}
         }
 
         function openModal(id) {

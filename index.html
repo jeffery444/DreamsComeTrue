@@ -221,7 +221,108 @@
         .notif-item-card:active {
             background: var(--surface-hover);
         }
-    </style>
+            /* --- v1.3 追加スタイル（お気に入り・ジャンル・進捗・時系列ギャラリー） --- */
+        .category-tabs-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+            margin-bottom: 14px;
+            background: var(--surface-card);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .fav-star-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 6px;
+            transition: transform 0.15s, color 0.15s;
+            pointer-events: auto !important;
+        }
+        .fav-star-btn.active {
+            color: var(--rank-gold);
+        }
+        .fav-star-btn:active {
+            transform: scale(1.25);
+        }
+        .genre-tag {
+            font-size: 0.58rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--surface-hover);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .progress-count-tag {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #30d158;
+            background: rgba(48, 209, 88, 0.12);
+            border: 1px solid rgba(48, 209, 88, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .mode-switch-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .mode-switch-btn {
+            padding: 10px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--surface-hover);
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-align: center;
+            pointer-events: auto !important;
+        }
+        .mode-switch-btn.active-unlock {
+            background: var(--text-primary);
+            color: var(--bg-main);
+            border-color: var(--text-primary);
+        }
+        .mode-switch-btn.active-progress {
+            background: rgba(48, 209, 88, 0.18);
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+        .timeline-step-card {
+            background: var(--surface-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 14px;
+            text-align: left;
+            position: relative;
+        }
+        .timeline-step-badge {
+            display: inline-block;
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .timeline-step-badge.progress {
+            background: rgba(48, 209, 88, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(48, 209, 88, 0.35);
+        }
+        .timeline-step-badge.unlocked {
+            background: rgba(255, 215, 0, 0.15);
+            color: var(--rank-gold);
+            border: 1px solid rgba(255, 215, 0, 0.35);
+        }
+        </style>
+
 </head>
 <body>
 
@@ -241,7 +342,7 @@
     <!-- Initial Profile Setup Modal -->
     <div class="modal" id="username-modal">
         <div class="modal-content">
-            <div class="modal-title">✨ プロフィール初期設定</div>
+            <div class="modal-title"> プロフィール初期設定</div>
             <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 14px; text-align: center; line-height: 1.4;">
                 アカウント作成ありがとうございます！<br>検索やタイムラインで使用する<b>表示名</b>と<b>ユーザーID</b>を設定してください。
             </div>
@@ -330,30 +431,24 @@
         </div>
     </div>
 
-    <!-- Photo / Video Lightbox / Detail Zoom Modal -->
+        <!-- Photo / Video Lightbox / 時系列ヒストリーモーダル -->
     <div class="modal" id="photo-lightbox-modal" onclick="closeModal('photo-lightbox-modal')">
-        <div class="modal-content" onclick="event.stopPropagation()" style="text-align: center; max-width: 440px;">
-            <div class="modal-title" id="lightbox-title" style="margin-bottom: 10px; font-size: 0.95rem;">実績詳細</div>
-            <img id="lightbox-image" style="width: 100%; max-height: 280px; object-fit: cover; border-radius: 10px; margin-bottom: 12px; display: none;" alt="Zoomed Photo">
-            <video id="lightbox-video" style="width: 100%; max-height: 280px; object-fit: cover; border-radius: 10px; margin-bottom: 12px; display: none; background: #000;" controls playsinline loop></video>
-            <div id="lightbox-condition" style="font-size: 0.75rem; color: var(--text-primary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; text-align: left; font-weight: 700;"></div>
-            <div id="lightbox-date" style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 8px;"></div>
-            <div id="lightbox-comment" style="font-size: 0.82rem; background: var(--surface-hover); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; text-align: left; line-height: 1.4; word-break: break-word;"></div>
-            
-            <div id="lightbox-social-section" style="background: var(--surface-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; margin-bottom: 14px; text-align: left;">
-                <div style="display:flex; align-items:center; gap:14px; font-size:0.8rem; font-weight:700; margin-bottom:8px; border-bottom:1px solid var(--border-color); padding-bottom:6px;">
-                    <span style="color:var(--accent-red);"><i class="fa-solid fa-heart"></i> いいね <span id="lightbox-likes-count">0</span>件</span>
-                    <span style="color:var(--text-secondary);"><i class="fa-solid fa-comment"></i> コメント <span id="lightbox-comments-count">0</span>件</span>
-                </div>
-                <div id="lightbox-comments-list" style="max-height:130px; overflow-y:auto; font-size:0.75rem;"></div>
+        <div class="modal-content" onclick="event.stopPropagation()" style="display:flex; flex-direction:column; max-width: 440px; max-height: 84vh; padding: 0; overflow: hidden;">
+            <div class="modal-header-fixed">
+                <div class="modal-title" id="lightbox-title" style="margin-bottom: 0; font-size: 0.92rem; text-align: left;">実績詳細</div>
+                <button class="header-icon-btn" onclick="closeModal('photo-lightbox-modal')" style="font-size: 1.1rem; padding: 4px;"><i class="fa-solid fa-xmark"></i></button>
             </div>
-
-            <div id="lightbox-delete-container" style="margin-bottom: 12px; display: none;">
-                <button class="delete-btn" id="lightbox-delete-post-btn" style="width: 100%; padding: 10px; font-size: 0.8rem;">🗑️ この投稿を削除する</button>
+            <div class="modal-body-scrollable" id="lightbox-scroll-body">
+                <div id="lightbox-condition" style="font-size: 0.75rem; color: var(--text-primary); background: var(--surface-hover); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; text-align: left; font-weight: 700;"></div>
+                <!-- ここに進捗1 → 進捗2 → 解除！の時系列カードが順番に並びます -->
+                <div id="lightbox-timeline-container"></div>
             </div>
-            <button class="modal-btn btn-cancel" onclick="closeModal('photo-lightbox-modal')">閉じる</button>
+            <div class="modal-footer-fixed">
+                <button class="modal-btn btn-cancel" onclick="closeModal('photo-lightbox-modal')" style="margin-top: 0;">閉じる</button>
+            </div>
         </div>
     </div>
+
 
     <!-- Follow / Follower List Modal (ヘッダー・閉じるボタン常時固定) -->
     <div class="modal" id="follow-list-modal" onclick="closeModal('follow-list-modal')">
@@ -439,25 +534,33 @@
         </div>
     </div>
 
-    <!-- Unlock Modal -->
+        <!-- Unlock / Progress Modal (解除 or 進捗記録 選択対応) -->
     <div class="modal" id="unlock-modal">
         <div class="modal-content">
-            <div class="modal-title" id="modal-trophy-title">実績を解除</div>
+            <div class="modal-title" id="modal-trophy-title">実績を記録</div>
+            <div class="mode-switch-group">
+                <button type="button" class="mode-switch-btn active-unlock" id="mode-btn-unlock" onclick="setUnlockModalMode('unlock')">🏆 実績を解除する</button>
+                <button type="button" class="mode-switch-btn" id="mode-btn-progress" onclick="setUnlockModalMode('progress')">🗺️ 進捗を記録する</button>
+            </div>
+            <div id="unlock-mode-desc" style="font-size: 0.7rem; color: var(--text-secondary); text-align: center; margin-bottom: 12px;">
+                条件を達成！トロフィーを獲得してタイムラインに投稿しよう。
+            </div>
             <div class="photo-upload-zone" id="unlock-photo-zone" onclick="document.getElementById('photo-input').click()">
                 <i class="fa-solid fa-photo-film" style="font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 8px;"></i>
-                <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary);" id="photo-upload-label">📸 証拠写真 または 動画を選択 (必須)</div>
+                <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary);" id="photo-upload-label">📸 写真 または 動画を選択 (必須)</div>
                 <div style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 4px;">※動画の場合は<b>5秒まで</b>（写真または動画の添付が必須です）</div>
             </div>
             <img id="photo-preview" class="photo-preview" alt="Preview">
             <video id="video-preview" class="photo-preview" controls playsinline muted loop></video>
             <input type="file" id="photo-input" accept="image/*,video/*" style="display: none;" onchange="previewImage(event)">
-            <textarea id="unlock-comment-input" class="form-textarea" placeholder="思い出や感想のコメントを残す（任意）"></textarea>
+            <textarea id="unlock-comment-input" class="form-textarea" placeholder="思い出や進捗のコメントを残す（任意）"></textarea>
             <div class="modal-buttons">
                 <button class="modal-btn btn-cancel" onclick="closeModal('unlock-modal')">キャンセル</button>
                 <button class="modal-btn" id="confirm-unlock-btn" onclick="confirmUnlock()">解除する</button>
             </div>
         </div>
     </div>
+
 
     <!-- Header -->
     <header>
@@ -513,9 +616,10 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let currentUser = null;
+                let currentUser = null;
         let userState = {};
-        let myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [], joinedCircles: [] };
+        let myProfile = { uid: "", email: "", displayName: "", username: "", bio: "", avatar: "", theme: "dark", privacy: "public", following: [], followers: [], joinedCircles: [], favoriteTrophies: [] };
+        let favoriteTrophyIds = [];
         let customTrophies = [];
         let circleTrophies = [];
         let activeCircles = [];
@@ -527,108 +631,120 @@
         let isSignUpMode = false;
         let isAuthProcessing = false;
         let selectedTrophyId = null;
+        let unlockModalMode = 'unlock'; // 'unlock' または 'progress'
         let activeTab = 'trophies';
         let boardCategory = 'default';
         let trophyFilter = 'all';
+        let trophyGenreFilter = 'all';
         let tempAvatarBase64 = "";
         let tempUnlockPhotoBase64 = "";
         let isMediaProcessing = false;
         let notifTimer = null;
 
+        const genreLabels = {
+            all: '📂 すべて',
+            challenge: '🔥 チャレンジ',
+            play: '🎮 遊び・趣味',
+            travel: '✈️ お出かけ・旅',
+            daily: '🍽️ グルメ・日常',
+            special: '✨ ロマン'
+        };
+
         const defaultTrophies = [
-            { id: 1, name: '夢、叶えし者', condition: '夢を叶える', rank: 'platinum', isUltimate: true },
-            { id: 2, name: 'バイリンガル', condition: 'TOEICで満点を取る', rank: 'gold' },
-            { id: 3, name: '言語学者', condition: '漢検一級を取得', rank: 'gold' },
-            { id: 4, name: 'Off the wall', condition: 'ベンチプレス100kgをクリア', rank: 'gold' },
-            { id: 5, name: 'なにわの怪人', condition: '大阪環状線を徒歩で一周する', rank: 'gold' },
-            { id: 6, name: '江戸の傾奇者', condition: '山手線を徒歩で一周する', rank: 'gold' },
-            { id: 7, name: '孤独のファンタジー', condition: '1人で遊園地に行く', rank: 'gold' },
-            { id: 8, name: '国境なき絆', condition: '海外の友人を作る', rank: 'gold' },
-            { id: 9, name: '紳士の洗礼', condition: 'クリケットを行う', rank: 'gold' },
-            { id: 10, name: '空の王者', condition: 'パラグライダーまたはスカイダイビングを体験する。', rank: 'gold' },
-            { id: 11, name: '大海の覇者', condition: 'マリンスポーツで遊ぶ', rank: 'gold' },
-            { id: 12, name: '完全制覇', condition: 'お気に入り飲食店のメニューを全て食べた。', rank: 'gold' },
-            { id: 13, name: 'デビュー待ち', condition: 'カラオケで100点を叩き出す', rank: 'gold' },
-            { id: 14, name: '伝説の目撃者', condition: '現地でプロのモータースポーツやプロスポーツの決勝を観戦する', rank: 'gold' },
-            { id: 15, name: 'Bullet', condition: '日帰りまたは0泊で海外へ行く', rank: 'gold' },
-            { id: 16, name: '本物の勝負師', condition: '合法的なカジノで遊ぶ', rank: 'gold' },
-            { id: 17, name: 'ダイヤモンドは砕けない', condition: 'ダイヤモンド製品を購入する', rank: 'gold' },   
-            { id: 18, name: 'アルテマ', condition: '大掃除や断捨離で自分に不要なものを完全処分する', rank: 'gold' },
-            { id: 19, name: 'スティールボールラン', condition: '馬に乗る', rank: 'silver' },
-            { id: 20, name: 'なにわの商人', condition: '家電量販店で値引きを交渉をして割引をしてもらう', rank: 'silver' },
-            { id: 21, name: 'デジタルデトックス', condition: '見知らぬ人に教えを請う', rank: 'silver' },
-            { id: 22, name: 'ポーカーフェイスドロップ', condition: 'ジェットコースターで叫ばない', rank: 'silver' },
-            { id: 23, name: '明けの明星', condition: '始発で出かける', rank: 'silver' },
-            { id: 24, name: 'グローバル化社会', condition: 'TOEICを受ける', rank: 'silver' },
-            { id: 25, name: '寒風の半袖ファイター', condition: '気温が10℃を下回ってる日に半袖で出かける', rank: 'silver' },
-            { id: 26, name: 'ストライカー', condition: 'シュートを決める', rank: 'silver' },
-            { id: 27, name: '銀世界', condition: 'ウインタースポーツで遊ぶ', rank: 'silver' },
-            { id: 28, name: '栄養学', condition: '厚生労働省が定める日本人の食事摂取基準を満たした食事を1日摂る', rank: 'silver' },
-            { id: 29, name: 'ALL OUT', condition: '筋力トレーニングでプロテインシェイカーが振れないほど追い込む', rank: 'silver' },
-            { id: 30, name: '成功者', condition: '平日の昼間にジムに行く', rank: 'silver' },
-            { id: 31, name: 'ナイトクルーズ', condition: '夜行バスで500km以上移動する', rank: 'silver' },
-            { id: 32, name: '大悪党', condition: 'その場にいる全員を騙し、後でネタバラシをする', rank: 'silver' },
-            { id: 33, name: '創作料理人', condition: 'レシピを見ずに美味しい料理を作る', rank: 'silver' },
-            { id: 91, name: '気分は監督', condition: '映画館で自分以外の観客がいない状態で映画を見る', rank: 'silver' },
-            { id: 34, name: '東海道中膝栗毛', condition: '東京大阪間を自動車で移動する', rank: 'silver' },
-            { id: 35, name: '不屈の意志', condition: '継続していた悪癖を止める', rank: 'silver' },
-            { id: 36, name: '現金主義', condition: '新品の携帯電話を一括で購入', rank: 'silver' },
-            { id: 37, name: '伝説の始まり', condition: 'ホームランを打つ', rank: 'silver' },
-            { id: 38, name: '手中', condition: '高層階に宿泊', rank: 'silver' },
-            { id: 39, name: 'この日のために', condition: '大勢の前でダンスを披露する', rank: 'silver' },
-            { id: 40, name: '拡散よろしく！', condition: 'イベントでコスプレをする', rank: 'silver' },
-            { id: 41, name: 'のんびりスローライフ', condition: '無人島に上陸する', rank: 'silver' },
-            { id: 79, name: '重力への叛逆', condition: '懸垂を20回連続で行う', rank: 'silver' },
-            { id: 80, name: 'マイナスイオンが段違い', condition: '日本三大名瀑のうちいずれかを訪れる', rank: 'silver' },
-            { id: 81, name: '時空を超えた読書家', condition: '国立国会図書館に足を運び、資料を閲覧する', rank: 'silver' },
-            { id: 82, name: 'まだ見ぬ秘湯を求めて', condition: '日本三大古湯または日本三大名泉のいずれかに入浴する', rank: 'silver' },
-            { id: 83, name: 'ここで一句', condition: '日本三景のうちいずれかを見る', rank: 'silver' },
-            { id: 42, name: 'あの夏の思い出', condition: 'カブト虫を捕まえる', rank: 'bronze' },
-            { id: 43, name: '秘密のストライク', condition: 'ボウリングでストライクを取る', rank: 'bronze' },
-            { id: 44, name: 'ブルズアイ', condition: 'ダーツでブルに入れる', rank: 'bronze' },
-            { id: 45, name: '井の中の蛙', condition: '海に行く', rank: 'bronze' },
-            { id: 46, name: '熱狂の観客席', condition: 'スポーツ観戦をする', rank: 'bronze' },
-            { id: 47, name: '孤高の肉食獣', condition: '1人で焼肉に行く', rank: 'bronze' },
-            { id: 48, name: 'モフモフフレンドリー', condition: '散歩している犬を撫でる', rank: 'bronze' },
-            { id: 49, name: '選ばれし者', condition: '野良猫に懐かれる', rank: 'bronze' },
-            { id: 50, name: '漆黒の王者', condition: 'カラスに挨拶を返す', rank: 'bronze' },
-            { id: 51, name: '痛恨の一撃', condition: '電車に乗り遅れる', rank: 'bronze' },
-            { id: 52, name: '電池切れ？', condition: '道に迷う', rank: 'bronze' },
-            { id: 53, name: '直属のディナー', condition: '上司と2人で食事に行く', rank: 'bronze' },
-            { id: 54, name: '野人', condition: '2日間風呂に入らない', rank: 'bronze' },
-            { id: 94, name: 'ゴールドソーサーの勝者', condition: 'ゲームセンターのクレーンゲームやアーケードゲームで景品をGETする', rank: 'bronze' },
-            { id: 55, name: '水面の旅人', condition: '雨の日に散歩をする', rank: 'bronze' },
-            { id: 56, name: '大金の重み', condition: '10万円以上の現金を引き出す', rank: 'bronze' },
-            { id: 57, name: '博打打ち', condition: '公営ギャンブルで勝利する', rank: 'bronze' },
-            { id: 58, name: '審判の日', condition: '自室の不要なものを段ボール1箱分処分する', rank: 'bronze' },
-            { id: 59, name: '息を殺して', condition: '隠れんぼをする', rank: 'bronze' },
-            { id: 60, name: 'お前ってさ', condition: '深夜、公園で友人と語る', rank: 'bronze' },
-            { id: 61, name: '振り替え輸送', condition: '電車の遅延で影響を受ける', rank: 'bronze' },
-            { id: 62, name: 'Runaway', condition: '鬼ごっこをする', rank: 'bronze' },
-            { id: 63, name: 'ターミナル', condition: '空港で24時間過ごす', rank: 'bronze' },
-            { id: 64, name: 'いい日旅立ち', condition: '駅弁を食べながら特急列車または新幹線に乗る', rank: 'bronze' },
-            { id: 65, name: '外の世界は', condition: '海外へ行く', rank: 'bronze' },
-            { id: 66, name: 'エンジェルナンバー', condition: '時計でゾロ目を目撃する', rank: 'bronze' },
-            { id: 67, name: 'お口に合いますか？', condition: '見知らぬ国の料理を食べる', rank: 'bronze' },
-            { id: 68, name: 'セルフメンテナンス', condition: 'プロのマッサージや整体を受ける', rank: 'bronze' },
-            { id: 69, name: 'サプライズサンタ', condition: 'なんでもない日、身近な人に贈り物をする', rank: 'bronze' },
-            { id: 70, name: '小さな親切', condition: 'お釣りを忘れている人に声をかける', rank: 'bronze' },
-            { id: 71, name: '狙い撃ち', condition: 'カプセルトイにて一回で1番欲しいものを当てる', rank: 'bronze' },
-            { id: 72, name: '形勢逆転', condition: '麻雀で役満を上がる', rank: 'bronze' },
-            { id: 73, name: 'なんのその', condition: '1人でファミリーレストランへ入店して食事する', rank: 'bronze' },
-            { id: 74, name: 'いざラスベガスへ', condition: 'ポーカーでロイヤルフラッシュを完成させる', rank: 'bronze' },
-            { id: 76, name: '寿司屋へ行こう', condition: '釣りを6時間以上試み、一匹も釣り上げない', rank: 'bronze' },
-            { id: 77, name: 'ゲーマー', condition: '1本のゲームタイトルを1000時間以上遊ぶ', rank: 'bronze' },
-            { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze' },
-            { id: 84, name: '抱えきれないほどの幸せ', condition: '駄菓子を2000円分購入する', rank: 'bronze' },
-            { id: 85, name: 'これで安心', condition: 'ライターや着火剤を使わず、火起こしを成功させる', rank: 'bronze' },
-            { id: 86, name: '知識の証明', condition: 'なんらかの国家資格または検定試験に合格する', rank: 'bronze' },
-            { id: 87, name: '文字通り', condition: 'セブンイレブンにて税込711円ピッタリ買い物をする', rank: 'bronze' },
-            { id: 88, name: 'スプリント！', condition: '全力疾走して自分の50m走のタイムを計測する', rank: 'bronze' },
-            { id: 92, name: '星を救う者', condition: '街のゴミ拾いを行うまたは、エコ活動に参加する', rank: 'bronze' },
-            { id: 89, name: '夜のピクニック', condition: '天体観測に行く', rank: 'bronze' },
-            { id: 90, name: 'ルーティンブレイカー', condition: 'よく行く飲食店で一度も頼んだことのないメニューを注文する', rank: 'bronze' }
+            { id: 1, name: '夢、叶えし者', condition: '夢を叶える', rank: 'platinum', isUltimate: true, genre: 'special' },
+            { id: 2, name: 'バイリンガル', condition: 'TOEICで満点を取る', rank: 'gold', genre: 'challenge' },
+            { id: 3, name: '言語学者', condition: '漢検一級を取得', rank: 'gold', genre: 'challenge' },
+            { id: 4, name: 'Off the wall', condition: 'ベンチプレス100kgをクリア', rank: 'gold', genre: 'challenge' },
+            { id: 5, name: 'なにわの怪人', condition: '大阪環状線を徒歩で一周する', rank: 'gold', genre: 'challenge' },
+            { id: 6, name: '江戸の傾奇者', condition: '山手線を徒歩で一周する', rank: 'gold', genre: 'challenge' },
+            { id: 7, name: '孤独のファンタジー', condition: '1人で遊園地に行く', rank: 'gold', genre: 'play' },
+            { id: 8, name: '国境なき絆', condition: '海外の友人を作る', rank: 'gold', genre: 'travel' },
+            { id: 9, name: '紳士の洗礼', condition: 'クリケットを行う', rank: 'gold', genre: 'challenge' },
+            { id: 10, name: '空の王者', condition: 'パラグライダーまたはスカイダイビングを体験する。', rank: 'gold', genre: 'travel' },
+            { id: 11, name: '大海の覇者', condition: 'マリンスポーツで遊ぶ', rank: 'gold', genre: 'travel' },
+            { id: 12, name: '完全制覇', condition: 'お気に入り飲食店のメニューを全て食べた。', rank: 'gold', genre: 'daily' },
+            { id: 13, name: 'デビュー待ち', condition: 'カラオケで100点を叩き出す', rank: 'gold', genre: 'play' },
+            { id: 14, name: '伝説の目撃者', condition: '現地でプロのモータースポーツやプロスポーツの決勝を観戦する', rank: 'gold', genre: 'play' },
+            { id: 15, name: 'Bullet', condition: '日帰りまたは0泊で海外へ行く', rank: 'gold', genre: 'travel' },
+            { id: 16, name: '本物の勝負師', condition: '合法的なカジノで遊ぶ', rank: 'gold', genre: 'play' },
+            { id: 17, name: 'ダイヤモンドは砕けない', condition: 'ダイヤモンド製品を購入する', rank: 'gold', genre: 'special' },   
+            { id: 18, name: 'アルテマ', condition: '大掃除や断捨離で自分に不要なものを完全処分する', rank: 'gold', genre: 'daily' },
+            { id: 19, name: 'スティールボールラン', condition: '馬に乗る', rank: 'silver', genre: 'play' },
+            { id: 20, name: 'なにわの商人', condition: '家電量販店で値引きを交渉をして割引をしてもらう', rank: 'silver', genre: 'daily' },
+            { id: 21, name: 'デジタルデトックス', condition: '見知らぬ人に教えを請う', rank: 'silver', genre: 'daily' },
+            { id: 22, name: 'ポーカーフェイスドロップ', condition: 'ジェットコースターで叫ばない', rank: 'silver', genre: 'play' },
+            { id: 23, name: '明けの明星', condition: '始発で出かける', rank: 'silver', genre: 'travel' },
+            { id: 24, name: 'グローバル化社会', condition: 'TOEICを受ける', rank: 'silver', genre: 'challenge' },
+            { id: 25, name: '寒風の半袖ファイター', condition: '気温が10℃を下回ってる日に半袖で出かける', rank: 'silver', genre: 'special' },
+            { id: 26, name: 'ストライカー', condition: 'シュートを決める', rank: 'silver', genre: 'play' },
+            { id: 27, name: '銀世界', condition: 'ウインタースポーツで遊ぶ', rank: 'silver', genre: 'travel' },
+            { id: 28, name: '栄養学', condition: '厚生労働省が定める日本人の食事摂取基準を満たした食事を1日摂る', rank: 'silver', genre: 'daily' },
+            { id: 29, name: 'ALL OUT', condition: '筋力トレーニングでプロテインシェイカーが振れないほど追い込む', rank: 'silver', genre: 'challenge' },
+            { id: 30, name: '成功者', condition: '平日の昼間にジムに行く', rank: 'silver', genre: 'challenge' },
+            { id: 31, name: 'ナイトクルーズ', condition: '夜行バスで500km以上移動する', rank: 'silver', genre: 'travel' },
+            { id: 32, name: '大悪党', condition: 'その場にいる全員を騙し、後でネタバラシをする', rank: 'silver', genre: 'special' },
+            { id: 33, name: '創作料理人', condition: 'レシピを見ずに美味しい料理を作る', rank: 'silver', genre: 'daily' },
+            { id: 91, name: '気分は監督', condition: '映画館で自分以外の観客がいない状態で映画を見る', rank: 'silver', genre: 'special' },
+            { id: 34, name: '東海道中膝栗毛', condition: '東京大阪間を自動車で移動する', rank: 'silver', genre: 'travel' },
+            { id: 35, name: '不屈の意志', condition: '継続していた悪癖を止める', rank: 'silver', genre: 'challenge' },
+            { id: 36, name: '現金主義', condition: '新品の携帯電話を一括で購入', rank: 'silver', genre: 'daily' },
+            { id: 37, name: '伝説の始まり', condition: 'ホームランを打つ', rank: 'silver', genre: 'challenge' },
+            { id: 38, name: '手中', condition: '高層階に宿泊', rank: 'silver', genre: 'travel' },
+            { id: 39, name: 'この日のために', condition: '大勢の前でダンスを披露する', rank: 'silver', genre: 'challenge' },
+            { id: 40, name: '拡散よろしく！', condition: 'イベントでコスプレをする', rank: 'silver', genre: 'play' },
+            { id: 41, name: 'のんびりスローライフ', condition: '無人島に上陸する', rank: 'silver', genre: 'travel' },
+            { id: 79, name: '重力への叛逆', condition: '懸垂を20回連続で行う', rank: 'silver', genre: 'challenge' },
+            { id: 80, name: 'マイナスイオンが段違い', condition: '日本三大名瀑のうちいずれかを訪れる', rank: 'silver', genre: 'travel' },
+            { id: 81, name: '時空を超えた読書家', condition: '国立国会図書館に足を運び、資料を閲覧する', rank: 'silver', genre: 'travel' },
+            { id: 82, name: 'まだ見ぬ秘湯を求めて', condition: '日本三大古湯または日本三大名泉のいずれかに入浴する', rank: 'silver', genre: 'travel' },
+            { id: 83, name: 'ここで一句', condition: '日本三景のうちいずれかを見る', rank: 'silver', genre: 'travel' },
+            { id: 42, name: 'あの夏の思い出', condition: 'カブト虫を捕まえる', rank: 'bronze', genre: 'play' },
+            { id: 43, name: '秘密のストライク', condition: 'ボウリングでストライクを取る', rank: 'bronze', genre: 'play' },
+            { id: 44, name: 'ブルズアイ', condition: 'ダーツでブルに入れる', rank: 'bronze', genre: 'play' },
+            { id: 45, name: '井の中の蛙', condition: '海に行く', rank: 'bronze', genre: 'travel' },
+            { id: 46, name: '熱狂の観客席', condition: 'スポーツ観戦をする', rank: 'bronze', genre: 'play' },
+            { id: 47, name: '孤高の肉食獣', condition: '1人で焼肉に行く', rank: 'bronze', genre: 'daily' },
+            { id: 48, name: 'モフモフフレンドリー', condition: '散歩している犬を撫でる', rank: 'bronze', genre: 'daily' },
+            { id: 49, name: '選ばれし者', condition: '野良猫に懐かれる', rank: 'bronze', genre: 'daily' },
+            { id: 50, name: '漆黒の王者', condition: 'カラスに挨拶を返す', rank: 'bronze', genre: 'special' },
+            { id: 51, name: '痛恨の一撃', condition: '電車に乗り遅れる', rank: 'bronze', genre: 'daily' },
+            { id: 52, name: '電池切れ？', condition: '道に迷う', rank: 'bronze', genre: 'travel' },
+            { id: 53, name: '直属のディナー', condition: '上司と2人で食事に行く', rank: 'bronze', genre: 'daily' },
+            { id: 54, name: '野人', condition: '2日間風呂に入らない', rank: 'bronze', genre: 'special' },
+            { id: 94, name: 'ゴールドソーサーの勝者', condition: 'ゲームセンターのクレーンゲームやアーケードゲームで景品をGETする', rank: 'bronze', genre: 'play' },
+            { id: 55, name: '水面の旅人', condition: '雨の日に散歩をする', rank: 'bronze', genre: 'daily' },
+            { id: 56, name: '大金の重み', condition: '10万円以上の現金を引き出す', rank: 'bronze', genre: 'daily' },
+            { id: 57, name: '博打打ち', condition: '公営ギャンブルで勝利する', rank: 'bronze', genre: 'play' },
+            { id: 58, name: '審判の日', condition: '自室の不要なものを段ボール1箱分処分する', rank: 'bronze', genre: 'daily' },
+            { id: 59, name: '息を殺して', condition: '隠れんぼをする', rank: 'bronze', genre: 'play' },
+            { id: 60, name: 'お前ってさ', condition: '深夜、公園で友人と語る', rank: 'bronze', genre: 'daily' },
+            { id: 61, name: '振り替え輸送', condition: '電車の遅延で影響を受ける', rank: 'bronze', genre: 'daily' },
+            { id: 62, name: 'Runaway', condition: '鬼ごっこをする', rank: 'bronze', genre: 'play' },
+            { id: 63, name: 'ターミナル', condition: '空港で24時間過ごす', rank: 'bronze', genre: 'travel' },
+            { id: 64, name: 'いい日旅立ち', condition: '駅弁を食べながら特急列車または新幹線に乗る', rank: 'bronze', genre: 'travel' },
+            { id: 65, name: '外の世界は', condition: '海外へ行く', rank: 'bronze', genre: 'travel' },
+            { id: 66, name: 'エンジェルナンバー', condition: '時計でゾロ目を目撃する', rank: 'bronze', genre: 'special' },
+            { id: 67, name: 'お口に合いますか？', condition: '見知らぬ国の料理を食べる', rank: 'bronze', genre: 'daily' },
+            { id: 68, name: 'セルフメンテナンス', condition: 'プロのマッサージや整体を受ける', rank: 'bronze', genre: 'daily' },
+            { id: 69, name: 'サプライズサンタ', condition: 'なんでもない日、身近な人に贈り物をする', rank: 'bronze', genre: 'daily' },
+            { id: 70, name: '小さな親切', condition: 'お釣りを忘れている人に声をかける', rank: 'bronze', genre: 'daily' },
+            { id: 71, name: '狙い撃ち', condition: 'カプセルトイにて一回で1番欲しいものを当てる', rank: 'bronze', genre: 'special' },
+            { id: 72, name: '形勢逆転', condition: '麻雀で役満を上がる', rank: 'bronze', genre: 'play' },
+            { id: 73, name: 'なんのその', condition: '1人でファミリーレストランへ入店して食事する', rank: 'bronze', genre: 'daily' },
+            { id: 74, name: 'いざラスベガスへ', condition: 'ポーカーでロイヤルフラッシュを完成させる', rank: 'bronze', genre: 'special' },
+            { id: 76, name: '寿司屋へ行こう', condition: '釣りを6時間以上試み、一匹も釣り上げない', rank: 'bronze', genre: 'special' },
+            { id: 77, name: 'ゲーマー', condition: '1本のゲームタイトルを1000時間以上遊ぶ', rank: 'bronze', genre: 'play' },
+            { id: 78, name: '恥知らずの', condition: '旅行に置いて行かれる', rank: 'bronze', genre: 'special' },
+            { id: 84, name: '抱えきれないほどの幸せ', condition: '駄菓子を2000円分購入する', rank: 'bronze', genre: 'daily' },
+            { id: 85, name: 'これで安心', condition: 'ライターや着火剤を使わず、火起こしを成功させる', rank: 'bronze', genre: 'challenge' },
+            { id: 86, name: '知識の証明', condition: 'なんらかの国家資格または検定試験に合格する', rank: 'bronze', genre: 'challenge' },
+            { id: 87, name: '文字通り', condition: 'セブンイレブンにて税込711円ピッタリ買い物をする', rank: 'bronze', genre: 'special' },
+            { id: 88, name: 'スプリント！', condition: '全力疾走して自分の50m走のタイムを計測する', rank: 'bronze', genre: 'challenge' },
+            { id: 92, name: '星を救う者', condition: '街のゴミ拾いを行うまたは、エコ活動に参加する', rank: 'bronze', genre: 'daily' },
+            { id: 89, name: '夜のピクニック', condition: '天体観測に行く', rank: 'bronze', genre: 'travel' },
+            { id: 90, name: 'ルーティンブレイカー', condition: 'よく行く飲食店で一度も頼んだことのないメニューを注文する', rank: 'bronze', genre: 'daily' }
         ];
+
 
         const limitedTrophies202611 = [
             { id: 'ym_2026_11_01', name: '黄金の絨毯2026', condition: 'イチョウ並木を歩き、黄色く染まった風景を撮影する', rank: 'gold', year: 2026, month: 11, isLimited: true },
@@ -1274,9 +1390,63 @@
         /* -------------------------------------------------------------
            実績一覧 View
         ------------------------------------------------------------- */
+                function loadFavoritesFromStorage() {
+            if (!currentUser) return;
+            try {
+                const s = localStorage.getItem(`lt_favs_${currentUser.uid}`);
+                if (s) favoriteTrophyIds = JSON.parse(s).map(id => String(id));
+                else if (Array.isArray(myProfile.favoriteTrophies)) favoriteTrophyIds = myProfile.favoriteTrophies.map(id => String(id));
+            } catch (e) { favoriteTrophyIds = []; }
+        }
+
+        function toggleFavoriteTrophy(trophyId, event) {
+            if (event) event.stopPropagation();
+            if (!currentUser) return;
+            const key = String(trophyId);
+            if (favoriteTrophyIds.includes(key)) {
+                favoriteTrophyIds = favoriteTrophyIds.filter(id => id !== key);
+            } else {
+                favoriteTrophyIds.push(key);
+                showNotification('お気に入りに追加しました ⭐', 'BOOKMARKED');
+            }
+            myProfile.favoriteTrophies = favoriteTrophyIds;
+            try {
+                localStorage.setItem(`lt_favs_${currentUser.uid}`, JSON.stringify(favoriteTrophyIds));
+                db.collection('users').doc(currentUser.uid).set({ favoriteTrophies: favoriteTrophyIds }, { merge: true }).catch(()=>{});
+            } catch (e) {}
+            renderTrophiesView();
+        }
+
+        function isTrophyUnlocked(stateObj, id) {
+            const entry = stateObj && stateObj[id];
+            if (!entry) return false;
+            return entry.unlocked === true || (!!entry.date && entry.unlocked !== false);
+        }
+
+        function getTrophyLogs(stateObj, id) {
+            const entry = stateObj && stateObj[id];
+            if (!entry) return [];
+            const logs = Array.isArray(entry.logs) ? [...entry.logs] : [];
+            if (entry.photo && (entry.unlocked === true || entry.unlocked === undefined)) {
+                const alreadyInLogs = logs.some(l => l.type === 'unlock' && l.date === entry.date);
+                if (!alreadyInLogs) {
+                    logs.push({
+                        type: 'unlock',
+                        date: entry.date || '',
+                        photo: entry.photo,
+                        mediaType: entry.mediaType || (isVideoSource(entry.photo) ? 'video' : 'image'),
+                        comment: entry.comment || ''
+                    });
+                }
+            }
+            return logs;
+        }
+
         async function renderTrophiesView() {
             const container = document.getElementById('main-container'); if (!container) return;
-            await loadCircleTrophiesForBoard(); container.innerHTML = '';
+            loadFavoritesFromStorage();
+            await loadCircleTrophiesForBoard();
+            container.innerHTML = '';
 
             if (currentUser && !myProfile.username) {
                 const warnBanner = document.createElement('div');
@@ -1286,10 +1456,14 @@
             }
 
             const activeLimited = getActiveLimitedTrophies();
+            const allTrophiesList = getAllTrophies();
+            const favList = allTrophiesList.filter(t => favoriteTrophyIds.includes(String(t.id)));
+
             const categorySwitcher = document.createElement('div');
-            categorySwitcher.className = 'category-tabs';
+            categorySwitcher.className = 'category-tabs-5';
             categorySwitcher.innerHTML = `
                 <button class="category-tab-btn ${boardCategory === 'default' ? 'active' : ''}" onclick="boardCategory='default'; renderTrophiesView();">🏆 通常 (${defaultTrophies.length})</button>
+                <button class="category-tab-btn ${boardCategory === 'favorite' ? 'active' : ''}" onclick="boardCategory='favorite'; renderTrophiesView();">⭐ お気に入り (${favList.length})</button>
                 <button class="category-tab-btn ${boardCategory === 'limited' ? 'active' : ''}" onclick="boardCategory='limited'; renderTrophiesView();">⏳ 11月 (${activeLimited.length})</button>
                 <button class="category-tab-btn ${boardCategory === 'custom' ? 'active' : ''}" onclick="boardCategory='custom'; renderTrophiesView();">✨ カスタム (${customTrophies.length})</button>
                 <button class="category-tab-btn ${boardCategory === 'circle' ? 'active' : ''}" onclick="boardCategory='circle'; renderTrophiesView();">⭕ サークル (${circleTrophies.length})</button>
@@ -1297,63 +1471,161 @@
             container.appendChild(categorySwitcher);
 
             const actionRow = document.createElement('div');
-            actionRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;';
+            actionRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;';
             let boardTitle = '🏆 トロフィーボード';
+            if (boardCategory === 'favorite') boardTitle = '⭐ お気に入り（ブックマーク）実績';
             if (boardCategory === 'limited') boardTitle = '⏳ 2026年11月限定実績';
             if (boardCategory === 'custom') boardTitle = '✨ マイ・カスタム実績';
             if (boardCategory === 'circle') boardTitle = '⭕ 参加サークルの実績';
             actionRow.innerHTML = `<div style="font-size:0.85rem; font-weight:800; color:var(--text-primary);">${boardTitle}</div>${boardCategory === 'custom' ? '<button class="btn-action-small" onclick="openModal(\'custom-trophy-modal\')">+ カスタム作成</button>' : ''}`;
             container.appendChild(actionRow);
 
+            // ジャンル別フィルターバー（通常実績またはお気に入り表示時）
+            if (boardCategory === 'default' || boardCategory === 'favorite') {
+                const genreRow = document.createElement('div');
+                genreRow.style.cssText = 'display:flex; gap:6px; overflow-x:auto; margin-bottom:10px; padding-bottom:2px;';
+                Object.keys(genreLabels).forEach(gKey => {
+                    const gBtn = document.createElement('button');
+                    gBtn.className = `btn-action-small ${trophyGenreFilter === gKey ? 'following' : ''}`;
+                    gBtn.style.cssText += 'border-radius:20px; padding:5px 11px; font-size:0.68rem; flex-shrink:0;';
+                    gBtn.innerText = genreLabels[gKey];
+                    gBtn.onclick = () => { trophyGenreFilter = gKey; renderTrophiesView(); };
+                    genreRow.appendChild(gBtn);
+                });
+                container.appendChild(genreRow);
+            }
+
+            // ランク＆状態フィルターバー
             const filterRow = document.createElement('div');
             filterRow.style.cssText = 'display:flex; gap:6px; overflow-x:auto; margin-bottom:14px; padding-bottom:2px;';
-            ['all', 'unlocked', 'platinum', 'gold', 'silver', 'bronze'].forEach(f => {
+            ['all', 'unlocked', 'progress', 'platinum', 'gold', 'silver', 'bronze'].forEach(f => {
                 const btn = document.createElement('button');
-                btn.className = `btn-action-small ${trophyFilter === f ? 'following' : ''}`; btn.style.cssText += 'border-radius:20px; padding:6px 12px; font-size:0.7rem; flex-shrink:0;'; if (f === 'platinum') btn.style.color = 'var(--rank-platinum)'; if (f === 'gold') btn.style.color = 'var(--rank-gold)'; if (f === 'silver') btn.style.color = 'var(--rank-silver)'; if (f === 'bronze') btn.style.color = 'var(--rank-bronze)'; btn.innerText = f.toUpperCase(); btn.onclick = () => { trophyFilter = f; renderTrophiesView(); }; filterRow.appendChild(btn); }); container.appendChild(filterRow);  let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 }, totalUnlocked = 0; const allTrophiesList = getAllTrophies(); allTrophiesList.forEach(t => { if (userState[t.id]) { if (count[t.rank] !== undefined) count[t.rank]++; totalUnlocked++; } }); document.getElementById('count-plat').innerText = count.platinum; document.getElementById('count-gold').innerText = count.gold; document.getElementById('count-silver').innerText = count.silver; document.getElementById('count-bronze').innerText = count.bronze; document.getElementById('progress-percent').innerText = `${allTrophiesList.length > 0 ? Math.round((totalUnlocked / allTrophiesList.length) * 100) : 0}%`;
+                btn.className = `btn-action-small ${trophyFilter === f ? 'following' : ''}`;
+                btn.style.cssText += 'border-radius:20px; padding:6px 12px; font-size:0.7rem; flex-shrink:0;';
+                if (f === 'platinum') btn.style.color = 'var(--rank-platinum)';
+                if (f === 'gold') btn.style.color = 'var(--rank-gold)';
+                if (f === 'silver') btn.style.color = 'var(--rank-silver)';
+                if (f === 'bronze') btn.style.color = 'var(--rank-bronze)';
+                if (f === 'progress') btn.style.color = 'var(--accent-green)';
+                btn.innerText = f === 'progress' ? '🗺️ 進捗あり' : f.toUpperCase();
+                btn.onclick = () => { trophyFilter = f; renderTrophiesView(); };
+                filterRow.appendChild(btn);
+            });
+            container.appendChild(filterRow);
+
+            let count = { platinum: 0, gold: 0, silver: 0, bronze: 0 }, totalUnlocked = 0;
+            allTrophiesList.forEach(t => {
+                if (isTrophyUnlocked(userState, t.id)) {
+                    if (count[t.rank] !== undefined) count[t.rank]++;
+                    totalUnlocked++;
+                }
+            });
+            document.getElementById('count-plat').innerText = count.platinum;
+            document.getElementById('count-gold').innerText = count.gold;
+            document.getElementById('count-silver').innerText = count.silver;
+            document.getElementById('count-bronze').innerText = count.bronze;
+            document.getElementById('progress-percent').innerText = `${allTrophiesList.length > 0 ? Math.round((totalUnlocked / allTrophiesList.length) * 100) : 0}%`;
 
             let targetList = defaultTrophies;
+            if (boardCategory === 'favorite') targetList = favList;
             if (boardCategory === 'limited') targetList = activeLimited;
             if (boardCategory === 'custom') targetList = customTrophies;
             if (boardCategory === 'circle') targetList = circleTrophies;
 
             const trophyListEl = document.createElement('div');
             if (targetList.length === 0) {
-                trophyListEl.innerHTML = `<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color);">表示できる実績がありません。</div>`;
-                container.appendChild(trophyListEl); return;
+                const emptyMsg = boardCategory === 'favorite'
+                    ? 'まだお気に入り登録された実績がありません。<br>各実績の「☆」をタップするとここに追加されます！'
+                    : '表示できる実績がありません。';
+                trophyListEl.innerHTML = `<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:36px 20px; background:var(--surface-card); border-radius:12px; border:1px dashed var(--border-color); line-height:1.5;">${emptyMsg}</div>`;
+                container.appendChild(trophyListEl);
+                return;
             }
 
             let visibleCount = 0;
             targetList.forEach(t => {
-                const isUnlocked = !!userState[t.id];
+                const isUnlocked = isTrophyUnlocked(userState, t.id);
+                const logs = getTrophyLogs(userState, t.id);
+                const progressLogsCount = logs.filter(l => l.type === 'progress').length;
+                const latestMedia = isUnlocked ? userState[t.id].photo : (logs.length > 0 ? logs[logs.length - 1].photo : null);
                 const rankClass = `rank-${t.rank || 'bronze'}`;
+                const isFav = favoriteTrophyIds.includes(String(t.id));
+
+                if ((boardCategory === 'default' || boardCategory === 'favorite') && trophyGenreFilter !== 'all') {
+                    if ((t.genre || 'special') !== trophyGenreFilter) return;
+                }
                 if (trophyFilter !== 'all') {
                     if (trophyFilter === 'unlocked' && !isUnlocked) return;
-                    if (trophyFilter !== 'unlocked' && t.rank !== trophyFilter) return;
+                    if (trophyFilter === 'progress' && progressLogsCount === 0) return;
+                    if (trophyFilter !== 'unlocked' && trophyFilter !== 'progress' && t.rank !== trophyFilter) return;
                 }
                 visibleCount++;
+
                 const card = document.createElement('div');
                 card.className = `trophy-card ${isUnlocked ? 'unlocked' : ''} ${t.isUltimate ? 'ultimate' : ''}`;
-                const iconContent = isUnlocked ? getIconMediaHTML(userState[t.id].photo) : `<i class="fa-solid fa-trophy"></i>`;
+                const iconContent = latestMedia ? getIconMediaHTML(latestMedia) : `<i class="fa-solid fa-trophy"></i>`;
                 let displayNameStr = t.name;
-                if (t.isLimited) displayNameStr = `⏳ ${t.name}`; else if (t.isCustom) displayNameStr = `✨ ${t.name}`;
-                else if (t.isUltimate) displayNameStr = `★ ${t.name}`;  const iconBox = document.createElement('div'); iconBox.className = `icon-box ${rankClass}`; iconBox.innerHTML = iconContent;
-                const infoBox = document.createElement('div'); infoBox.className = 'trophy-info';
-                infoBox.innerHTML = `<div class="trophy-name">${displayNameStr}</div><div class="trophy-condition">${t.condition}</div><div class="trophy-meta"><span class="rank-tag ${rankClass}">${t.rank}</span>${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date} 解除済</span>` : ''}</div>`;
-                const actionsGroup = document.createElement('div'); actionsGroup.className = 'card-actions-group';
+                if (t.isLimited) displayNameStr = `⏳ ${t.name}`;
+                else if (t.isCustom) displayNameStr = `✨ ${t.name}`;
+                else if (t.isUltimate) displayNameStr = `★ ${t.name}`;
+
+                const iconBox = document.createElement('div');
+                iconBox.className = `icon-box ${rankClass}`;
+                iconBox.innerHTML = iconContent;
+                if (logs.length > 0) {
+                    iconBox.style.cursor = 'pointer';
+                    iconBox.onclick = () => openPhotoLightbox(latestMedia, t.name, t.condition, userState[t.id].date || '', userState[t.id].comment || '', null, currentUser ? currentUser.uid : null, t.id);
+                }
+
+                const genreBadgeHTML = (t.genre && genreLabels[t.genre]) ? `<span class="genre-tag">${genreLabels[t.genre]}</span>` : '';
+                const progressBadgeHTML = progressLogsCount > 0 ? `<span class="progress-count-tag">🗺️ 進捗 ${progressLogsCount}件</span>` : '';
+
+                const infoBox = document.createElement('div');
+                infoBox.className = 'trophy-info';
+                infoBox.innerHTML = `
+                    <div class="trophy-name">${displayNameStr}</div>
+                    <div class="trophy-condition">${t.condition}</div>
+                    <div class="trophy-meta">
+                        <span class="rank-tag ${rankClass}">${t.rank}</span>
+                        ${genreBadgeHTML}
+                        ${progressBadgeHTML}
+                        ${isUnlocked ? `<span class="unlocked-tag"><i class="fa-solid fa-check"></i> ${userState[t.id].date} 解除済</span>` : ''}
+                    </div>
+                `;
+
+                const actionsGroup = document.createElement('div');
+                actionsGroup.className = 'card-actions-group';
+
+                const favBtn = document.createElement('button');
+                favBtn.className = `fav-star-btn ${isFav ? 'active' : ''}`;
+                favBtn.innerHTML = `<i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-star"></i>`;
+                favBtn.title = 'お気に入り登録';
+                favBtn.onclick = (e) => toggleFavoriteTrophy(t.id, e);
+                actionsGroup.appendChild(favBtn);
+
                 if (!isUnlocked) {
-                    const unlockBtn = document.createElement('button'); unlockBtn.className = 'unlock-btn'; unlockBtn.innerText = '解除';
-                    unlockBtn.onclick = () => openUnlockModal(t.id); actionsGroup.appendChild(unlockBtn);
+                    const unlockBtn = document.createElement('button');
+                    unlockBtn.className = 'unlock-btn';
+                    unlockBtn.innerText = '解除 / 進捗';
+                    unlockBtn.onclick = () => openUnlockModal(t.id);
+                    actionsGroup.appendChild(unlockBtn);
                 }
                 if (t.isCustom || boardCategory === 'custom') {
-                    const delBtn = document.createElement('button'); delBtn.className = 'delete-btn'; delBtn.innerText = '削除';
-                    delBtn.onclick = () => deleteCustomTrophy(t.id); actionsGroup.appendChild(delBtn);
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'delete-btn';
+                    delBtn.innerText = '削除';
+                    delBtn.onclick = () => deleteCustomTrophy(t.id);
+                    actionsGroup.appendChild(delBtn);
                 }
-                card.appendChild(iconBox); card.appendChild(infoBox); card.appendChild(actionsGroup);
+                card.appendChild(iconBox);
+                card.appendChild(infoBox);
+                card.appendChild(actionsGroup);
                 trophyListEl.appendChild(card);
             });
             if (visibleCount === 0) trophyListEl.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">条件に一致する実績がありません</div>';
             container.appendChild(trophyListEl);
         }
+
 
         function addCustomTrophy() {
             const title = document.getElementById('custom-title').value.trim();
@@ -1993,34 +2265,26 @@
         /* -------------------------------------------------------------
            実績解除関連（写真 ＆ 5秒以内の動画対応・フリーズ防止対策済み）
         ------------------------------------------------------------- */
-        async function openUnlockModal(id) {
-            selectedTrophyId = id;
-            tempUnlockPhotoBase64 = "";
-            isMediaProcessing = false;
-            await loadCircleTrophiesForBoard();
-            const trophy = getAllTrophies().find(t => String(t.id) === String(id));
-            document.getElementById('modal-trophy-title').innerText = `🏆 「${trophy ? trophy.name : '実績'}」を解除`;
-            
-            const previewEl = document.getElementById('photo-preview');
-            previewEl.style.display = 'none';
-            previewEl.removeAttribute('src');
-
-            const videoPreviewEl = document.getElementById('video-preview');
-            if (videoPreviewEl) {
-                videoPreviewEl.pause();
-                videoPreviewEl.style.display = 'none';
-                videoPreviewEl.removeAttribute('src');
-                videoPreviewEl.load();
-            }
-            
+        function setUnlockModalMode(mode) {
+            unlockModalMode = mode;
+            const btnUnlock = document.getElementById('mode-btn-unlock');
+            const btnProgress = document.getElementById('mode-btn-progress');
+            const descEl = document.getElementById('unlock-mode-desc');
             const confirmBtn = document.getElementById('confirm-unlock-btn');
-            if (confirmBtn) confirmBtn.disabled = false;
+            const trophy = getAllTrophies().find(t => String(t.id) === String(selectedTrophyId));
+            const tName = trophy ? trophy.name : '実績';
 
-            document.getElementById('photo-input').value = '';
-            document.getElementById('unlock-comment-input').value = '';
-            document.getElementById('unlock-photo-zone').classList.remove('required-highlight');
-            document.getElementById('photo-upload-label').innerText = '📸 証拠写真 または 動画を選択 (必須)';
-            openModal('unlock-modal');
+            if (mode === 'progress') {
+                if (btnUnlock) btnUnlock.className = 'mode-switch-btn';
+                if (btnProgress) btnProgress.className = 'mode-switch-btn active-progress';
+                if (descEl) descEl.innerText = `「${tName} 進捗」として、達成までの道のりを写真・動画付きで記録＆タイムラインに共有します。`;
+                if (confirmBtn) confirmBtn.innerText = '進捗を記録する';
+            } else {
+                if (btnUnlock) btnUnlock.className = 'mode-switch-btn active-unlock';
+                if (btnProgress) btnProgress.className = 'mode-switch-btn';
+                if (descEl) descEl.innerText = '条件を達成！トロフィーを獲得してタイムラインに報告します。';
+                if (confirmBtn) confirmBtn.innerText = '解除する';
+            }
         }
 
         function resetUnlockMediaInput(labelMessage = '📸 証拠写真 または 動画を選択 (必須)') {
@@ -2132,6 +2396,34 @@
             }
         }
 
+        async function openUnlockModal(id) {
+            selectedTrophyId = id;
+            tempUnlockPhotoBase64 = "";
+            isMediaProcessing = false;
+            await loadCircleTrophiesForBoard();
+            const trophy = getAllTrophies().find(t => String(t.id) === String(id));
+            document.getElementById('modal-trophy-title').innerText = `🏆 「${trophy ? trophy.name : '実績'}」`;
+            
+            const previewEl = document.getElementById('photo-preview');
+            previewEl.style.display = 'none';
+            previewEl.removeAttribute('src');
+
+            const videoPreviewEl = document.getElementById('video-preview');
+            if (videoPreviewEl) {
+                videoPreviewEl.pause();
+                videoPreviewEl.style.display = 'none';
+                videoPreviewEl.removeAttribute('src');
+                videoPreviewEl.load();
+            }
+            
+            document.getElementById('photo-input').value = '';
+            document.getElementById('unlock-comment-input').value = '';
+            document.getElementById('unlock-photo-zone').classList.remove('required-highlight');
+            document.getElementById('photo-upload-label').innerText = '📸 証拠写真 または 動画を選択 (必須)';
+            setUnlockModalMode('unlock');
+            openModal('unlock-modal');
+        }
+
         function confirmUnlock() {
             if (!selectedTrophyId) return;
             if (isMediaProcessing) {
@@ -2141,7 +2433,7 @@
 
             if (!tempUnlockPhotoBase64) {
                 document.getElementById('unlock-photo-zone').classList.add('required-highlight');
-                alert('実績を解除するには証拠写真または動画（5秒まで）の添付が必須です！上の枠をタップして選択してください。');
+                alert('記録するには写真または動画（5秒まで）の添付が必須です！上の枠をタップして選択してください。');
                 return;
             }
 
@@ -2152,26 +2444,33 @@
             const commentText = document.getElementById('unlock-comment-input').value.trim();
             
             const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            const dateTimeStr = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+            const dateTimeStr = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
             const unlockedId = String(selectedTrophyId);
             const mediaToSave = tempUnlockPhotoBase64;
             const mediaType = isVideoSource(mediaToSave) ? 'video' : 'image';
+            const isProgressMode = (unlockModalMode === 'progress');
+
+            const existingLogs = getTrophyLogs(userState, unlockedId);
+            const newLogItem = {
+                type: isProgressMode ? 'progress' : 'unlock',
+                date: dateTimeStr,
+                photo: mediaToSave,
+                mediaType: mediaType,
+                comment: commentText
+            };
+            existingLogs.push(newLogItem);
 
             const unlockEntry = {
+                unlocked: isProgressMode ? isTrophyUnlocked(userState, unlockedId) : true,
                 date: dateTimeStr,
                 photo: mediaToSave,
                 mediaType: mediaType,
                 comment: commentText,
                 condition: trophyCondition,
                 trophyName: trophyName,
-                rank: trophyRank
+                rank: trophyRank,
+                logs: existingLogs
             };
 
             userState[unlockedId] = unlockEntry;
@@ -2179,7 +2478,12 @@
             closeModal('unlock-modal');
             if (activeTab === 'circle') renderCircleView();
             else switchMainTab(activeTab);
-            showNotification(`実績を解除しました！「${trophyName}」`, 'TROPHY UNLOCKED!');
+
+            if (isProgressMode) {
+                showNotification(`「${trophyName} 進捗」を記録しました！`, 'PROGRESS RECORDED!');
+            } else {
+                showNotification(`実績を解除しました！「${trophyName}」`, 'TROPHY UNLOCKED!');
+            }
 
             saveSingleUnlockToStorage(unlockedId, unlockEntry);
 
@@ -2192,6 +2496,7 @@
                     trophyId: unlockedId,
                     trophyName: trophyName,
                     trophyRank: trophyRank,
+                    postType: isProgressMode ? 'progress' : 'unlock',
                     condition: trophyCondition,
                     photo: mediaToSave,
                     mediaType: mediaType,
@@ -2207,7 +2512,7 @@
         /* -------------------------------------------------------------
            ホーム（タイムライン）View：常に最新のアイコン・表示名を表示
         ------------------------------------------------------------- */
-        async function renderFeedView() {
+                async function renderFeedView() {
             const container = document.getElementById('main-container');
             if (!container) return;
             container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:20px;">タイムライン読み込み中...</div>';
@@ -2233,7 +2538,6 @@
                     });
                 }
 
-                // 投稿者の最新プロフィール（最新のアイコン・現在の表示名）を並列で取得してマップ化
                 const latestUserMap = {};
                 await Promise.all(Array.from(uniqueUids).map(async uid => {
                     latestUserMap[uid] = await fetchBasicUserInfo(uid);
@@ -2247,8 +2551,8 @@
                     realPostCount++;
 
                     const isLiked = currentUser && (post.likes || []).includes(currentUser.uid);
+                    const isProgressPost = (post.postType === 'progress');
 
-                    // 最新プロフィールがあれば現在のアイコン・表示名を優先使用
                     const latestUser = latestUserMap[post.uid] || {};
                     const currentAvatar = (latestUser.avatar && latestUser.avatar.trim() !== '') ? latestUser.avatar : post.userAvatar;
                     const currentDisplayName = latestUser.displayName || post.displayName || post.username || 'ユーザー';
@@ -2278,6 +2582,24 @@
                         }
                     }
 
+                    const bannerHTML = isProgressPost
+                        ? `<div class="feed-trophy-banner" style="border-color: rgba(48, 209, 88, 0.4);">
+                                <div style="font-size:0.65rem; color:var(--accent-green); font-weight:800; letter-spacing:1px; margin-bottom:2px;">
+                                    🗺️ TROPHY PROGRESS
+                                </div>
+                                <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">
+                                    <i class="fa-solid fa-person-running" style="color:var(--accent-green); margin-right:6px;"></i>「${post.trophyName || '実績'}」 進捗
+                                </div>
+                           </div>`
+                        : `<div class="feed-trophy-banner">
+                                <div style="font-size:0.65rem; color:${rankColorVar}; font-weight:800; letter-spacing:1px; margin-bottom:2px;">
+                                    ${rank.toUpperCase()} TROPHY UNLOCKED
+                                </div>
+                                <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">
+                                    <i class="fa-solid fa-trophy" style="color:${rankColorVar}; margin-right:4px;"></i>${post.trophyName || '実績'}
+                                </div>
+                           </div>`;
+
                     const card = document.createElement('div');
                     card.className = 'feed-card';
                     card.id = `feed-card-${postId}`;
@@ -2293,15 +2615,7 @@
                             <div class="feed-time">${post.date || ''}</div>
                         </div>
 
-                        <div class="feed-trophy-banner">
-                            <div style="font-size:0.65rem; color:${rankColorVar}; font-weight:800; letter-spacing:1px; margin-bottom:2px;">
-                                ${rank.toUpperCase()} TROPHY UNLOCKED
-                            </div>
-                            <div style="font-size:0.95rem; font-weight:800; color:var(--text-primary);">
-                                <i class="fa-solid fa-trophy" style="color:${rankColorVar}; margin-right:4px;"></i>${post.trophyName || '実績'}
-                            </div>
-                        </div>
-
+                        ${bannerHTML}
                         ${mediaHTML}
                         ${commentHTML}
 
@@ -2329,7 +2643,7 @@
                                 ${(post.comments || []).map(c => `<div class="comment-item"><b>${c.displayName || c.username}:</b> ${c.text}</div>`).join('')}
                             </div>
                             <div class="comment-input-box">
-                                <input type="text" id="comment-input-${postId}" class="form-input" placeholder="お祝いコメントを入力..." style="margin-bottom:0; font-size:0.75rem; padding:8px 12px;">
+                                <input type="text" id="comment-input-${postId}" class="form-input" placeholder="コメントを入力..." style="margin-bottom:0; font-size:0.75rem; padding:8px 12px;">
                                 <button class="btn-action-small" onclick="addComment('${postId}', '${post.uid}')">送信</button>
                             </div>
                         </div>
@@ -2361,6 +2675,7 @@
                 container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.8rem; padding:30px;">タイムラインの読み込みに失敗しました</div>';
             }
         }
+
 
         async function openUserFromFeed(targetUid) {
             if (!targetUid) return;
@@ -2640,30 +2955,8 @@
             }
         }
 
-        async function openPhotoLightbox(mediaSrc, trophyName, conditionText, dateStr, commentText, postId = null, postOwnerUid = null, trophyId = null) {
-            document.getElementById('lightbox-title').innerText = `🏆 ${trophyName || '実績'}`;
-            const imgEl = document.getElementById('lightbox-image');
-            const vidEl = document.getElementById('lightbox-video');
-
-            if (isVideoSource(mediaSrc)) {
-                imgEl.style.display = 'none';
-                imgEl.removeAttribute('src');
-                if (vidEl) {
-                    vidEl.src = mediaSrc;
-                    vidEl.style.display = 'block';
-                    vidEl.play().catch(() => {});
-                }
-            } else {
-                if (vidEl) {
-                    vidEl.pause();
-                    vidEl.style.display = 'none';
-                    vidEl.removeAttribute('src');
-                    vidEl.load();
-                }
-                imgEl.src = mediaSrc;
-                imgEl.style.display = 'block';
-            }
-            
+                async function openPhotoLightbox(mediaSrc, trophyName, conditionText, dateStr, commentText, postId = null, postOwnerUid = null, trophyId = null) {
+            document.getElementById('lightbox-title').innerText = `🏆 ${trophyName || '実績'} の軌跡`;
             const condEl = document.getElementById('lightbox-condition');
             if (conditionText && conditionText.trim() !== '') {
                 condEl.innerText = `🎯 達成条件: ${conditionText}`;
@@ -2672,77 +2965,125 @@
                 condEl.style.display = 'none';
             }
 
-            document.getElementById('lightbox-date').innerText = `解除日時: ${dateStr}`;
-            
-            const commentEl = document.getElementById('lightbox-comment');
-            if (commentText && commentText.trim() !== '') {
-                commentEl.innerText = `「${commentText}」`;
-                commentEl.style.display = 'block';
-                commentEl.style.color = 'var(--text-primary)';
-            } else {
-                commentEl.innerText = '（思い出コメントなし）';
-                commentEl.style.display = 'block';
-                commentEl.style.color = 'var(--text-secondary)';
-            }
-
-            const likesCountEl = document.getElementById('lightbox-likes-count');
-            const commentsCountEl = document.getElementById('lightbox-comments-count');
-            const commentsListEl = document.getElementById('lightbox-comments-list');
-            if (likesCountEl) likesCountEl.innerText = '0';
-            if (commentsCountEl) commentsCountEl.innerText = '0';
-            if (commentsListEl) commentsListEl.innerHTML = '<div style="color:var(--text-secondary); font-size:0.72rem;">読み込み中...</div>';
-
-            const delContainer = document.getElementById('lightbox-delete-container');
-            const delBtn = document.getElementById('lightbox-delete-post-btn');
-            if (delContainer) delContainer.style.display = 'none';
+            const timelineContainer = document.getElementById('lightbox-timeline-container');
+            if (!timelineContainer) return;
+            timelineContainer.innerHTML = '<div style="text-align:center; color:var(--text-secondary); font-size:0.78rem; padding:20px;">時系列データを読み込み中...</div>';
 
             openModal('photo-lightbox-modal');
 
+            const ownerUid = postOwnerUid || (currentUser ? currentUser.uid : null);
+            let timelineItems = [];
+
+            // 1. 自分のローカル履歴（logs）があれば取得
+            if (currentUser && ownerUid === currentUser.uid && trophyId !== null && userState[trophyId]) {
+                const localLogs = getTrophyLogs(userState, trophyId);
+                localLogs.forEach(l => {
+                    timelineItems.push({
+                        postId: null,
+                        type: l.type || 'unlock',
+                        date: l.date || '',
+                        photo: l.photo,
+                        comment: l.comment || '',
+                        likes: [],
+                        comments: []
+                    });
+                });
+            }
+
+            // 2. Firestoreのpostsから該当ユーザーの該当実績の全投稿（進捗＆解除）を取得して統合
             try {
-                let matchedPostDoc = null;
-                if (postId) {
-                    const doc = await withTimeout(db.collection('posts').doc(postId).get(), 2000);
-                    if (doc && doc.exists) matchedPostDoc = doc;
-                } else if (postOwnerUid) {
-                    const snap = await withTimeout(db.collection('posts').where('uid', '==', postOwnerUid).get(), 2000);
+                if (ownerUid) {
+                    const snap = await withTimeout(db.collection('posts').where('uid', '==', ownerUid).get(), 2500);
                     if (snap && !snap.empty) {
+                        const cloudItems = [];
                         snap.forEach(d => {
                             const p = d.data();
                             if (p.isProfileIndex || p.isCircleDoc) return;
-                            if ((trophyId !== null && String(p.trophyId) === String(trophyId)) || (p.trophyName === trophyName && p.date === dateStr)) {
-                                matchedPostDoc = d;
+                            const isSameTrophy = (trophyId !== null && String(p.trophyId) === String(trophyId)) || (p.trophyName === trophyName);
+                            if (isSameTrophy && p.photo) {
+                                cloudItems.push({
+                                    postId: d.id,
+                                    type: p.postType || 'unlock',
+                                    date: p.date || '',
+                                    photo: p.photo,
+                                    comment: p.comment || '',
+                                    likes: Array.isArray(p.likes) ? p.likes : [],
+                                    comments: Array.isArray(p.comments) ? p.comments : []
+                                });
                             }
                         });
-                    }
-                }
-
-                if (matchedPostDoc) {
-                    const pData = matchedPostDoc.data();
-                    const likesArr = Array.isArray(pData.likes) ? pData.likes : [];
-                    const commentsArr = Array.isArray(pData.comments) ? pData.comments : [];
-
-                    if (likesCountEl) likesCountEl.innerText = String(likesArr.length);
-                    if (commentsCountEl) commentsCountEl.innerText = String(commentsArr.length);
-
-                    if (commentsListEl) {
-                        if (commentsArr.length === 0) {
-                            commentsListEl.innerHTML = '<div style="color:var(--text-secondary); font-size:0.72rem;">まだコメントはありません</div>';
-                        } else {
-                            commentsListEl.innerHTML = commentsArr.map(c => `<div class="comment-item"><b>${c.displayName || c.username || 'ユーザー'}:</b> ${c.text}</div>`).join('');
+                        if (cloudItems.length > 0) {
+                            timelineItems = cloudItems;
                         }
                     }
-
-                    if (currentUser && postOwnerUid === currentUser.uid && delContainer && delBtn) {
-                        delContainer.style.display = 'block';
-                        delBtn.onclick = () => deletePostByPostId(matchedPostDoc.id, trophyId || pData.trophyId);
-                    }
-                } else {
-                    if (commentsListEl) commentsListEl.innerHTML = '<div style="color:var(--text-secondary); font-size:0.72rem;">まだコメントはありません</div>';
                 }
-            } catch (e) {
-                if (commentsListEl) commentsListEl.innerHTML = '<div style="color:var(--text-secondary); font-size:0.72rem;">まだコメントはありません</div>';
+            } catch (e) {}
+
+            // フォールバック：万一データが空なら引数で渡された1枚を表示
+            if (timelineItems.length === 0 && mediaSrc) {
+                timelineItems.push({
+                    postId: postId,
+                    type: 'unlock',
+                    date: dateStr || '',
+                    photo: mediaSrc,
+                    comment: commentText || '',
+                    likes: [],
+                    comments: []
+                });
             }
+
+            // 日付順（古い順＝時系列順）にソート
+            timelineItems.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
+            timelineContainer.innerHTML = '';
+            let progressStepNum = 1;
+
+            timelineItems.forEach((item) => {
+                const isProg = (item.type === 'progress');
+                const badgeText = isProg ? `🗺️ 進捗 #${progressStepNum++}` : `🏆 実績解除！`;
+                const badgeClass = isProg ? 'progress' : 'unlocked';
+                const isVid = isVideoSource(item.photo);
+
+                const mediaHTML = isVid
+                    ? `<video src="${item.photo}" style="width:100%; max-height:260px; object-fit:cover; border-radius:8px; margin-bottom:8px; background:#000;" controls playsinline loop></video>`
+                    : `<img src="${item.photo}" style="width:100%; max-height:260px; object-fit:cover; border-radius:8px; margin-bottom:8px;" alt="Timeline Media">`;
+
+                const commentHTML = item.comment && item.comment.trim() !== ''
+                    ? `<div style="font-size:0.8rem; color:var(--text-primary); background:var(--surface-card); padding:8px 10px; border-radius:6px; margin-bottom:8px; line-height:1.4; word-break:break-word;">「${item.comment}」</div>`
+                    : '';
+
+                const commentsListHTML = (item.comments || []).length > 0
+                    ? `<div style="max-height:100px; overflow-y:auto; font-size:0.72rem; border-top:1px solid var(--border-color); padding-top:6px; margin-top:6px;">
+                        ${item.comments.map(c => `<div class="comment-item"><b>${c.displayName || c.username || 'ユーザー'}:</b> ${c.text}</div>`).join('')}
+                       </div>`
+                    : '';
+
+                const deleteBtnHTML = (currentUser && ownerUid === currentUser.uid && item.postId)
+                    ? `<div style="margin-top:8px; text-align:right;">
+                        <button class="delete-btn" style="padding:4px 10px; font-size:0.68rem;" onclick="deletePostByPostId('${item.postId}', '${trophyId || ''}')">🗑️ この記録を削除</button>
+                       </div>`
+                    : '';
+
+                const stepCard = document.createElement('div');
+                stepCard.className = 'timeline-step-card';
+                stepCard.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span class="timeline-step-badge ${badgeClass}">${badgeText}</span>
+                        <span style="font-size:0.65rem; color:var(--text-secondary);">${item.date}</span>
+                    </div>
+                    ${mediaHTML}
+                    ${commentHTML}
+                    <div style="display:flex; align-items:center; gap:14px; font-size:0.74rem; font-weight:700;">
+                        <span style="color:var(--accent-red);"><i class="fa-solid fa-heart"></i> いいね ${(item.likes || []).length}件</span>
+                        <span style="color:var(--text-secondary);"><i class="fa-solid fa-comment"></i> コメント ${(item.comments || []).length}件</span>
+                    </div>
+                    ${commentsListHTML}
+                    ${deleteBtnHTML}
+                `;
+                timelineContainer.appendChild(stepCard);
+            });
         }
+
 
         function openUnlockedManageModal() {
             const listContainer = document.getElementById('unlocked-manage-list-container');
@@ -3358,18 +3699,15 @@
             const m = document.getElementById(id);
             if (m) m.classList.add('active');
         }
+                
         function closeModal(id) {
             const m = document.getElementById(id);
-            if (m) m.classList.remove('active');
-            if (id === 'photo-lightbox-modal') {
-                const vidEl = document.getElementById('lightbox-video');
-                if (vidEl) vidEl.pause();
-            }
-            if (id === 'unlock-modal') {
-                const vidEl = document.getElementById('video-preview');
-                if (vidEl) vidEl.pause();
+            if (m) {
+                m.classList.remove('active');
+                m.querySelectorAll('video').forEach(v => v.pause());
             }
         }
+
 
         function showNotification(title, subtitle = 'Trophy Unlocked') {
             const notif = document.getElementById('notification');
